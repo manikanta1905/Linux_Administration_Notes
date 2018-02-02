@@ -1,0 +1,103 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-01-16T10:49:23-05:00
+
+====== Replica Server ======
+Created Tuesday 16 January 2018
+
+ldap.ipa.example.com = primary ipa server
+ldap2.ipa.example.com = replica / failover server
+
+To set up a replica server, first configure the server just like any other client:
+[root@ldap2 ~]#''ipa-client-install --domain=example.com --realm=IPA.EXAMPLE.COM --principal admin --password=changeme --mkhomedir --hostname=minimal.example.com'' 
+
+Add the replica server the **ipaservers** on the primary ipa server
+'''
+[root@ldap ~]# ipa hostgroup-add-member ipaservers --hosts ldap2.ipa.example.com
+  Host-group: ipaservers
+  Description: IPA server hosts
+  Member hosts: ldap.ipa.example.com, ldap2.ipa.example.com
+-------------------------
+Number of members added 1
+-------------------------
+
+
+[root@ldap ~]# ipa host-find ldap2 --all
+--------------
+1 host matched
+--------------
+  dn: fqdn=ldap2.ipa.example.com,cn=computers,cn=accounts,dc=ipa,dc=example,dc=com
+  Host name: ldap2.ipa.example.com
+  Principal name: host/ldap2.ipa.example.com@IPA.EXAMPLE.COM
+  Principal alias: host/ldap2.ipa.example.com@IPA.EXAMPLE.COM
+  SSH public key: ssh-rsa
+                  AAAAB3NzaC1yc2EAAAADAQABAAABAQC0EHLw7bbcF8hWcqSBwodAUQ8cY9QQpTEb5U4540tXEMJ8ZGIvxqj5AKqOkfZXnUnRKWMcX7hsHmIugi/hDDHhtqNMgEyWZW1BweE4wffPgBwkuTcqaFEtFeEIrG/34VAJL+/UEdua0VFgrHustTX6Lnv0bSVSj8m1vKzEJW+gJm4/p1nmEZQsxPRd90Qw1SenechUFCdBmcIGBjFHgIKrKkYp629EtcsGtvszltjV/enh374ZCcymY8uv9SZyhrWkY2ROaF90xEnnyAAH7IxgOb5SgV7IlEMTKDYcnHsuukQdgUGfpFXYgtcam9/oWJtpJNSijAd+NOt43VqAWUqr,
+                  ecdsa-sha2-nistp256
+                  AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBIGUKvBb4seUg8s4HNLVhZjBHvpeJaEYe9d812oZpkU9SKZDzv4FFOSiycmBTaALaOynPzeGvM2ZWWvq++e/l0s=,
+                  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKrbsmbY1m2MgtE6rGow/NnhWDiPsEqCm+oHdWbMDhGA
+  SSH public key fingerprint: SHA256:9pvp1csqIVTwn9ESQcSQr8TiUKGe9g+9KFx4QNIXlpk (ssh-rsa),
+                              SHA256:69uyHFbzaaU+iX3ZV5J1az+qfSBOG5RV5j4Uk5UNs0o (ecdsa-sha2-nistp256),
+                              SHA256:MynWZMk/hDYH5k0KCh3jAnkNSgHUhb4VB+EmZ0Gb2io (ssh-ed25519)
+  Requires pre-authentication: True
+  Trusted for delegation: False
+  Trusted to authenticate as user: False
+  
+'''
+		 __Member of host-groups: ipaservers__
+''  Managed by: ldap2.ipa.example.com''
+''  Managing: ldap2.ipa.example.com''
+''  cn: ldap2.ipa.example.com''
+''  enrolledby_user: admin''
+''  ipauniqueid: 1c42390c-fad7-11e7-9163-00155d647d19''
+''  krbextradata: AALaIl5aaG9zdC9sZGFwMi5pcGEuY29ydmlkdGVjLmNvbUBJUEEuQ09SVklEVEVDLkNPTQA=''
+''  krblastpwdchange: 20180116160546Z''
+''  krbpwdpolicyreference: cn=Default Host Password Policy,cn=computers,cn=accounts,dc=ipa,dc=example,dc=com''
+''  objectclass: ipaobject, nshost, ipahost, pkiuser, ipaservice, krbprincipalaux, krbprincipal, ieee802device,''
+''               ipasshhost, top, ipaSshGroupOfPubKeys''
+''  serverhostname: ldap2''
+''----------------------------''
+''Number of entries returned 1''
+''----------------------------''
+
+Configure the firewall on the replica server to match that of the ipa servers configuration
+'''
+firewall-cmd --permanent --add-service={http,https,ldap,ldaps,kerberos,dns,ntp}
+firewall-cmd --reload
+'''
+
+
+Finally, run the **ipa-replica-install** command on the replica server.
+''[root@ldap2 ~]# ipa-replica-install''
+
+Finally, you can test that replication was successful by creating a user on the primary, shutting down the primary, and viewing the same user on the secondary replica server.
+[root@ldap ~]# kinit admin
+[root@ldap ~]# ipa user-add mmeeseeks
+[root@ldap2 ~]# kinit admin
+[root@ldap2 ~]# ipa user-find mmeeseeks
+'''
+--------------
+1 user matched
+--------------
+  User login: mmeeseeks
+  First name: mr
+  Last name: meeseeks
+  Home directory: /home/mmeeseeks
+  Login shell: /bin/sh
+  Principal name: mmeeseeks@IPA.CORVIDTEC.COM
+  Principal alias: mmeeseeks@IPA.CORVIDTEC.COM
+  Email address: mmeeseeks@ipa.corvidtec.com
+  UID: 36600014
+  GID: 36600014
+  Account disabled: False
+----------------------------
+Number of entries returned 1
+----------------------------
+'''
+
+
+Even if the primary is shut down, the secondary should continue serving
+[root@ldap ~]# shutdown now
+
+
+==== Configuring a replica server for failover ====
+In order for the replica server to also be a failover server, you must create SRV records just like the ones for the primary IPA server so clients can automatically find the replica server if the primary goes down.

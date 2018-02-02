@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-12-14T15:23:06-05:00
+
+====== docker ======
+Created Thursday 14 December 2017
+
+==== Troubleshooting ====
+
+== Removal In Progress ==
+systemctl stop docker
+rm -rf [[/var/lib/docker/containers/$CONTAINER_ID]]
+systemctl start docker

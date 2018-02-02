@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-12-12T17:01:54-05:00
+
+====== Custom SNMP Checks ======
+Created Tuesday 12 December 2017
+
+Custom SNMP checks are written in python and reside in **/omd/sites/$SITE/local/share/check_mk/checks**
+

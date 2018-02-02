@@ -1,0 +1,214 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-02-01T11:05:26-05:00
+
+====== my_ansible ======
+Created Thursday 01 February 2018
+
+== hello world ==
+First create an inventory file named **hosts** with the following contents
+
+'''
+[test]
+google.com
+reddit.com
+stackoverflow.com
+
+[prod]
+duckduckgo.com
+gmail.com
+serverfault.com
+'''
+
+
+Next, run the following command to ping only the prod systems.
+''$ for host in $(grep -Pzo '(?<=\[prod\]\n)([a-zA-Z0-9\-\.\n]+)' hosts); do ping -c 2 $host; done''
+
+'''
+PING duckduckgo.com (23.21.193.184) 56(84) bytes of data.
+64 bytes from ec2-23-21-193-184.compute-1.amazonaws.com (23.21.193.184): icmp_seq=1 ttl=42 time=31.6 ms
+64 bytes from ec2-23-21-193-184.compute-1.amazonaws.com (23.21.193.184): icmp_seq=2 ttl=42 time=31.4 ms
+
+--- duckduckgo.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 31.491/31.583/31.675/0.092 ms
+PING gmail.com (216.58.217.69) 56(84) bytes of data.
+64 bytes from iad23s41-in-f69.1e100.net (216.58.217.69): icmp_seq=1 ttl=53 time=18.0 ms
+64 bytes from iad23s41-in-f69.1e100.net (216.58.217.69): icmp_seq=2 ttl=53 time=18.3 ms
+
+--- gmail.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 18.030/18.210/18.391/0.225 ms
+PING serverfault.com (151.101.65.69) 56(84) bytes of data.
+64 bytes from 151.101.65.69 (151.101.65.69): icmp_seq=1 ttl=57 time=11.3 ms
+64 bytes from 151.101.65.69 (151.101.65.69): icmp_seq=2 ttl=57 time=11.3 ms
+
+--- serverfault.com ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+rtt min/avg/max/mdev = 11.326/11.340/11.355/0.107 ms
+'''
+
+
+
+Note, the fancy grep should return only the prod systems.
+'''
+$ grep -Pzo '(?<=\[prod\]\n)([a-zA-Z0-9\.\-\n]+)' hosts
+duckduckgo.com
+gmail.com
+serverfault.com
+'''
+
+
+So that is cool, but we really should make this thing easier to use. So we will make an alias. In your **.bash_profile** source a file named **.my_ansible**.
+**~/.bash_profile**
+'''
+if [ -f ~/.my_ansible ]; then
+    source ~/.my_ansible
+fi
+'''
+
+**~/.my_ansible**
+'''
+ping_hosts () {
+# Ping each host to see if they are up
+  if [ ! -e hosts ]; then echo "Error: cannot find hosts file"; fi
+  for host in $(grep -Pzo "(?<=\[$1\]\n)([a-zA-Z0-9\-\.\n]+)" hosts); do
+    ping -c 2 $host;
+  done
+}
+
+ssh_hosts () {
+# SSH into hosts one by one. Not particullary useful unless for testing.
+  if [ ! -e hosts ]; then echo "Error: cannot find hosts file"; fi
+  for host in $(grep -Pzo "(?<=\[$1\]\n)([a-zA-Z0-9\-\.\n]+)" hosts); do
+    echo -e "SSH to host $host"
+    ssh $host;
+  done
+}
+
+ssh_command () {
+# SSH into each host and run a command one by one.
+  if [ ! -e hosts ]; then echo "Error: cannot find hosts file"; fi
+  for host in $(grep -Pzo "(?<=\[$1\]\n)([a-zA-Z0-9\-\.\n]+)" hosts); do
+    echo -e "SSH to host $host"
+    ssh $host $2;
+  done
+}
+'''
+
+
+
+Make sure to source your **.bash_profile**. 
+''$ source ~/.bash_profile''
+
+And we are ready to try out a few things.
+
+==== Parsing the .ini file with python3 ====
+Using the previous hosts example:
+
+'''
+[test]
+google.com
+reddit.com
+stackoverflow.com
+
+[prod]
+duckduckgo.com
+gmail.com
+serverfault.com
+'''
+
+We can eliminate the need for our shoddy regular expressions, by using the [[https://docs.python.org/3/library/configparser.html|configparser]] python module.
+
+'''
+$ python3
+>>> import configparser
+>>> config = configparser.ConfigParser(allow_no_value=True)
+>>> config.read('hosts')
+['hosts']
+>>> config.sections()
+['test', 'prod']
+>>> hosts = [host for host in config['test']]
+>>> hosts
+['duckduckgo.com', 'gmail.com', 'serverfault.com']
+'''
+
+
+We can now write these hosts to a temporary text file to be used by BASH for executing shell commands
+'''
+>>> _hosts = open('/tmp/_hosts', 'w')
+>>> for host in hosts:
+...     _hosts.write(host + '\n')
+... 
+15
+10
+16
+>>> _hosts.close()
+$ cat /tmp/_hosts
+duckduckgo.com
+gmail.com
+serverfault.com
+'''
+
+
+'''
+$ for host in $(cat _hosts);
+> do
+>   ping -c 1 $host
+> done
+'''
+
+
+Now, an updated version would contain the following files. First run the parse_hosts.py3 file. This generates a temporary text file (/tmp/_hosts) of hosts which a command will be run against. Next, run a bash function like **ssh_command "df -h"** below.
+**~/parse_hosts.py3**
+'''
+#!/bin/python3
+
+from sys import argv
+import configparser
+
+section = argv[1]
+
+config = configparser.ConfigParser(allow_no_value=True)
+config.read('/tmp/hosts')
+
+hosts = [host for host in config[section]]
+with open('/tmp/_hosts', 'w') as _hosts:
+    for host in hosts:
+        _hosts.write(host + '\n')
+'''
+
+
+**~/.my_ansible**
+'''
+ping_hosts () {
+# Ping each host to see if they are up
+  if [ ! -e /tmp/_hosts ]; then echo "Error: cannot find /tmp/_hosts file"; fi
+  for host in $(cat /tmp/_hosts); do
+    ping -c 2 $host;
+  done
+}
+
+ssh_hosts () {
+# SSH into hosts one by one. Not particullary useful unless for testing.
+  if [ ! -e /tmp/_hosts ]; then echo "Error: cannot find /tmp/_hosts file"; fi
+  for host in $(cat /tmp/_hosts); do
+    echo -e "----------------------------"
+    echo -e "# SSH to host $host"
+    echo -e "----------------------------"
+    ssh $host;
+  done
+}
+
+ssh_command () {
+# SSH into each host and run a command one by one.
+  if [ ! -e /tmp/_hosts ]; then echo "Error: cannot find /tmp/_hosts file"; fi
+  for host in $(cat /tmp/_hosts); do
+    echo -e "----------------------------"
+    echo -e "# SSH to host $host"
+    echo -e "----------------------------"
+    ssh $host $1;
+  done
+}
+'''
+

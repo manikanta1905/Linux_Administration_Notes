@@ -1,0 +1,88 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T14:59:36-04:00
+
+====== Kickstart ======
+Created Friday 25 August 2017
+
+==== Script for configuring Kickstart ====
+Suppose you have a minimal kickstart file located in the same directory as this script. You can run this script to configure networking.
+
+'''
+#!/bin/bash
+
+cp workstation-ks.cfg ks.cfg
+chmod 644 ks.cfg
+
+echo "Static or Dynamic IP address?"
+select response in "static" "dynamic"; do
+    case $response in
+        static )
+	    echo -n "IP ADDRESS	:"
+	    read ip
+	    echo -n "HOSTNAME	:"
+            read hostname
+            sed -i "s:^network.*:network  --bootproto=static --gateway=$gateway --ip=$ip --netmask=255.255.0.0 --onboot=on --nameserver=$DNS1,$DNS2 --hostname=$hostname --activate:" ks.cfg
+            break;;
+	dynamic )
+	    echo -n "HOSTNAME	:"
+	    read hostname
+            sed -i "s:^network.*:network --bootproto=dhcp --hostname=$hostname --onboot=on --activate:" ks.cfg
+	    break;;
+    esac
+done
+'''
+
+
+
+=== Checking Kickstart Syntax / Linting ===
+Often times, you will be troubleshooting a misbehaving kickstart file. You can check that your kickstart file is syntactically correct by using the **ksvalidator** command line utility, which is part of the **pykickstart** package.
+'''
+$ yum install pykickstart -y
+$ ksvalidator kickstart_test.cfg
+'''
+
+
+If you get no output, it means your file is syntactically correct. Although it may still have issues with the settings themselves (partitioning information, user account information, etc.). If you do get output, it will tell you the line number where the error occurs.
+
+'''
+$ ksvalidator kickstart_test.cfg
+The following problem occurred on line 19 of the kickstart file:
+
+Unknown command: rebot
+'''
+
+
+=== Getting Interactive Input During %pre And %post Scripts ===
+http://hintshop.ludvig.co.nz/show/interactive-pre-post-install-scripts-redhat-kickstart/
+
+For example, to get the hostname during the %pre section
+
+'''
+%pre --erroronfail --interpreter=/usr/bin/bash
+
+# This is necessary for getting interactive input during KS process.
+exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
+chvt 6
+
+read -p "What is the hostname?" hostname
+hostnamectl set-hostname $hostname
+sleep 3
+
+# Then switch back to Anaconda on the first console
+chvt 1
+exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
+
+%end
+'''
+
+
+=== Performing the Installation ===
+At the install CentOS 7 screen, press tab and append the following to the kernel paramaters.
+
+=== FTP kickstart ===
+Pretend you are installing a brand new CentOS / RHEL machine. At the following select screen, highlight the "Install CentOS 7" option and then press TAB. Append the following to the kernel parameters and note that the URL is the same as it appears in a web browser. The process is the same if the kickstart file is served over http.
+
+ks=ftp://192.168.1.217/pub/anaconda-ks.cfg
+
+{{../../../..images/kickstart_ftp.PNG}}

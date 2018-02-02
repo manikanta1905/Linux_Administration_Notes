@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-30T16:00:32-04:00
+
+====== Security ======
+Created Monday 30 October 2017
+
+==== Generating self-signed X.509 Certificates with OpenSSL ====
+$ openssl req -x509 -newkey rsa:4096 -keyout myKey.pem -out cert.pem -days 365 -nodes
+$ openssl pkcs12 -export  -out keyStore.p12 -inkey myKey.pem -in cert.pem
+
+==== Changing a LUKs password ====
+To change the password, first add an additional password then delete the original password. 
+
+First find your LUKs encrypted partitions with the following command. Look for **crypto_LUKS** 
+# lsblk --fs
+
+To add an additional password, so you can unlock your partition with a choice of different passwords (you can do this with the encrypted partition mounted, if you wish):
+#cryptsetup luksAddKey /dev/sdc1
+Enter any LUKS passphrase: (enter an existing password for this partition)
+key slot 0 unlocked.
+Enter new passphrase for key slot: (enter the extra password)
+
+
+To delete an existing password (but don't delete the last one, your data will be lost forever, you will be warned if you try this), you need to know which slot the password is in. The first password goes in slot 0, any additional passwords go in slot 1, 2 etc. You can do this with the encrypted partition mounted, if you wish. So to delete the very first password you used, use:
+#cryptsetup luksKillSlot /dev/sdc1 0
+
+

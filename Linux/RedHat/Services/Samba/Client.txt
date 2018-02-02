@@ -1,0 +1,98 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-27T18:56:10-04:00
+
+====== Client ======
+Created Friday 27 October 2017
+
+==== Linux Client Installation ====
+$ yum install cifs-utils samba-client
+
+You should now be able to see the SMB/CIFS shares the samba server is exporting
+'''
+[root@client home]# smbclient -L //server.home -U user1
+Enter SAMBA\user1's password: 
+Domain=[SERVER] OS=[Windows 6.1] Server=[Samba 4.6.2]
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	print$          Disk      Printer Drivers
+	smb             Disk      Linux Samba Share
+	IPC$            IPC       IPC Service (Samba 4.6.2)
+	user1           Disk      Home Directories
+Domain=[SERVER] OS=[Windows 6.1] Server=[Samba 4.6.2]
+
+	Server               Comment
+	---------            -------
+
+	Workgroup            Master
+	---------            -------
+'''
+
+
+== Connecting to samba server from linux client ==
+You can connect manually using the **smbclient** command. This will drop you into an FTP like interactive shell with similar commands.
+'''
+[root@client ~]# smbclient //server.home/smb -U user1
+Enter SAMBA\user1's password: 
+Domain=[SERVER] OS=[Windows 6.1] Server=[Samba 4.6.2]
+smb: \> ls
+  .                                   D        0  Thu Sep 21 19:36:10 2017
+  ..                                 DR        0  Fri Sep 22 00:40:13 2017
+  file1                               N        0  Thu Sep 21 19:36:10 2017
+  file2                               N        0  Thu Sep 21 19:36:10 2017
+  file3                               N        0  Thu Sep 21 19:36:10 2017
+
+		39269648 blocks of size 1024. 33829756 blocks available
+smb: \> get file1
+getting file \file1 of size 0 as file1 (0.0 KiloBytes/sec) (average 0.0 KiloBytes/sec)
+smb: \> quit
+[root@client ~]# ls
+anaconda-ks.cfg  file1  original-ks.cfg
+'''
+
+
+== Mounting a samba share on a samba client ==
+For more information see **man mount.cifs**. 
+
+* Create the mount point
+	 ''[root@client ~]# mkdir /smbmnt''
+* Mount the share
+'''
+[root@client ~]# mount -t cifs -o username=user1 //server.home/smb /smbmnt
+Password for user1@//server.home/smb:  *****
+[root@client ~]# ls /smbmnt/
+file1  file2  file3
+'''
+* Verify the share was mounted
+'''
+[root@client ~]# df -hat cifs
+Filesystem         Size  Used Avail Use% Mounted on
+//server.home/smb   38G  5.2G   33G  14% /smbmnt
+'''
+
+
+== Mounting a samba share onto a samba client on boot using fstab ==
+* Create the mount point
+''[root@client ~]# mkdir /smbmnt''
+* Save the samba user's credentials into the file **/etc/samba/smbcreds** for samba authentication (readable only by root)
+'''
+[root@client ~]# vi /etc/samba/smbcreds
+username=user1
+password=user1
+'''
+
+'''
+[root@client ~]# chown root:root /etc/samba/smbcreds 
+[root@client ~]# chmod 400 /etc/samba/smbcreds
+'''
+ 
+'''
+[root@client ~]# ll /etc/samba/smbcreds 
+-r--------. 1 root root 30 Sep 23 16:15 /etc/samba/smbcreds
+'''
+
+* Add an entry in the [[/etc/fstab]] filesystem table
+''//server.home/smb       /smbmnt                         cifs    rw,_netdev,credentials=/etc/samba/smbcreds     0 0''
+* mount the samba share
+''[root@client ~]# mount //server.home/smb''

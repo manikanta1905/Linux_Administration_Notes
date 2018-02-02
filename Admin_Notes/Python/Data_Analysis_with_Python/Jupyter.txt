@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-01T17:30:28-04:00
+
+====== Jupyter ======
+Created Sunday 01 October 2017
+
+==== Useful Commands ====
+
+* View list of magic and regular commands
+%quickref
+* View source code of function
+function??
+* list all magic commands
+%lsmagic
+* Copy source code from text editor into ipython
+%cpaste
+* List variables created during the interactive session
+%who
+* Start a "fresh" session by clearing out the current namespace and history
+%reset in out
+* Get output of the n-th command
+_n
+  Get the input of the n-th command
+_in
+* Execute commands using the system shell (BASH)
+In [19]: ! ping localhost
+* Enable matplotlib inline plotting (plot as you go)
+%matplotlib inline
+
+=== Automagic ===
+Automagic allows you to run "magic" commands without prefixing them with a % symbol. You can toggle automagic using the %automagic magic command. Useful if you plan to do things like **cd, ls, cp, run** or any other BASH like commands.
+
+'''
+In [78]: %automagic
+
+Automagic is OFF, % prefix IS needed for line magics.
+
+In [79]: %automagic
+
+Automagic is ON, % prefix IS NOT needed for line magics.
+'''
+
+
+'''
+In [80]: ls
+Applications/   Downloads/      Music/          VirtualBox VMs/ mnt/
+Desktop/        Library/        Pictures/       dwhelper/
+Documents/      Movies/         Public/         mbox
+'''

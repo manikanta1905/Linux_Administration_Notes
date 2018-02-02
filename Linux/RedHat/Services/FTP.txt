@@ -1,0 +1,43 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-26T13:10:05-04:00
+
+====== FTP ======
+Created Saturday 26 August 2017
+
+=== Basic Installation ===
+Setting up an FTP server is very easy.
+
+1) Install the very secure FTP daemon 
+''$ yum install vsftpd''
+
+2) Allow FTP traffic to the server
+''$ firewall-cmd --add-service=ftp''
+''$ firewall-cmd --add-service=ftp --permanent''
+
+__WARNING! THIS IS NOT SECURE!__
+3) Move any files to **/var/ftp/pub** directory you wish to access. Make sure they are readable by other
+''$ chmod o+r /var/ftp/pub/file.txt''
+
+4) You should be able to access the files in your browser
+ftp://<server_ip>
+
+
+=== Dual logging ===
+By default vsftpd logs to [[/var/log/xferlog]] using a standard syntax. But you can enable vsftpd to log to another file simultaneously with a different syntax which can be helpful sometimes. To enable dual log files, edit the generic [[/etc/vsftpd/vsftpd.conf]] file to include the following:
+# Log to /var/log/xferlog
+xferlog_enable=YES
+# Also log to [[/var/log/vsftp.log]]
+dual_log_enable=YES
+
+=== Enable Debug level logging ===
+Start with the generic **/var/vsftpd/vsftpd.conf** config file. Make changes below. Note, debug level logging seems compatible with Dual logging.
+# Log all FTP traffic
+log_ftp_protocol=YES
+# This will need to be disabled for logging all ftp traffic
+xferlog_std_format=NO
+
+=== Resources ===
+https://help.ubuntu.com/community/vsftpd
+
+

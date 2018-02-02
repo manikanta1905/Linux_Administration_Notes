@@ -1,0 +1,70 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-26T16:20:42-04:00
+
+====== Client ======
+Created Thursday 26 October 2017
+
+==== Overview ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/linux_domain_identity_authentication_and_policy_guide/idm-domain
+IdM clients are machines configured to operate within the IdM domain. They interact with the IdM servers to access domain resources. For example, they belong to the Kerberos domains configured on the servers, receive certificates and tickets issued by the servers, and use other centralized services for authentication and authorization.
+An IdM client does not require dedicated client software to interact as a part of the domain. It only requires proper system configuration of certain services and libraries, such as Kerberos or DNS. This configuration directs the client machine to use IdM services.
+
+{{.\pasted_image.png}}
+
+== System Security Services Daemon (SSSD) ==
+
+"The System Security Services Daemon (SSSD) is a client-side application for caching credentials. Using SSSD on client machines is recommended because it simplifies the required client configuration. SSSD also provides additional features, for example:
+
+* Offline client authentication, ensured by caching credentials from centralized identity and authentication stores locally
+* Improved consistency of the authentication process, because it is not necessary to maintain both a central account and a local user account for offline authentication
+* Integration with other services, such as sudo
+* Host-based access control (HBAC) authorization
+
+With SSSD, the IdM administrators can define all identity configuration centrally in the IdM server. Caching enables the local system to continue normal authentication operations if the IdM server becomes unavailable or if the client becomes offline."
+
+== Certmonger ==
+The certmonger service monitors and renews the certificates on the client. It can request new certificates for the services on the system.
+
+
+==== Client Installation ====
+yum install -y ipa-client
+hostnamectl set-hostname minimal.example.com
+#echo $ip $hostname >> /etc/hosts
+echo $(ip a | grep -Po "(?<=inet )[0-9.]*" | grep -v "127.0.0.1") $(hostname) $(hostname -s) >> [[/etc/hosts]]
+
+# Note: You do not want to explicitly specify the --server directive, this disables any abilities for the client to failover to any ldap replicas in the event the primary ldap master is unavailable. As long as you have valid SRV records for LDAP in DNS, your IPA servers (primary and failover) should be automatically discovered.
+ipa-client-install --domain=example.com --realm=IPA.EXAMPLE.COM --principal admin --password=changeme --mkhomedir --hostname=minimal.example.com 
+
+== Troubleshooting ==
+
+'''
+Autodiscovery of servers for failover cannot work with this configuration.
+If you proceed with the installation, services will be configured to always access the discovered server for all operations and will not fail over to other servers in case of failure.
+'''
+
+Solution:
+Make sure you have valid SRV records for your ldap server. Don't pass the --server parameter during install.
+
+
+'''
+DNS domain 'ipa.corvidtec.com' is not configured for automatic KDC address lookup.
+KDC address will be set to fixed value.
+'''
+
+Solution:
+You need to add an SRV record for kerberos to point to your LDAP server where your Key Distribution Center is located. In other words, the following dig should return valid results
+'''
+# dig +short _kerberos._udp.ipa.example.com SRV
+0 0 88 ldap.ipa.example.com.
+'''
+
+''Joining realm failed: libcurl failed to execute the HTTP POST transaction, explaining:  Peer's Certificate has expired.''
+Solution:
+Try reinstalling the packages.
+$ yum remove ipa-client certmonger
+$ yum install ipa-client certmonger
+$ ipa-client --uninstall
+
+
+''Cannot find KDC for realm "IPA.CORVIDTEC.COM".''

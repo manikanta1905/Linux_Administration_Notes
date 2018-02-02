@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-25T16:27:23-04:00
+
+====== FreeIPA ======
+Created Wednesday 25 October 2017
+
+==== Useful Commands ====
+* getcert
+* ipa service-find
+* ipa user-add
+* ipa passwd $user
+* ipa user-find
+* ipa host-disable
+* ipa host-del
+
+
+==== Troubleshooting ====
+
+== IPA management tool ==
+ipa management command (available in freeipa-admintools package) and the FreeIPA API itself only maintains forward compatibility. Therefore, ipa command on FreeIPA 3.0.0 client will be able to control FreeIPA 4.0 but not vice versa. Additionally, client will be able to only run commands and parameters available in the older version. FreeIPA client of the same version as the server need to be used to leverage full FreeIPA management capability.
+
+Every FreeIPA client is built with given API version. When a management command is executed, client sends it's API version together with the command to the server. The server then compares the API version with it's own and if the client is compatible, it executes the command. If not, the command errors out:
+
+$ ipa user-find example
+ipa: ERROR: 2.65 client incompatible with 2.49 server at u'https://ipa.example.com/ipa/xml'
+
+
+

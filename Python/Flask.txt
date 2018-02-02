@@ -1,0 +1,390 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-04T16:04:00-04:00
+
+====== Flask ======
+Created Wednesday 04 October 2017
+
+==== Required Software ====
+You will need the following to code a Flask App
+* Atom IDE https://ide.atom.io/
+* Access to BASH (Cygwin if you are on Windows)
+* Python3
+
+==== Setting up a Flask Environment ====
+I will be demonstrating how to build a flask app by making a frontend for Ansible. First we must create the project's directory structure and install Flask.
+
+'''
+$ mkdir -p ~/code/Ansible_UI
+$ cd ~/code/Ansible_UI
+$ git init
+$ cat << EOF >> .git/info/exclude 
+> *~
+> venv
+> *.pyc
+> __pycache__
+> EOF
+$ python3 -m venv venv
+$ . venv/bin/activate
+$ pip install -U pip
+$ pip install Flask
+$ pip freeze > requirements.txt
+'''
+
+
+
+==== Hello Flask ====
+A minimum working Flask will have the following structure
+''   Ansible_UI''
+'''
+├── config.py
+├── myapp.py
+├── requirements.txt
+└── venv/
+'''
+
+
+'''
+$ touch myapp.py config.py 
+
+'''
+== myapp.py ==
+'''
+#!/usr/bin/env python
+from flask import Flask
+
+app = Flask(__name__)
+app.config.from_pyfile('config.py')
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+'''
+
+
+== config.py ==
+'''
+DEBUG = True
+
+'''
+== Running the App ==
+Run **myapp.py** using [[./myapp.py]] and then visit http://localhost:8080 in your web browser. You should be greeted with "Hello, World!"
+
+==== Separating Views from myapp.py ====
+Okay, this works and it is great, but in reality we are going to have many more views that just the root '/' and 'index'. Because of this, it would be easier for us to maintain if we gave the views their own separate file. Our codebase will end up looking as follows
+
+'''
+.
+├── config.py
+├── myapp.py*
+├── requirements.txt
+├── templates/
+│   ├── base.html
+│   └── index.html
+├── venv/
+└── views.py
+'''
+
+
+$ mkdir views.py
+
+== views.py ==
+'''
+from myapp import app
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return "Hello, World!"
+'''
+
+
+== myapp.py ==
+In order to use the views located in another file, we need to tell the main **app** object where they are located (I.E. we need to import them).
+
+'''
+#!/usr/bin/env python
+from flask import Flask
+
+app = Flask(__name__)
+app.config.from_pyfile('config.py')
+'''
+
+	  ''from views import *''
+
+''if __name__ == '__main__':''
+''    app.run(host='0.0.0.0', port=8080)''
+
+==== Creating A Base Template ====
+Now we are finally ready to start creating some HTML. We could start by creating a Navbar that will show up on every page. We can do this by creating a Base template. By default, Flask looks for HTML templates in a directory called **templates**. So we must create this directory. In the end, our codebase should look something like this:
+
+
+$ mkdir templates
+$ touch templates/{base.html,index.html}
+
+== index.html ==
+'''
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Index.html</h1>
+
+{% endblock %}
+'''
+
+
+== base.html ==
+We must inform the base template where to place content from our index.html template. This is acheived by using ''{% block content %}{% endblock %}''. This will cause everything in  block content of the index.html to be placed into the base.html template.
+
+The following HTML makes use of a bootstrap navbar from https://www.w3schools.com/bootstrap/bootstrap_navbar.asp . In order for us to be able to use bootstrap, we need to load bootstrap from a CDN. This is done using a **<link>** element. For more information on using bootstrap see https://getbootstrap.com/docs/3.3/getting-started/ .
+
+'''
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ansible UI</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Dashboard</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Jobs</a></li>
+        <li><a href="#">Inventories</a></li>
+        <li><a href="#">Playbooks</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
+        <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
+</body>
+</html>
+'''
+
+
+== views.py ==
+In order to view HTML templates we need to use the **flask.render_template** function built into flask.
+
+'''
+from myapp import app
+import flask
+
+@app.route('/')
+@app.route('/index')
+def index():
+    return flask.render_template('index.html')
+'''
+
+
+==== Creating A Login Page ====
+If we are going to use HTML forms with Flask, it will be easier if we use the python module **Flask-WTF**. More information can be found at https://flask-wtf.readthedocs.io/en/stable/ . After installing the Flask add-on, it would be a good idea to update our requirements.txt file.
+$ pip install Flask-WTF
+$ pip freeze > requirements.txt
+
+At the end we will have a codebase that looks like the following
+.
+├── config.py
+├── forms.py
+├── myapp.py
+├── requirements.txt
+├── static/
+│   └── css/
+│       └── login.css
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   └── login.html
+├── venv/
+└── views.py
+
+
+
+== forms.py ==
+Add the following to the forms.py module.
+
+'''
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField
+from wtforms.validators import DataRequired, InputRequired, Email, Length
+'''
+
+
+'''
+class LoginForm(FlaskForm):
+    email = StringField('email', validators=[InputRequired(), Email(), Length(max=40)])
+    password = PasswordField('password', validators=[InputRequired()])
+    remember = BooleanField('remember me')
+    submit = SubmitField('submit')
+'''
+
+
+== views.py ==
+We need to import our new form as well as create a view for the login page.
+
+	  ''from forms import InventoryForm, LoginForm''
+
+'''
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        return flask.redirect('/index')
+    return flask.render_template('login.html', form=form)
+'''
+
+
+== templates/login.html ==
+
+$ touch templates/login.html
+
+For the login.html page, we are simply going to use a modified predefined bootstrap signup widget. This can be found here http://getbootstrap.com/docs/4.0/examples/ . If you click on the example, and view source in your browser, you wil be able to extract the following code for the widget. Note the highlighted section of the HTML. This is because the Bootstrap Signup page requires a custom CSS style sheet which we must also include. By default Flask requires static files (CSS, JavaScript, Images) go into a special directory called **static**. This allows Flask to find them. We will need to copy the CSS from the view source link and include it in a file located at **static/css/login.css**.
+
+Also note that we have left out the **base.html** template, because at this point we do not want to include the navbar if the user has not authenticated yet.
+
+__NOTE: It is imperative that your <form> element use the method POST. Otherwise it will default to an HTTP GET request. This will make your password, username and other sensitive data sent via the form visible in the URL of your broswer! You do not want this! Make sure you ALWAYS USE POST METHOD WHEN SENDING SENSITIVE DATA!!!__
+
+
+'''
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ansible UI</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- Custom styles for this template -->
+  <link href=
+'''
+__"/static/css/login.css"__'' rel="stylesheet">''
+''</head>''
+
+''<body>''
+
+''<div class="container">''
+
+''   <form class="form-signin"'' __method="POST"__''>''
+''     <h2 class="form-signin-heading">Please sign in</h2>''
+''     <label for="inputEmail" class="sr-only">Email address</label>''
+''     <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>''
+''     <label for="inputPassword" class="sr-only">Password</label>''
+''     <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>''
+''     <div class="checkbox">''
+''       <label>''
+''         <input type="checkbox" value="remember-me"> Remember me''
+''       </label>''
+''     </div>''
+''     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>''
+''   </form>''
+
+'' </div> <!-- /container -->''
+''</body>''
+''</html>''
+
+Okay, this is great. Just one problem. This template does not use our newly created **LoginForm** at all! We need to include the relevant form fields using Jinja2 templating. This is actually very easy. All we need to do is replace the existing **<input>**, **<label>** and **<button>** elements and pass their attributes to our form objects like so.
+
+   '' <form class="form-signin" method="POST">''
+	 __{{ form.hidden_tag() }}__
+''     <h2 class="form-signin-heading">Please sign in</h2>''
+	 __{{ form.email.label(class_="sr-only", for="inputEmail") }}__ __{{ form.email(class_="form-control", id="inputEmail", placeholder="Email address")}}__
+''   </br>''
+	 __{{ form.password.label(class_="sr-only", for="inputPassword") }}__ __{{ form.password(class_="form-control", id="inputPassword", placeholder="Password") }}__
+''     <div class="checkbox">''
+''       <label>''
+		 __{{ form.remember(type="checkbox", value="remember-me") }}__'' Remember me''
+''       </label>''
+''     </div>''
+			 __{{ form.submit(class_="btn btn-lg btn-primary btn-block", value="Sign in") }}__
+''   </form>''
+
+== static/css/login.css ==
+$ mkdir -p static/css/
+$ touch static/css/login.css
+
+Place the contents of this URL http://getbootstrap.com/docs/4.0/examples/signin/signin.css into this file. That is it. You can change these values if you want to get a different style.
+
+'''
+body {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #eee;
+}
+
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+'''
+
+
+==== Custom 404 Page ====
+
+== views.py ==
+'''
+@app.errorhandler(404)
+def page_not_found(error):
+    return flask.render_template("404.html"), 404
+'''
+
+
+== templates/404.html ==
+$ touch templates/404.html
+'''
+
+<div align='center'>
+    <h1>404</h1>
+    <h3>Page Not Found</h3>
+</div>
+'''
+
+
+==== Creating User Database with Flask-SqlAlchemy ====
+Now that we have a log in page, we will need to have a database to store usernames, password hashes and email addresses so users can be created and log in. We will also need a database to store ansible related information, such as number of hosts, number of hostgroups, inventory files, playbooks, errors that get logged, etcetera. For the database we will be using Flask-SqlAlchemy. Documentation can be found at http://flask-sqlalchemy.pocoo.org/2.3/ . Flask-SqlAlchemy adds SqlAlchemy support into our Flask project. SqlAlchemy is a python package that allows us to interact with MySQL and SQLite databases using Python code instead of worrying about the actual SQL language itself.
+
+$ pip install Flask-sqlalchemy
+$ pip freeze > requirements.txt
+
+==== Completing the Login Process with Flask-Login ====

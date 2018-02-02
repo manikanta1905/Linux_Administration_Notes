@@ -1,0 +1,33 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-01-31T16:41:03-05:00
+
+====== Partitions ======
+Created Wednesday 31 January 2018
+
+==== General Hard Drive Information ====
+http://people.redhat.com/msnitzer/docs/io-limits.txt
+
+====== parted ======
+
+== Warning: The resulting partition is not properly aligned for best performance ==
+https://rainbow.chard.org/2013/01/30/how-to-align-partitions-for-best-performance-using-parted/
+https://blog.hqcodeshop.fi/archives/273-GNU-Parted-Solving-the-dreaded-The-resulting-partition-is-not-properly-aligned-for-best-performance.html
+
+Use percentages to get around alignment issues. For example
+
+	 ''$ sudo parted /dev/sdb''
+'''
+(parted) mkpart                                                           
+Partition name?  []? localdisk                                            
+File system type?  [ext2]? ext4                                           
+Start? 0%                                                                 
+End? 100%                                                                 
+(parted) align-check 
+alignment type(min/opt)  [optimal]/minimal?                               
+Partition number? 1                                                       
+1 aligned
+
+'''
+    
+

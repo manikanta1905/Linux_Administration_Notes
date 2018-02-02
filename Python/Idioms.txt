@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-27T20:46:39-04:00
+
+====== Idioms ======
+Created Wednesday 27 September 2017
+
+=== Reading Text from a file ===
+The following method explicitly closes the file when done.
+
+'''
+with open('data.txt', 'r') as myfile:
+    data=myfile.read().replace('\n', '')
+'''
+
+
+=== Getting User input for Scripts ===
+'''
+from sys import argv
+
+command = argv
+
+def print_usage():
+	print("""
+Synopsis:
+	The ceaser cipher is a simple cipher for encrypting and decrypting messages.
+
+Usage:
+	cipher --encrypt|-e|--decrypt|-d --key|-k [--file|-f]
+	cipher --help|-h
+
+Options:
+	-f, --file
+		Using the --file option allows you to specify a text file 
+		that should be encrypted or decrypted. Otherwise, a message will be 
+		provided via the terminal.
+""")
+
+if __name__ == '__main__':
+	if '-h' in command or '--help' in command:
+		print_usage()
+	elif '-e' in command or '--encrypt' in command:
+		mode = 'encrypt'
+		key = command[2]
+	elif '-d' in command or '--decrypt' in command:
+		mode = 'decrypt'
+		key = command[2]
+	if '-f' in command or '--file' in command:
+		message = command[3]
+'''

@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-06T12:02:53-04:00
+
+====== Troubleshooting ======
+Created Wednesday 06 September 2017
+
+=== WARN: Check_MK Discovery ===
+{{../../../../../..images/cmk_unmonitored_service.PNG}}
+
+If you ever get a similar warning to the one above, you simply need to rediscover the host. You can do this by going to "WATO > Hosts" and then clicking on Discovery.
+
+{{../../../../../..images/cmk_host_discovery.PNG}}
+
+On the next page, just click start, and then once the discovery is finished, click finish. The warnings will not go away immediately, rather they will dissapear after their next scheduled check. However you can manually check them by going to the services page of the affected host and scheduling the check yourself.
+
+{{../../../../../..images/cmk_host_check.PNG}}

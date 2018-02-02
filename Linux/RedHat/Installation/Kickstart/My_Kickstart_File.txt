@@ -1,0 +1,154 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-05T21:35:25-04:00
+
+'''
+#######
+# SEE THE FOLLOWING URL FOR DOCUMENTATION PERTAINING TO THIS KICKSTART SCRIPT
+# https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Installation_Guide/chap-kickstart-installations.html
+#######
+
+#############################
+# General/System Information
+#############################
+#version=RHEL7
+# Use CDROM installation media
+cdrom
+# Use graphical install
+graphical
+# DO NOT run the Setup Agent on first boot. Also accept End User License Agreement
+firstboot --disable
+eula --agreed
+# Reboot system after successful installation
+reboot
+ignoredisk --only-use=sda
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+# System timezone
+timezone America/New_York --isUtc
+
+#####################
+# Network information
+#####################
+%include /tmp/network.ks
+
+###############
+# Users/Groups
+###############
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Root password is "changeme"
+rootpw --iscrypted $6$/aJy0YKsAPcmYTrL$GIdDaYfGLzb3vwU0LQq0PQQwZpKUtGT64lhEVT8eSXh8oPsNiB.5U6aZoNnGNlOng.iyBnzaRZMWPgcQt.toi0
+# Create unprivileged user with default password
+user --name=user --uid=1000 --gid=1000 --password=$6$fqdfuOg6HRaLFkcY$DnX2d3GooRdZjXImP99/y/uRDkpy.OmYhCqbpc2lG39A3tTzMps5VEuL55Ee2bCSlGvNhOx.Z0tu/0Zsk13z01 --iscrypted --gecos="unprivileged test user"
+
+#################
+# Disk/Partition
+#################
+# System bootloader configuration
+bootloader --append=" crashkernel=auto" --location=mbr --boot-drive=sda
+# Clear all existing partitions!!!
+clearpart --all --initlabel 
+# Disk partitioning information. Sizes are in MB. To encrypt the logical volume, simply
+# uncomment the relevant parameters on the next line.
+part pv.124 --fstype="lvmpv" --ondisk=sda --size=1 --grow #--encrypted --passphrase=changeme
+part /boot --fstype="xfs" --ondisk=sda --size=500
+volgroup centos --pesize=4096 pv.124
+# Note: XFS logical volumes can be extended but cannot be shrunk. If you need the 
+# option to shrink volumes as well as extened logical volumes, use EXT4 formatting.
+logvol / --fstype="xfs" --percent=35 --name=root --vgname=centos
+logvol /home --fstype="xfs" --percent=10 --name=home --vgname=centos
+logvol /var --fstype="xfs" --percent=20 --name=var --vgname=centos
+logvol swap --fstype="swap" --size=2048 --name=swap --vgname=centos
+
+###############
+# Repositories
+###############
+# The --install switch keeps the epel repository available in /etc/yum.repos.d, even after kickstart.
+# You can verify this with "yum repolist enabled" after the installation.
+repo --name=epel --install --baseurl=https://mirror.umd.edu/fedora/epel/7/x86_64/
+
+%packages
+# Minimal Install
+@core
+kexec-tools
+# Developer Tools
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+%end
+
+%pre --interpreter=/usr/bin/bash
+####################
+# Interactive Shell
+####################
+# This is necessary for getting interactive input during KS process.
+exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
+chvt 6
+
+echo -e "Setting networking information."
+echo -e "Would you like to set a Static or Dynamic IP Address?"
+select response in "static" "dynamic"; do
+	case $response in
+		static )
+			read -p "Enter Hostname        : " HOSTNAME
+			read -p "Enter IP Address      : " IPADDR
+			read -p "Enter NetMask         : " NETMASK
+			read -p "Enter Gateway         : " GATEWAY
+			read -p "Enter DNS1            : " DNS1
+			read -p "Enter DNS2            : " DNS2
+			read -p "ENTER DNS3            : " DNS3
+			echo
+			echo "network --bootproto=static --hostname=$HOSTNAME --gateway=$GATEWAY --ip=$IPADDR --netmask=$NETMASK --ipv6=auto --onboot=on --nameserver=$DNS1,$DNS2,$DNS3 --activate" > /tmp/network.ks
+			
+			sleep 1
+			break;;
+		dynamic )
+		    read -p "Enter Hostname        : " HOSTNAME
+			echo
+			echo "network --bootproto=dhcp --hostname=$HOSTNAME --ipv6=auto --onboot=on --activate" > /tmp/network.ks
+
+			sleep 1
+			break;;
+	esac
+done
+			
+chvt 1
+exec < /dev/tty1 > /dev/tty1 2> /dev/tty1
+%end
+
+%post
+################################
+# Workaround to Install Packages
+################################
+# Workaround to install Ansible. Ansible does not install in the packages section because the EPEL key
+# fails to import. I am not sure why this is so, since Ansible installs from the Extras Repo.
+rpm --import https://getfedora.org/static/352C64E5.txt
+yum install -y ansible git vim bash-completion
+
+##############################
+# Add SSH Keys to Workstation
+##############################
+mkdir -p ~user/.ssh
+chmod 700 ~user/.ssh
+
+echo "<YOUR_PUBLIC_KEY_HERE>" >> ~test/.ssh/authorized_keys
+chmod 600 ~user/.ssh/authorized_keys
+chown test:test -R ~user/.ssh
+
+rmmod pcspkr
+echo "# Do not load the 'pcspkr' module on boot.
+blacklist pcspkr" >> /etc/modprobe.d/nobeep.conf
+echo "# Do not allow other kernel modules to load the following modules
+install pcspkr /bin/false" >> /etc/modprobe.d/blacklist.conf
+%end
+
+#######
+# Bugs
+#######
+# This is only necessary on VMware Workstation Hypvisors, where LUKS encryption is also being used.
+#sed -i 's/rhgb //g' /etc/default/grub
+#grub2-mkconfig -o /boot/grub2/grub.cfg
+'''

@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-01-31T15:26:38-05:00
+
+====== Apache (httpd) ======
+Created Wednesday 31 January 2018
+
+==== CGI Scripts ====
+
+Note: cgi scripts are very insecure. Use descretion when implementing cgi scripts. Honestly, don't really do anything mentioned here.
+
+CGI scripts are located in [[/var/www/cgi-bin.]] They are triggered by submitting a POST request to a web server. First create the html web page, then create the bash script that should be triggered. (note the http server has IP of 10.1.10.102)
+
+**/var/www/html/server_stats.html**
+'''
+<form method=get action=http://10.1.10.102/cgi-bin/stats.sh>
+  <select name=q>
+    <option value="memory">memory</option>
+    <option value="cpu">cpu</option>
+    <option value="disk">disk</option>
+  <input type=submit value=submit>
+  <input type=reset value=reset>
+  </select>
+</form>
+'''
+
+
+
+You will need to set appropriate permissions so that the apache user can read and execute the following script. Also note, that if you do not get any output from the commands, it may be that selinux is blocking apache from running them, or apache may not have access to the necessary files (/proc/cpuinfo, etc.)
+$ chmod 755 /var/www/cgi-bin/stats.sh
+**/var/www/cgi-bin/stats.sh/stats.sh**
+'''
+#!/bin/bash
+
+echo "Content-type: text/html"
+echo
+argument=$(echo "$QUERY_STRING" | sed "s|q=||")
+echo '<html> <head> <title> CGI script </title> </head> <body>'
+
+if [[ $argument == "cpu" ]]; then
+  echo "<pre>$(lscpu)</pre>";
+elif [[ $argument == "memory" ]]; then
+  echo "<pre>$(free -m)</pre>"
+else
+  echo "<pre>$(df -h)</pre>"
+fi
+
+'''
+
+

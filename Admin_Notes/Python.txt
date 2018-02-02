@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-05T13:05:45-04:00
+
+====== Python ======
+Created Tuesday 05 September 2017
+
+=== Mini Web Server ===
+From terminal or powershell, run
+$ python -m http.server
+
+You should now be able to access all files in your current working directory from a browser. This is very useful for testing RedHat kickstart files or just sharing files and scripts.
+
+{{../../..images/python_mini_http_server.PNG}}
+
+=== Built in debugger (pdb) ===
+To debug a python script
+
+''$ python -m pdb myscript.py''
+
+Once in the debugger, here are some useful commands
+* h - get list of available commands
+* l - show current line in source code
+* n - execute next line in script
+* p - print the value of a python variable
+

@@ -1,0 +1,75 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-29T14:56:59-04:00
+
+====== firewalld ======
+Created Tuesday 29 August 2017
+
+=== Using firewall-cmd and firewalld ===
+
+In firewalld, Network Interfaces are grouped into "Zones". Each zone has its own rules for filtering network traffic. For example, you might have a public zone for untrusted traffic, an internal zone for highly secure traffic and so on. You can view zone information with the following commands:
+
+* Get just the names of available zones on the system
+'''
+$ firewall-cmd --get-zones
+block dmz drop external home internal public trusted work
+'''
+
+
+* Get detailed information and rules for each zone
+	 ''$ firewall-cmd --list-all-zones''
+'''
+block
+  target: %%REJECT%%
+  icmp-block-inversion: no
+  interfaces: 
+  sources: 
+  services: 
+  ports: 
+  protocols: 
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules:
+'''
+ 
+
+...output truncated...
+
+* Get only the zones which have active firewall rules along with which network interfaces are using the zones.
+'''
+$ firewall-cmd --get-active-zones
+public
+  interfaces: eth0 eth1
+'''
+
+
+* Get the default zone
+'''
+$ firewall-cmd --get-default-zone
+public
+'''
+
+
+
+=== Blocking A Spefic IP Address or A Range Of Addresses ===
+Suppose you want to block the ip address 192.168.1.58. The following will give a "No route to host" network error message to the offending IP address. If you wish to give no error message to the offending client, you can use the **drop** zone instead.
+'''
+$ firewall-cmd --add-source=192.168.1.58 --zone=block --permanent
+$ firewall-cmd --reload
+$ firewall-cmd --list-all --zone=block
+'''
+
+To block a range of IP addresses, simply specify the subnet using CIDR notation
+'''
+$ firewall-cmd --add-source=192.168.1.0/24 --zone=block --permanent
+$ firewall-cmd --reload
+$ firewall-cmd --list-all --zone=block
+'''
+
+
+
+
+=== Resources ===
+https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7

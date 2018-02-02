@@ -1,0 +1,109 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-11-28T09:32:13-05:00
+
+====== Storage ======
+Created Tuesday 28 November 2017
+
+==== Viewing Disk/Block Device information in the /sys filesystem ====
+https://www.kernel.org/doc/Documentation/block/queue-sysfs.txt
+file:///usr/share/doc/kernel-doc-3.10.0/Documentation/block/queue-sysfs.txt
+
+==== Physical vs Logical Block Size ====
+https://docs.oracle.com/cd/E19455-01/805-7228/fsfilesysappx-9/index.html
+"As a general rule, to increase efficiency, use a larger logical block size for file systems where most of the files are very large. Use a smaller logical block size for file systems where most of the files are very small."
+
+The logical block size is the size of the blocks that the UNIX kernel uses to read or write files. The logical block size is usually different from the physical block size (usually 512 bytes), which is the size of the smallest block that the disk controller can read or write.
+
+You can specify the logical block size of the file system. After the file system is created, you cannot change this parameter without rebuilding the file system. You can have file systems with different logical block sizes on the same disk.
+
+You can view physical / logical block size information by using the fdisk command
+'''
+# fdisk -l
+
+Disk /dev/sda: 42.9 GB, 42949672960 bytes, 83886080 sectors
+'''
+__Units = sectors of 1 * 512 = 512 bytes__
+__Sector size (logical/physical): 512 bytes / 512 bytes__
+__I/O size (minimum/optimal): 512 bytes / 512 bytes__
+''Disk label type: dos''
+''Disk identifier: 0x000e294c''
+
+''   Device Boot      Start         End      Blocks   Id  System''
+''/dev/sda1            2048        4095        1024   83  Linux''
+''/dev/sda2   *        4096     2101247     1048576   83  Linux''
+''/dev/sda3         2101248    83886079    40892416   8e  Linux LVM''
+
+Alternatively, you can get this inormation from cat'ing the following files in the **/sys** filesystem
+'''
+# cat /sys/block/sda/queue/logical_block_size 
+512
+# cat /sys/block/sda/queue/physical_block_size 
+512
+'''
+
+
+
+
+==== Linux Filesystems ====
+http://web.archive.org/web/20150505112327/http://www.ibm.com/developerworks/linux/library/l-linux-filesystem/
+
+Linux Filesystems explained in 3 minutes, thanks to this wonderful Unix Stack Exchange post (I'm quoting ver batim)
+https://unix.stackexchange.com/questions/4402/what-is-a-superblock-inode-dentry-and-a-file
+
+First and foremost, and I realize that it was not one of the terms from your question, you must understand metadata. Succinctly, and stolen from Wikipedia, metadata is data about data. That is to say that metadata contains information about a piece of data. For example, if I own a car then I have a set of information about the car but which is not part of the car itself. Information such as the registration number, make, model, year of manufacture, insurance information, and so on. All of that information is collectively referred to as the metadata. In Linux and UNIX file systems metadata exists at multiple levels of organization as you will see.
+
+The superblock is essentially file system metadata and defines the file system type, size, status, and information about other metadata structures (metadata of metadata). The superblock is very critical to the file system and therefore is stored in multiple redundant copies for each file system. The superblock is a very "high level" metadata structure for the file system. For example, if the superblock of a partition, /var, becomes corrupt then the file system in question (/var) cannot be mounted by the operating system. Commonly in this event, you need to run fsck which will automatically select an alternate, backup copy of the superblock and attempt to recover the file system. The backup copies themselves are stored in block groups spread through the file system with the first stored at a 1 block offset from the start of the partition. This is important in the event that a manual recovery is necessary. You may view information about superblock backups with the command dumpe2fs /dev/foo | grep -i superblock which is useful in the event of a manual recovery attempt. Let us suppose that the dumpe2fs command outputs the line Backup superblock at 163840, Group descriptors at 163841-163841. We can use this information, and additional knowledge about the file system structure, to attempt to use this superblock backup: /sbin/fsck.ext3 -b 163840 -B 1024 /dev/foo. Please note that I have assumed a block size of 1024 bytes for this example.
+
+An inode exists in, or on, a file system and represents metadata about a file. For clarity, all objects in a Linux or UNIX system are files; actual files, directories, devices, and so on. Please note that, among the metadata contained in an inode, there is no file name as humans think of it, this will be important later. An inode contains essentially information about ownership (user, group), access mode (read, write, execute permissions) and file type.
+
+A dentry is the glue that holds inodes and files together by relating inode numbers to file names. Dentries also play a role in directory caching which, ideally, keeps the most frequently used files on-hand for faster access. File system traversal is another aspect of the dentry as it maintains a relationship between directories and their files.
+
+A file, in addition to being what humans typically think of when presented with the word, is really just a block of logically related arbitrary data. Comparatively very dull considering all of the work done (above) to keep track of them.
+
+I fully realize that a few sentences do not provide a full explanation of any of these concepts so please feel free to ask for additional details when and where necessary.
+
+
+==== Viewing the Superblock ====
+
+== EXT ==
+To view the superblock of an EXT file system
+$ sudo yum install e2fsprogs
+$ sudo dumpe2fs -h [[/dev/sda1]]
+
+== XFS ==
+To view part of the superblock of a mounted XFS filesystem
+$ sudo yum install xfsprogs
+''$ sudo xfs_info /dev/sda1''
+'''
+meta-data=/dev/sda1              isize=256    agcount=4, agsize=32000 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=0        finobt=0 spinodes=0
+data     =                       bsize=4096   blocks=128000, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=0
+log      =internal               bsize=4096   blocks=853, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+'''
+
+From the manpage
+	   Here,  the  data section of the output indicates "bsize=4096", meaning the data block size for this filesystem is 4096 bytes.  This section also shows "sunit=32 swidth=128 blks", which means the stripe unit is 32*4096 bytes =
+	   128 kibibytes and the stripe width is 128*4096 bytes = 512 kibibytes.  A single stripe of this filesystem therefore consists of four stripe units (128 blocks / 32 blocks per unit).
+
+You can view the entire superblock of an unmounted filesystem by using the **xfs_db** command. The output of which can be found in **man xfs_db** (search for sb under types)
+http://xfs.org/docs/xfsdocs-xml-dev/XFS_Filesystem_Structure/tmp/en-US/html/Allocation_Groups.html#Superblocks
+'''
+$ sudo yum install xfsprogs
+$ sudo xfs_db /dev/sdc1
+xfs_db> sb
+xfs_db> p
+magicnum = 0x58465342
+blocksize = 4096
+dblocks = 1465130240
+rblocks = 0
+rextents = 0
+uuid = 9a2a4eea-4cf9-4c80-96c1-bb7bf0f31bc7
+'''
+...
+...

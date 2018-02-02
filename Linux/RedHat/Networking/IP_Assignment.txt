@@ -1,0 +1,84 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T15:23:35-04:00
+
+====== IP Assignment ======
+Created Friday 25 August 2017
+
+==== Finding The Network Scripts Config File ====
+To give your system an IP address, you must first know which physical interface you are assigning the IP address to. For this, we use the **ip a** command.
+
+'''
+$ ip address
+
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN 
+'''
+	'''
+	link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+	inet 127.0.0.1/8 scope host lo
+	   valid_lft forever preferred_lft forever
+	inet6 ::1/128 scope host 
+	   valid_lft forever preferred_lft forever
+	2: 
+	'''
+**eno16777736**'': <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000''
+	'''
+	link/ether 00:0c:29:19:d3:d9 brd ff:ff:ff:ff:ff:ff
+	inet 
+	'''
+**192.168.1.217**''/24 brd 192.168.1.255 scope global dynamic eno16777736''
+''   valid_lft 83359sec preferred_lft 83359sec''
+''inet6 fe80::20c:29ff:fe19:d3d9/64 scope link ''
+''   valid_lft forever preferred_lft forever''
+
+In this case, the interface in question is **eno16777736 **(I am using VMware virtual machine with a virtual NIC). Therefore we need to edit the ''/etc/sysconfig/network-scripts/ifcfg-''**eno16777736** config file for static or dynamic IP assignment.
+
+=== Find UUID for NIC ===
+Place the contents below into the ifcfg file depending on whether the IP is static or dynamic. The UUID value can be obtained by using the following command (You must be using NetworkManager daemon).
+''$ nmcli connection show eno16777736 | grep uuid''
+
+=== Dynamic IP Address ===
+NAME=eno16777736
+DEVICE=eno16777736
+TYPE=Ethernet
+ONBOOT=yes
+BOOTPROTO=dhcp
+UUID=dcd13b26-89fe-4724-9573-8ee5af6f2f41
+# Set this interface as the default route
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+# Consider the network interface in a failed state if IPv4 is dhclient fails
+IPV4_FAILURE_FATAL=no
+# Enable IPv6 networking on this interface (default is yes)
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+# Consider the network interface in a failed state if IPv6 is dhclient fails
+IPV6_FAILURE_FATAL=no
+
+=== Static IP Address ===
+NAME=eno16777736
+DEVICE=eno16777736
+TYPE=Ethernet
+ONBOOT=yes
+BOOTPROTO=none
+IPADDR=192.168.1.50
+#NETMASK=255.255.255.0              # Use netmask or prefix, not both                     
+PREFIX=24
+GATEWAY=192.168.1.1
+# Use google's DNS servers
+DNS1=8.8.8.8
+# Let router find DNS server for us
+DNS2=192.168.1.1
+DEFROUTE=yes
+
+=== After Making Changes ===
+You should be able to reload the new configuration file by issueing one of the following commands:
+* ''ifdown /etc/sysconfig/network-scripts/<interface_name> && ifup  /etc/sysconfig/network-scripts/<interface_name>''
+* ''systemctl restart NetworkManager''
+
+==== Resources ====
+/usr/share/doc/initscripts-*/sysconfig.txt

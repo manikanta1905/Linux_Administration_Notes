@@ -1,0 +1,139 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-14T20:21:02-04:00
+
+====== Playbooks ======
+Created Thursday 14 September 2017
+
+==== Overview ====
+Assume that we have 2 systems, a server named **server.home** and a client named **client.home**. 
+
+==== A First Playbook ====
+
+
+The following should be done on server.home
+* Edit the [[/etc/ansible/hosts]] file to add the necessary hosts
+
+'''
+[servers]
+server.home
+
+[clients]
+client.home
+'''
+
+
+* Create variables for the clients and servers group.
+
+'''
+[ansible@server ~]$ mkdir /etc/ansible/group_vars
+[ansible@server ~]$ cd /etc/ansible/group_vars
+[ansible@server ~]$ vi servers
+# Add the following lines
+ansible_user: ansible
+ansible_become: true
+'''
+
+'''
+$ vi cients
+# Add the following lines
+ansible_user: ansible
+ansible_become: true
+'''
+
+* Create the playbook
+'''
+$ vi ping.yml
+---
+- hosts: all
+  tasks:
+    - name: Testing connectivity
+      ping:
+'''
+
+
+* run the playbook
+
+
+==== Playbook snippets ====
+Below are snippets of simple ansible playbooks. They use YAML (YAML A'int Markup Langauge) and can be run with the following command using ansible
+''$ ansible-playbook /path/to/playbook.yml''
+
+=== Installing Packages ===
+You will need to tell ansible to become the root user in order to install packages. You can do this by including
+**become= true**
+
+'''
+--- 
+- hosts: all
+  tasks:
+    -  name: Make sure we can connect to server 
+       ping:
+    -  name: Install Git
+       yum: name=git state=present update_cache=yes
+       become: true
+'''
+
+However, if you are going to be installing several pacakges, you will most likely want to just apply the become directive to the entire playbook, for example
+
+'''
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Make sure that we can connect to the machine
+    ping:
+    - name: Install Git
+    yum: name=git state=present update_cache=yes
+    - name: Install Check_MK Monitoring Agent
+    yum: name=check-mk-agent state=present
+    - name: Install mySQL
+    yum: name=mysql-server-5.6 state=present
+'''
+
+Lastly, you can consolidate the installation section further using the following syntax
+'''
+
+--- 
+- hosts: all
+  become: true
+  tasks:
+    -  name: Install necessary packages
+       yum: name={{item}} state=present update_cache=yes
+       with_items:
+         - autofs
+         - nfs-utils
+         - check-mk-agent
+         - xinetd
+
+'''
+=== Starting Services ===
+'''
+---
+- hosts: 192.168.33.12
+  become: true
+  tasks:
+    -  name: Install Packages for monitoring and NFS/AutoFS
+       yum:  name={{items}} state=present updated_cache=yes
+       with_items:
+         - autofs
+         - nfs-utils
+         - check-mk-agent
+         - xinetd
+       systemd: name={{items}} state=started enabled=yes
+       with_items:
+         - nfs
+         - autofs
+         - xinetd
+
+'''
+==== Misc ====
+'''
+5:48:37 PM - klep: kernel_panic1:   anytime you reference a module you want to precede with a "-" unless you preface it with a - name: descriptor
+
+Wrong Syntax
+'''
+https://pastebin.com/G0HEhpFC
+
+Correct Syntax
+https://pastebin.com/tUZYe5gS

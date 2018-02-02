@@ -1,0 +1,52 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-26T17:47:52-04:00
+
+====== SELinux ======
+Created Saturday 26 August 2017
+
+==== Make Your Life Easier (setroubleshoot) ====
+Normally, SELinux policy violations are logged in [[/var/log/audit/audit.log]] as an "avc: denied ..." policy violation message. However, these messages are often times cryptic and useless. Wouldn't it be nice if the audit failure was in plain english, with the solution right there? That is where **setroubleshoot** comes in. In addtion to [[/var/log/audit/audit.log,]] plain english messages are stored in **/var/log/messages** along with the commands necessary to resolve any policy violations.
+
+$ yum install setroubleshoot setroubleshoot-server
+
+For example this message in /var/log/audit/audit.log:
+	 ''type=AVC msg=audit(1504374275.275:820): avc:  denied  { name_connect } for  pid=22103 comm="httpd" dest=5000 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:commplex_main_port_t:s0 tclass=tcp_socket''
+
+becomes this in [[/var/log/messages]]
+'''
+complete SELinux messages. run sealert -l 3c341b2e-2d50-4592-a888-d40dfca45f2a
+Sep  2 13:44:39 localhost python: SELinux is preventing httpd from name_connect access on the tcp_socket port 5000.
+
+*****  Plugin catchall_boolean (89.3 confidence) suggests   ******************
+
+If you want to allow httpd to can network connect
+Then you must tell SELinux about this by enabling the 'httpd_can_network_connect' boolean.
+
+Do
+setsebool -P httpd_can_network_connect 1
+
+*****  Plugin catchall (11.6 confidence) suggests   **************************
+'''
+
+
+==== SELinux Booleans eplained ====
+the **semanage** command which is part of the policycoreutils-python package has a command which explains what each SELinux boolean does.
+
+'''
+# yum install policycoreutils-python
+# semanage boolean -l
+SELinux boolean                State  Default Description
+
+privoxy_connect_any            (on   ,   on)  Allow privoxy to connect any
+smartmon_3ware                 (off  ,  off)  Allow smartmon to 3ware
+mpd_enable_homedirs            (off  ,  off)  Allow mpd to enable homedirs
+xdm_sysadm_login               (off  ,  off)  Allow xdm to sysadm login
+xen_use_nfs                    (off  ,  off)  Allow xen to use nfs
+mozilla_read_content           (off  ,  off)  Allow mozilla to read content
+ssh_chroot_rw_homedirs         (off  ,  off)  Allow ssh to chroot rw homedirs
+mount_anyfile                  (on   ,   on)  Allow mount to anyfile
+'''
+
+
+=== Config File ===

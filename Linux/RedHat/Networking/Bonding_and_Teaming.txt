@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-10-03T15:56:42-04:00
+
+====== Bonding and Teaming ======
+Created Tuesday 03 October 2017
+
+==== Overview ====
+**Link Aggregation** is the process of combining two or more NICs into one logical NIC. The networking benefits of this are increased bandwidth, ability to load balance across the NICs, and fault tolerence for the network. The NICs can be physical or virtual. There are two types of Link Aggregation, **Bonding **and** Teaming**. Teaming is new to RHEL 7 and offers more features than Bonding.
+

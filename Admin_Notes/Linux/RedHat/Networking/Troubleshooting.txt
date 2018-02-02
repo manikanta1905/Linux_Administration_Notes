@@ -1,0 +1,33 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T15:30:13-04:00
+
+====== Troubleshooting ======
+Created Friday 25 August 2017
+
+==== connect: Network is unreachable ====
+You need to fix your default route. Either reboot your system or run the ip route command.
+$ ip route add default 192.168.1.0/24 via dev eth0
+
+If you ever find yourself without network try the following:
+
+
+1) It could be that the interface is simply down, or the configuration file needs to be re-read. This can be accomplished with the following command.
+''$ ifdown /etc/sysconfig/network-scripts/<interface_name> && ifup /etc/sysconfig/network-scripts/<interface_name>''
+2) If the network goes down after every reboot, make sure that **ONBOOT=YES** is set in the network scripts file if you are using a Dynamically assigned IP address.
+
+==== No Network Interface During Install ====
+https://forums.fedoraforum.org/showthread.php?299864-CentOS-7-install-Disappointed
+
+If you are using an older motherboard with nVidia network interfaces (check with **lspci**) it is possible that you require the **kmod-forcedeth** kernel module, which is an older kernel module for RedHat to support your NIC. It used to come included with RHEL, but was taken out.
+
+Download from ELRepo:
+https://elrepo.org/tiki/tiki-index.php?page=kmod-forcedeth
+
+Install on the target system. You will have to get the RPM on the target system somehow, either through USB etcetera:
+$ yum install kmod-forcedeth-0.64-3.el7.elrepo.x86_64.rpm
+
+Load the kernel module
+$ modprobe kmod-forcedeth
+
+and you should see your nVidia NIC come up. More information here https://liquidat.wordpress.com/2007/03/04/the-forcedeth-story/

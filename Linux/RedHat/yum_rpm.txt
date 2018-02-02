@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T16:21:32-04:00
+
+====== yum rpm ======
+Created Friday 25 August 2017
+
+=== Yum Repo Configuration Files ===
+
+
+=== Viewing Current active and inactive Repositories ===

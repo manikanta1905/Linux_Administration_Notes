@@ -1,0 +1,48 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-28T14:07:20-04:00
+
+====== Kernel ======
+Created Monday 28 August 2017
+
+== Tuning kernel paramaters in real time with sysctl ==
+To see a list of kernel parameters that can be tuned at run time, use
+$ sysctl -a
+
+You will see output such as
+
+* vm.swappiness = 60
+
+Say you wish to change the swappiness of the system. You would run
+$ sysctl -w vm.swappiness = 100
+
+Such changes do not survive reboot (???).
+
+=== Kernel Documentation (kernel-doc) ===
+
+1) Get the documentation 
+$ yum install kernel-doc
+2) Find all the documenation
+$ rpm -ql kernel-doc
+3) view documentation
+$ lynx /usr/share/doc/kernel-doc-3.10.0/Documentation
+
+== Blacklisting kernel modules ==
+You can turn off that annoying BASH beep sound by removing the kernel module
+''$ rmmod pcspkr''
+
+If for some reason you need it back, just probe the kernel module again
+''$ modprobe pcspkr''
+
+To make blacklisted modules persistent across reboots, edit the following two files to include the following text:
+* [[/etc/modprobe.d/nobeep.conf]]
+'''
+# Do not load the 'pcspkr' module on boot.
+blacklist pcspkr
+'''
+
+* [[/etc/modprobe.d/blacklist.conf]]
+'''
+# Do not allow other kernel modules to load the following modules.
+install pcspkr /bin/false
+'''

@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-21T12:27:56-04:00
+
+====== Samba ======
+Created Thursday 21 September 2017
+
+==== Overview ====
+Samba allows for file and printer sharing with Windows and other Linux/Unix systems. It accomplishes this by using the Server Message Block (SMB3) protocol.  For example, if you have files on a Linux system that you need to share with a Windows system, you can accomplish this by placing the files on a samba server.
+
+From **man mount.cifs**
+
+'''
+The CIFS protocol is the successor to the SMB protocol and
+       is supported by most Windows servers and many other commercial servers
+       and Network Attached Storage appliances as well as by the popular Open
+       Source server Samba.
+'''
+
+
+==== Resources ====
+[[/etc/samba/smb.conf.example]]
+man smb.conf

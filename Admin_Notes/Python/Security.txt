@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-27T21:59:50-04:00
+
+====== Security ======
+Created Wednesday 27 September 2017
+
+=== Hashing ===
+The hashlib module which is part of the standard library can be used to compute hash values
+
+'''
+>>> import hashlib
+>>> dir(hashlib)
+['__all__', '__builtin_constructor_cache', '__builtins__', '__cached__', '__doc__', '__file__', '__get_builtin_constructor', '__loader__', '__name__', '__package__', '__spec__', '_hashlib', '_trans_36', '_trans_5C', 'algorithms_available', 'algorithms_guaranteed', 'md5', 'new', 'pbkdf2_hmac', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512']
+>>> hashlib.sha256(b'Text to be hashed').hexdigest()
+'9e466c484be11797cc1e1fffe06b6d9fd21cefa90de79c1ca9c3985adb0338c3'
+'''
+
+
+Note, that hashlib.sha256 expects input as a <class 'bytes'> type.
+
+==== Generating /etc/shadow SHA512 Hashed Passwords ====
+The following assumes Python2.7. For Python3+ just make sure to change the print statement. Useful for setting the **rootpw** directive.
+
+'''
+$ pip install passlib
+$ python -c "from passlib.hash import sha512_crypt; import getpass; print sha512_crypt.using(rounds=5000).hash(getpass.getpass())"
+'''

@@ -1,0 +1,106 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-14T23:58:44-04:00
+
+====== Inventory File ======
+Created Thursday 14 September 2017
+
+==== Overview ====
+Inventory files inform ansible which hosts to apply YAML playbooks to. Inventory files contain your systems you want to have ansible know about on your network (server, switch, etc.). When you want ansible to configure a system using a playbook, that system must be in an inventory file. You specify an inventory file to be used via the following command
+''$ ansible-playbook -i inventory playbook.yml''
+
+The default inventory file is located at **/etc/ansible/hosts,** and can contain hostnames or IPs.
+
+=== Basic Inventory File Contents ===
+A couple things to note:
+* It is ok to put systems in more than one group, for instance a server could be both a webserver and a dbserver. If you do, note that variables will come from all of the groups they are a member of.
+
+'''
+# Ungrouped individual hosts. If SSHD is listening on a nonstandard port, you can specify that as well
+blue.example.com
+192.168.100.1
+# Non standard SSHD port
+client1.example.com:2222
+
+# A collection of hosts belonging to the 'webservers' group
+[webservers]
+alpha.example.org
+beta.example.org
+192.168.1.100
+
+# If you have multiple hosts following a pattern you can specify
+# them like this:
+www[001:006].example.com
+'''
+
+
+
+==== Inventory Configuration Parameters ====
+For a full list of configuration options see
+https://docs.ansible.com/ansible/latest/intro_inventory.html#list-of-behavioral-inventory-parameters
+
+== Configuring SSH for Hosts ==
+'''
+# The following configures SSH for ansible and is equivalent to
+# ssh -i /path/to/id_rsa vagrant@192.168.33.10:2222
+192.168.33.10 ansible_user=vagrant ansible_port=2222 ansible_ssh_private_key_file=/path/to/id_rsa
+'''
+
+
+== Host Aliases For Inventory Files ==
+'''
+# Have ansible refer to the host as "test_host" but connect via the given IP address
+test_host ansible_host=192.168.33.10
+'''
+
+
+== Configure User Privilege Escalation ==
+The following config options are only applied if **become=true** is set in the playbook.yml file
+
+'''
+# Default is sudo
+ansible_become_method=[sudo|su]
+# User to switch to after ssh access to run playbook tasks. Default is root. Make sure the user has appropriate permisions
+ansible_become_user=ansible
+'''
+
+
+
+
+==== Host / Group Variables ====
+
+You can define arbitrary variables on a host by host bases. These values can be accessed by ansible.
+
+'''
+[webservers]
+prod_http http_port=80
+test_http http_port = 8080
+'''
+
+
+Or you can set a variable for all hosts in a host group
+'''
+
+[webservers]
+prod_http
+test_http
+
+[webservers:vars]
+ntp_server = ntp.example.com
+proxy = proxy.example.com
+ftp_server = ftp.example.com
+'''
+
+
+==== Default Groups ====
+Take directly from ansible documentation https://docs.ansible.com/ansible/latest/intro_inventory.html#default-groups
+
+There are two default groups: all and ungrouped. all contains every host. ungrouped contains all hosts that don’t have another group aside from all. Every host will always belong to at least 2 groups. Though all and ungrouped are always present, they can be implicit and not appear in group listings like group_names.
+
+=== Groups of Groups ===
+
+==== Resources ====
+* List of Inventory file configuration parameters.
+https://docs.ansible.com/ansible/latest/intro_inventory.html#list-of-behavioral-inventory-parameters
+
+

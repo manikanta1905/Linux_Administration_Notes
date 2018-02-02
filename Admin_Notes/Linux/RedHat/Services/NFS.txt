@@ -1,0 +1,95 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-28T20:21:07-04:00
+
+====== NFS ======
+Created Monday 28 August 2017
+
+=== Overview ===
+{{../../../../Admin_Notes/..images/NFS_overview.PNG}}
+
+=== Useful Commands ===
+Show which shares an NFS server is exporting (from a client)
+$ showmount -e <NFSserver>
+
+==== NFS Installation ====
+Assume we have an NFS server with hostname server.home and NFS client named client.home. We want to be able to mount home directories from the NFS server to the NFS client.
+
+=== NFS Server Setup ===
+Preliminary Set Up
+'''
+$ yum install nfs-utils
+$ systemctl enable rpcbind nfs-server
+$ systemctl start rpcbind nfs-server
+$ firewall-cmd --add-service=nfs --permanent; firewall-cmd --reload
+$ firewall-cmd --add-service=rpc-bind --permanent; firewall-cmd --reload
+$ firewall-cmd --add-service=mountd --permanent; firewall-cmd --reload
+$ setsebool -P nfs_export_all_ro=1 nfs_export_all_rw=1
+'''
+
+ ''$ mkdir /home/user1 /home/user2''
+
+Place the following into [[/etc/exports]]
+'''
+/home/user1	client.home(rw,sync,root_squash)
+/home/user2	client.home(rw,sync,root_squash)
+'''
+
+__NOTE: the root_squash option will prevent the root user on the client from accessing any NFS shares mounted from the the NFS server. This includes cd-ing and creating files and directories in the mounted NFS share on the client. This is the default and is secure. As root, you will still be able to mount and umount these shares. However, if you need root to access shares mounted from the server, use the no_root_squash option.__
+
+Now we need to tell the nfs-server to update the [[/var/lib/nfs/etab]] exports table with the new information in the [[/etc/exports]] file.
+''$ exportfs -avr''
+
+Make sure the [[/var/lib/nfs/etab]] file is correct
+'''
+$ cat /var/lib/nfs/etab
+$ exportfs -v
+'''
+
+Finally, you can unexport a share located in [[/etc/exports]] by either commenting it out and then rerunning **exportfs -avr** or by simply running the below command. Verify the export table is correct afterwards with **exportfs -v**.
+$ exportfs -u <share>
+
+=== NFS Client Setup ===
+'''
+$ yum install nfs-utils
+$ systemctl enable rpcbind
+$ systemctl start rpcbind
+'''
+
+You can see what NFS shares a server is exporting using
+$ showmount -e $NFS_Server
+
+Create the mount points
+''$ mkdir /home/user{1..2}''
+
+You can manually mount the NFS shares using the following
+''$ mount -v -t nfs -o rw server.home:/home/user1 /home/user1''
+
+Or, you can have them automatically mounted for you when the system boots up. To do this, place the following into the [[/etc/fstab]] file
+'''
+server.home:/home/user1		/home/user1	nfs	_netdev 	0	0
+server.home:/home/user2		/home/user2	nfs	_netdev 	0	0
+'''
+
+
+__NOTE: The _netdev option ensures filesystems aren't mounted until after the network has been started.__
+
+Finally, mount the file systems using either of the following commands
+* ''$ mount /home/user1; mount /home/user2''
+* ''$ mount -a''
+* ''$ mount -v -t nfs -o rw server.home:/home/user1 /home/user1''
+
+Any files created on the NFS client should also appear on the NFS server.
+
+== Troubleshooting NFS mounts that will not unmount ==
+If the NFS client can no longer connect to the NFS server, the connection will become stale and you may experience some of the following symptoms:
+* df hangs
+* any attempts to interact with the NFS share on the client (cd, ls, touch, etc.) cause bash to hang
+
+You can verify this is the problem by running **strace df** and observing where the system call stops. The solution is to use umount -f -l /mnt/myfolder, and that will fix the problem.
+
+'''
+-f – Force unmount (in case of an unreachable NFS system). (Requires kernel 2.1.116 or later.)
+-l – Lazy unmount. Detach the filesystem from the filesystem hierarchy now, and cleanup all references to the filesystem as soon as it is not busy anymore. (Requires kernel 2.4.11 or later.)
+'''
+

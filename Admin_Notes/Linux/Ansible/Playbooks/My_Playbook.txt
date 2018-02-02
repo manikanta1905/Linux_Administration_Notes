@@ -1,0 +1,67 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-15T19:38:08-04:00
+
+====== My Playbook ======
+Created Friday 15 September 2017
+
+A sample playbook that I have been working on
+
+'''
+---
+- hosts: all 
+  become: true
+  tasks:
+    - name: Enable firewalld
+      systemd: name=firewalld state=started enabled=yes
+
+    - name: Enable EPEL YUM repository
+      yum_repository:
+        name: epel
+        description: EPEL YUM repository
+        baseurl: https://download.fedoraproject.org/pub/epel/7/x86_64/
+    - rpm_key:
+        state: present
+        key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+
+    - name: Configure Ansible "Server"
+      yum: name=ansible state=present update_cache=yes
+    
+    - name: Configure NFS Server
+      yum: 
+        name: "{{ item }}"
+        state: present 
+        update_cache: yes
+      with_items:
+        # For nfs Server/Client support
+        - nfs-utils
+        # For Automounting NFS files
+        - autofs
+        - rpcbind
+    - firewalld:
+        service: nfs
+        permanent: true
+        state: enabled
+    - systemd: 
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - nfs-server
+        - rpcbind
+        - autofs
+
+    - name: Configure Check_MK Monitoring
+      # Monitoring using Check_MK
+      yum: 
+        name: "{{ item }}" 
+        state: present
+        update_cache: yes
+      with_items:
+        - check-mk-agent
+        - xinetd
+    - systemd: name=xinetd state=started enabled=yes
+  
+...
+'''
+

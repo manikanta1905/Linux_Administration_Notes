@@ -1,0 +1,21 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T15:16:42-04:00
+
+====== GNOME ======
+Created Friday 25 August 2017
+
+GNOME is the default desktop environment that comes with RHEL 7. If you don't have a GUI, you can easily install GNOME using the following commands:
+
+'''
+$ yum group install "X Window System" "GNOME"
+$ systemctl set-default graphical.target
+'''
+
+
+Then run one of the following commands to enter the graphical environment
+'''
+$ reboot
+$ systemctl isolate graphical.target
+$ systemctl start gdm.service
+'''

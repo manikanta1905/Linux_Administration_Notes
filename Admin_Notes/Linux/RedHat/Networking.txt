@@ -1,0 +1,117 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-08-25T15:23:28-04:00
+
+====== Networking ======
+Created Friday 25 August 2017
+
+== Network Device Naming Conventions ==
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/ch-consistent_network_device_naming
+
+==== nmcli overview ====
+Network Manager has several advantages. First, it automatically creates the network-scripts located at **/etc/sysconfig/network-scripts/** . Second, it automatically calls **dhclient** for devices that need a dynamic IP address.
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-network_configuration_using_sysconfig_files
+
+==== Layer 1/2 ====
+Use **ethtool** command to get layer 1 information about an ethernet port (speeds, is active, etc.). For example, we see that the link below is capable of 10Gigabit/second speeds, but is currently only running at a 1Gb/s (possible because the switch it is connected to only offers 1Gb/s).
+
+'''
+# ethtool eth0
+Settings for eth0:
+	Supported ports: [ TP ]
+	Supported link modes:   100baseT/Full 
+	                        1000baseT/Full 
+	                        
+'''
+__10000baseT/Full__ 
+''	Supported pause frame use: Symmetric''
+''	Supports auto-negotiation: Yes''
+''	Advertised link modes:  100baseT/Full ''
+''	                        1000baseT/Full ''
+							__10000baseT/Full__ 
+''	Advertised pause frame use: Symmetric''
+''	Advertised auto-negotiation: Yes''
+	__Speed: 1000Mb/s__
+''	Duplex: Full''
+''	Port: Twisted Pair''
+''	PHYAD: 0''
+''	Transceiver: external''
+''	Auto-negotiation: on''
+''	MDI-X: Unknown''
+''	Supports Wake-on: d''
+''	Wake-on: d''
+''	Current message level: 0x00000007 (7)''
+''			       drv probe link''
+''	Link detected: yes''
+
+If the link were down, ethtool would tell you it could not detect the link. This would indicate hardware problems (the ethernet cable is not plugged in, you are looking at the wrong network device).
+'''
+Settings for eth0:
+	Link detected: no
+'''
+
+
+
+You can also get a plethora of Layer 1/2 information about a particular network device by navigating to **/sys/class/net**
+''$ cd /sys/class/net/''
+To see all available interfaces
+''$ ls -l''
+To see more information about the **eth0** interface
+''$ cd eth0''
+Then for example, to see the MAC address of this device
+''$ cat address''
+To see if the device is actually up (1 means up)
+''$ cat carrier''
+You can even see statistics about the device. For example, to see how many packets this interface has received since it has been up.
+''$ cat statistics/rx_packets''
+Lastly, you can get all of this information in an easy to read format using a simple grep
+'''
+# pwd
+/sys/class/net/eth0
+ # grep "" * 2> /dev/null
+addr_assign_type:0
+address:a4:bf:01:27:1b:67
+addr_len:6
+broadcast:ff:ff:ff:ff:ff:ff
+carrier:1
+carrier_changes:2
+dev_id:0x0
+dev_port:0
+dormant:0
+duplex:full
+flags:0x1003
+'''
+
+Source -> https://stackoverflow.com/questions/808560/how-to-detect-the-physical-connected-state-of-a-network-cable-connector
+
+==== Layer 1/2/3 ====
+Layer 3 information is fairly straightforward and can be obtained by simply invoking the **ip address** command (or **ip a** for short). **NO-CARRIER** indicates that their is no ethernet cable plugged in, or there is no Wi-Fi connection (either way, something is wrong at the hardware level).
+
+'''
+$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp2s0f0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP qlen 1000
+    link/ether 00:25:90:71:02:9c brd ff:ff:ff:ff:ff:ff
+    inet 10.1.155.1/16 brd 10.1.255.255 scope global enp2s0f0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::225:90ff:fe71:29c/64 scope link 
+       valid_lft forever preferred_lft forever
+3: enp2s0f1: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN qlen 1000
+    link/ether 00:25:90:71:02:9d brd ff:ff:ff:ff:ff:ff
+5: virbr0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN qlen 1000
+    link/ether 52:54:00:c9:73:21 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.122.1/24 brd 192.168.122.255 scope global virbr0
+       valid_lft forever preferred_lft forever
+6: virbr0-nic: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast master virbr0 state DOWN qlen 1000
+    link/ether 52:54:00:c9:73:21 brd ff:ff:ff:ff:ff:ff
+'''
+
+
+==== Layer 4 ====
+After IP addresses, the OS directs traffic via the use of ports. These ports are defined in the **/etc/services** file
+$ head /etc/services
