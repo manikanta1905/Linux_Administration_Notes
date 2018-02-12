@@ -1,9 +1,0 @@
-Content-Type: text/x-zim-wiki
-Wiki-Format: zim 0.4
-Creation-Date: 2018-01-09T16:36:27-05:00
-
-====== XFS ======
-Created Tuesday 09 January 2018
-
-==== Overview ====
-http://xfs.org/docs/xfsdocs-xml-dev/XFS_Filesystem_Structure/tmp/en-US/html/index.html

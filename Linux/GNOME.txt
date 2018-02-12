@@ -19,3 +19,7 @@ $ reboot
 $ systemctl isolate graphical.target
 $ systemctl start gdm.service
 '''
+
+
+==== GNOME Tweak Tool ====
+Can be used to configure gnome settings.

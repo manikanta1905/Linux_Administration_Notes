@@ -7,10 +7,20 @@ Created Tuesday 28 November 2017
 https://help.ubuntu.com/community/Smartmontools
 https://www.thomas-krenn.com/en/wiki/SMART_tests_with_smartctl
 
+==== smartctl ====
 Install smartctl
 $ yum isntall smartmontools
 
 Check to see if a HDD supports SMART and it is enabled
 $ smartctl -i [[/dev/sda]]
 
+There are 3 types of smart tests available. short, conveyance, and long. To see how long each test will take 
+$ smartctl -c [[/dev/sda]]
+
+To run a short test
+$ smartctl -t short [[/dev/sda]]
+
+To view the results
+$ smartctl -H [[/dev/sda]]
+$ smartctl -a /dev/sda
 
