@@ -91,6 +91,7 @@ done
 
 
 ==== Using command line arguments ====
+http://mywiki.wooledge.org/BashFAQ/035
 * Consider the script below
 
 '''
@@ -123,6 +124,7 @@ The PID of this script is 9449
 
 
 ==== Comparisons / Test Conditions ====
+http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
 
 == Integer Tests ==
 * -eq (==)

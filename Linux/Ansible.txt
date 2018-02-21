@@ -5,6 +5,20 @@ Creation-Date: 2017-09-14T19:36:37-04:00
 ====== Ansible ======
 Created Thursday 14 September 2017
 
+==== Shell Commands through ansible ====
+
+Suppose you want to run lsblk on all systems in the group "workstation". You create a file named **hosts** with the following contents, then run the command that follows.
+
+'''
+[workstations]
+host1
+host2
+host3
+'''
+
+
+''$ ansible workstations -i hosts -m shell -a lsblk''
+
 ==== Hello World ====
 $ touch hosts play.yml
 

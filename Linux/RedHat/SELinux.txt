@@ -13,7 +13,9 @@ $ yum install setroubleshoot setroubleshoot-server
 For example this message in /var/log/audit/audit.log:
 	 ''type=AVC msg=audit(1504374275.275:820): avc:  denied  { name_connect } for  pid=22103 comm="httpd" dest=5000 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:commplex_main_port_t:s0 tclass=tcp_socket''
 
-becomes this in [[/var/log/messages]]
+
+
+becomes this
 '''
 complete SELinux messages. run sealert -l 3c341b2e-2d50-4592-a888-d40dfca45f2a
 Sep  2 13:44:39 localhost python: SELinux is preventing httpd from name_connect access on the tcp_socket port 5000.
@@ -29,6 +31,8 @@ setsebool -P httpd_can_network_connect 1
 *****  Plugin catchall (11.6 confidence) suggests   **************************
 '''
 
+Simply run the following command
+''$ sealert -a /var/log/audit/audit.log > /path/to/mylogfile.txt''
 
 ==== SELinux Booleans eplained ====
 the **semanage** command which is part of the policycoreutils-python package has a command which explains what each SELinux boolean does.

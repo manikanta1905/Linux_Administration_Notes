@@ -5,6 +5,14 @@ Creation-Date: 2017-08-28T14:07:20-04:00
 ====== Kernel ======
 Created Monday 28 August 2017
 
+==== Kernel Boot Parameters ====
+To see what parameters the kernel was booted with
+$ cat [[/proc/cmdline]]
+
+To permamently change the kernel boot parameters, edit the GRUB_CMDLINE_LINUX="" line in **/etc/default/grub**, then run 
+$ grub2-mkconfig -o /boot/grub2/grub.cfg
+
+
 == Tuning kernel paramaters in real time with sysctl ==
 To see a list of kernel parameters that can be tuned at run time, use
 $ sysctl -a

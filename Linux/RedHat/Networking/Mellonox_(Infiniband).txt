@@ -1,0 +1,65 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-02-12T13:35:46-05:00
+
+====== Mellonox (Infiniband) ======
+Created Monday 12 February 2018
+
+www.infinibandta.org
+
+View the network card info
+'''
+# lspci | grep -i mellanox
+03:00.0 Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
+'''
+
+
+View network device / NIC information
+'''
+# ibdev2netdev
+mlx4_0 port 1 ==> ib0 (Up)
+'''
+
+'''
+# ibv_devinfo 
+hca_id:	mlx4_0
+	transport:			InfiniBand (0)
+	fw_ver:				2.42.5000
+	node_guid:			f452:1403:0032:3510
+	sys_image_guid:			f452:1403:0032:3513
+	vendor_id:			0x02c9
+	vendor_part_id:			4099
+	hw_ver:				0x1
+	board_id:			MT_1060110018
+	phys_port_cnt:			1
+	Device ports:
+		port:	1
+			state:			PORT_ACTIVE (4)
+			max_mtu:		4096 (5)
+			active_mtu:		4096 (5)
+			sm_lid:			13
+			port_lid:		13
+			port_lmc:		0x00
+			link_layer:		InfiniBand
+'''
+
+
+==== Getting info from the Infiniband Fabric ====
+https://mymellanox.force.com/support/kAA500000004CYa?srPos=8&srKp=kaA&lang=en_US
+ibdiagnet -r
+ibdiagnet --get_cable_info 
+
+==== Troubleshooting RDMA ====
+https://mymellanox.force.com/support/kAA500000008P1J?srPos=0&srKp=kaA&lang=en_US
+
+Make sure the kernel modules are loaded
+# lsmod | grep -i mlx
+# dracut --add-drivers "mlx4_en mlx4_ib mlx5_ib" -f
+
+Check network device for dropped packets
+# ethtool -S ib0
+NIC statistics:
+	 rx0_packets: 1540473
+	 rx0_bytes: 910594577
+	 rx0_errors: 0
+	 rx0_dropped: 0

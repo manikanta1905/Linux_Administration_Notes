@@ -36,5 +36,5 @@ It is usually preferrable to use **iptables --list --numeric** options as the "-
 
 == Adding rules to iptables ==
 Suppose we want to allow ftp access, and we want the rule to be processed 2nd.
-$ iptables --insert INPUT 2 --destination 192.168.1.217 --protocol tcp --dport 21 --jump ACCEPT
+$ iptables --insert INPUT 2 --destination 192.168.1.217 --source 192.168.1.200 --protocol tcp --dport 21 --jump ACCEPT
 $ iptables-save

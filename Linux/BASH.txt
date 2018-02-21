@@ -5,6 +5,35 @@ Creation-Date: 2017-09-23T11:31:28-04:00
 ====== BASH ======
 Created Saturday 23 September 2017
 
+==== Viewing your TTY settings ====
+Your current tty
+'''
+# tty
+/dev/pts/0
+'''
+
+
+And the settings
+'''
+$ stty -a
+speed 38400 baud; rows 31; columns 238; line = 0;
+intr = ^C; quit = ^\; erase = ^?; kill = ^U; eof = ^D; eol = M-^?; eol2 = M-^?; swtch = M-^?; start = ^Q; stop = ^S; susp = ^Z; rprnt = ^R; werase = ^W; lnext = ^V; flush = ^O; min = 1; time = 0;
+-parenb -parodd -cmspar cs8 hupcl -cstopb cread -clocal -crtscts
+-ignbrk brkint -ignpar -parmrk -inpck -istrip -inlcr -igncr icrnl ixon -ixoff -iuclc ixany imaxbel iutf8
+opost -olcuc -ocrnl onlcr -onocr -onlret -ofill -ofdel nl0 cr0 tab0 bs0 vt0 ff0
+isig icanon iexten echo echoe echok -echonl -noflsh -xcase -tostop -echoprt echoctl echoke
+'''
+
+
+For example, if you wanted to make it so you could not see the output from your typing (because you had a script for entering passwords)
+'''
+stty -echo
+echo -n "Enter password: "
+read password
+stty echo
+'''
+
+
 == Bash Completion ==
 Install Bash Completion does not come preinstalled on CentOS/RHEL minumum systems. You must install it.
 $ yum install bash-completion

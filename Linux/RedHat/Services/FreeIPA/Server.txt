@@ -108,6 +108,14 @@ $ ipa passwd tpulliam
 #######################
 # Configure DNS (named)
 #######################
+
+== Authoritative (You don't have any DNS servers) ==
+
+
+
+== Forwarding (You already have DNS servers) ==
+In this case
+
 # In order for the IPA server's DNS to forward requests to our existing DNS servers, you need to make sure the following lines are present in /etc/named.conf (omit line numbers)
 
  14         forwarders {

@@ -5,7 +5,7 @@ Creation-Date: 2017-08-31T14:24:27-04:00
 ====== OMD Monitoring ======
 Created Thursday 31 August 2017
 
-=== Installation ===
+=== Server Installation ===
 Centos and Redhat will require the Epel repository. 
 	 ''$ yum install epel-release''
 
@@ -25,15 +25,33 @@ Need to allow httpd to run network scripts
 $ setsebool -P httpd_can_network_connect 1
 $ systemctl enable omd mariadb
 $ systemctl start omd mariadb
+# You shouldn't actually need to run the following commands.
 __$ firewall-cmd --permanent --add-service=mysql; firewall-cmd --reload; Is there a more secure way to do this?__
 $ mysql_secure_installation
 
 We must create a site instance. In many cases, there will only be a single omd site instance running.
-$ omd create monitoring
-$ omd start monitoring
+$ omd create prod
+$ omd start prod
 Navigate to **http://<servername>/monitoring** to access the omd site's Web UI. The default username is **omdadmin**, with password **omd**.
 
+Lastly, you can configure additional site settings by running 
+$ omd config prod
+Set the monitoring core to nagios, if it is not already.
+$ omd start prod
 More installation information can be found [[https://labs.consol.de/omd/#installation|here]].
+
+== Client Installation ==
+The server comes with the check_mk_agent client RPMs which can be copied over to any hosts you wish to monitor. Simply go to "WATO > Monitoring Agents > Linux Agents > check-mk-agent-xxxxx.RPM" 
+Save the link from this agent, then on the system you wish to install the agent to run
+$ curl -O -k $check-mk-agen-URL
+$ yum install -y check-mk-agent
+Make sure that tcp port 6556 is open on the agent, that the xinetd service is running, and that the [[/etc/xinetd.d/check_mk]] config file allows connections from the monitoring server. You can test that the agent is working on the client by running
+$ check_mk_agent
+
+You can test that the monitoring server can connect to the client by running
+$ nc client_hostname 6556
+
+Lastly, simply enter the client into the [[WebUI]] and save the results.
 
 === Resources ===
 https://labs.consol.de/omd/index.html
