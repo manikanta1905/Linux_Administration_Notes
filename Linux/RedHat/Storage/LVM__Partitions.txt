@@ -1,0 +1,62 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-02-26T22:05:17-05:00
+
+====== LVM  Partitions ======
+Created Monday 26 February 2018
+
+==== LVM Attributes ====
+
+When you run the show commands (pvs, vgs, lvs) you can see the attributes for the physical volume, volume group and logical volume respectively.
+The meaning of these attributes can be found in their corresponding man pages (man pvs, man vgs, man lvs). Search for attr.
+
+	   ''The pv_attr bits are:''
+''       1  (d)uplicate, (a)llocatable, (u)sed''
+''       2  e(x)ported''
+''       3  (m)issing''
+
+''[tpulliam@zephyr CentOS7_kickstart]$ sudo pvs''
+''  PV         VG  Fmt  Attr PSize   PFree ''
+''  /dev/sdb5  vg0 lvm2 a--  170.17g 34.02g''
+
+
+
+	   ''The vg_attr bits are:''
+''       1  Permissions: (w)riteable, (r)ead-only''
+''       2  Resi(z)eable''
+''       3  E(x)ported''
+''       4  (p)artial: one or more physical volumes belonging to the volume group are missing from the system''
+''       5  Allocation policy: (c)ontiguous, c(l)ing, (n)ormal, (a)nywhere''
+''       6  (c)lustered, (s)hared''
+
+'''
+[tpulliam@zephyr CentOS7_kickstart]$ sudo vgs
+  VG  #PV #LV #SN Attr   VSize   VFree 
+  vg0   1   6   0 wz--n- 170.17g 34.02g
+'''
+
+
+'''
+The lv_attr bits are:
+1 Volume type: (m)irrored, (M)irrored without initial sync, (o)rigin, (O)rigin with merging snapshot, (r)aid, (R)aid without initial sync, (s)napshot, merging (S)napshot, (p)vmove, (v)irtual, mirror or raid (i)mage, mirror or raid (I)mage out-of-sync, mirror (l)og device, under (c)onversion, thin (V)olume, (t)hin pool, (T)hin pool data, raid or thin pool m(e)tadata 
+2 Permissions: (w)riteable, (r)ead-only, (R)ead-only activation of non-read-only volume 
+3 Allocation policy: (a)nywhere, (c)ontiguous, (i)nherited, c(l)ing, (n)ormal This is capitalised if the volume is currently locked against allocation changes, for example during pvmove(8). 
+4 fixed (m)inor 
+5 State: (a)ctive, (s)uspended, (I)nvalid snapshot, invalid (S)uspended snapshot, snapshot (m)erge failed, suspended snapshot (M)erge failed, mapped (d)evice present without tables, mapped device present with (i)nactive table 
+6 device (o)pen
+7 Target type: (m)irror, (r)aid, (s)napshot, (t)hin, (u)nknown, (v)irtual. This groups logical volumes related to the same kernel target together. So, for example, mirror images, mirror logs as well as mirrors themselves appear as (m) if they use the original device-mapper mirror kernel driver; whereas the raid equivalents using the md raid kernel driver all appear as (r). Snapshots using the original device-mapper driver appear as (s); whereas snapshots of thin volumes using the new thin provisioning driver appear as (t).
+8 Newly-allocated data blocks are overwritten with blocks of (z)eroes before use. 
+9 (p)artial: One or more of the Physical Volumes this Logical Volume uses is missing from the system. 
+'''
+
+'''
+
+[tpulliam@zephyr CentOS7_kickstart]$ sudo lvs
+  LV     VG  Attr       LSize    Pool   Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  home   vg0 Vwi-aotz--  <14.98g pool00        49.83                                  
+  pool00 vg0 twi-aotz-- <129.98g               11.04  64.29                           
+  root   vg0 Vwi-aotz--   80.00g pool00        6.07                                   
+  swap   vg0 -wi-ao----   <6.15g                                                      
+  tmp    vg0 Vwi-aotz--   15.00g pool00        2.56                                   
+  var    vg0 Vwi-aotz--   20.00g pool00        8.21
+'''

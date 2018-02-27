@@ -5,6 +5,67 @@ Creation-Date: 2018-01-08T13:19:09-05:00
 ====== Linux ======
 Created Monday 08 January 2018
 
+==== Peripherals ====
+https://askubuntu.com/questions/688270/mouse-speed-too-fast
+You can find out information about what mouse and keyboard you are using by the following commands
+'''
+[tpulliam@zephyr ~]$ xinput --list --short
+⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
+⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
+⎜   ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=10	[slave  pointer  (2)]
+⎜   ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=11	[slave  pointer  (2)]
+⎜   ↳ Holtek USB Gaming Mouse                 	id=13	[slave  pointer  (2)]
+⎣ Virtual core keyboard                   	id=3	[master keyboard (2)]
+    ↳ Virtual core XTEST keyboard             	id=5	[slave  keyboard (3)]
+    ↳ Power Button                            	id=6	[slave  keyboard (3)]
+    ↳ Video Bus                               	id=7	[slave  keyboard (3)]
+    ↳ Power Button                            	id=8	[slave  keyboard (3)]
+    ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=9	[slave  keyboard (3)]
+    ↳ Holtek USB Gaming Mouse                 	id=12	[slave  keyboard (3)]
+    ↳ UVC Camera (046d:0825)                  	id=14	[slave  keyboard (3)]
+    ↳ Logitech Logitech USB Headset           	id=15	[slave  keyboard (3)]
+    ↳ Eee PC WMI hotkeys                      	id=16	[slave  keyboard (3)]
+'''
+
+
+For example, to find information about the USB mouse (id=13)
+'''
+[tpulliam@zephyr ~]$ xinput --list-props 13
+Device 'Holtek USB Gaming Mouse':
+	Device Enabled (155):	1
+	Coordinate Transformation Matrix (157):	1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000
+	Device Accel Profile (286):	0
+	Device Accel Constant Deceleration (287):	1.000000
+	Device Accel Adaptive Deceleration (288):	1.000000
+	Device Accel Velocity Scaling (289):	10.000000
+	Device Product ID (275):	1241, 41072
+	Device Node (276):	"/dev/input/event8"
+	Evdev Axis Inversion (290):	0, 0
+	Evdev Axes Swap (292):	0
+	Axis Labels (293):	"Rel X" (165), "Rel Y" (166), "Rel Horiz Wheel" (282), "Rel Dial" (283), "Rel Vert Wheel" (284)
+	Button Labels (294):	"Button Left" (158), "Button Middle" (159), "Button Right" (160), "Button Wheel Up" (161), "Button Wheel Down" (162), "Button Horiz Wheel Left" (163), "Button Horiz Wheel Right" (164), "Button Side" (280), "Button Extra" (281), "Button Unknown" (278), "Button Unknown" (278), "Button Unknown" (278), "Button Unknown" (278)
+	Evdev Scrolling Distance (295):	1, 1, 1
+	Evdev Middle Button Emulation (296):	0
+	Evdev Middle Button Timeout (297):	50
+	Evdev Middle Button Button (298):	2
+	Evdev Third Button Emulation (299):	0
+	Evdev Third Button Emulation Timeout (300):	1000
+	Evdev Third Button Emulation Button (301):	3
+	Evdev Third Button Emulation Threshold (302):	20
+	Evdev Wheel Emulation (303):	0
+	Evdev Wheel Emulation Axes (304):	0, 0, 4, 5
+	Evdev Wheel Emulation Inertia (305):	10
+	Evdev Wheel Emulation Timeout (306):	200
+	Evdev Wheel Emulation Button (307):	4
+	Evdev Drag Lock Buttons (308):	0
+'''
+
+
+For example, you can set the mouse speed like so (lower number is faster)
+xinput --set-prop 13 "Device Accel Constant Deceleration" 1.85
+
+
+
 ==== Creating ISO Files From CD/DVD ====
 https://askubuntu.com/questions/147800/ripping-dvd-to-iso-accurately
 	get the info of the cd/dvd you're copying. I havent tried this with a audio cd because i just rip them to flac's .. but the following is a test on a DVD..
