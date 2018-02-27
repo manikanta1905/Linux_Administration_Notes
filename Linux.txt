@@ -6,6 +6,8 @@ Creation-Date: 2018-01-08T13:19:09-05:00
 Created Monday 08 January 2018
 
 ==== Peripherals ====
+
+== Mouse / Keyboard ==
 https://askubuntu.com/questions/688270/mouse-speed-too-fast
 You can find out information about what mouse and keyboard you are using by the following commands
 '''
@@ -63,6 +65,33 @@ Device 'Holtek USB Gaming Mouse':
 
 For example, you can set the mouse speed like so (lower number is faster)
 xinput --set-prop 13 "Device Accel Constant Deceleration" 1.85
+
+== Monitors ==
+To list available monitors
+
+'''
+[tpulliam@zephyr ~]$ xrandr -q
+Screen 0: minimum 8 x 8, current 1920 x 1080, maximum 16384 x 16384
+DVI-I-0 disconnected (normal left inverted right x axis y axis)
+DVI-I-1 disconnected (normal left inverted right x axis y axis)
+HDMI-0 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 598mm x 336mm
+   1920x1080     60.00*+  59.94    50.00    60.05    60.00    50.04  
+   1680x1050     59.95  
+   1600x1200     60.00  
+   1440x900      59.89  
+   1280x1024     75.02    60.02  
+   1280x960      60.00  
+   1280x720      60.00    59.94    50.00  
+   1152x864      75.00  
+   1024x768      75.03    70.07    60.00  
+   800x600       75.00    72.19    60.32    56.25  
+   720x576       50.00  
+   720x480       59.94  
+   640x480       75.00    72.81    59.94    59.93  
+DP-0 disconnected (normal left inverted right x axis y axis)
+DP-1 disconnected (normal left inverted right x axis y axis)
+DVI-D-0 disconnected (normal left inverted right x axis y axis)
+'''
 
 
 
