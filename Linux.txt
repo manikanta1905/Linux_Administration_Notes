@@ -94,6 +94,56 @@ DVI-D-0 disconnected (normal left inverted right x axis y axis)
 '''
 
 
+== Audio ==
+https://www.freedesktop.org/wiki/Software/PulseAudio/
+https://askubuntu.com/questions/14077/how-can-i-change-the-default-audio-device-from-command-line
+Fedora uses Pulse Audio. To list available audio devices
+
+'''
+[tpulliam@zephyr ~]$ pactl list short sinks
+0	alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1	module-alsa-card.c	s16le 2ch 44100Hz	RUNNING
+1	alsa_output.usb-Logitech_Logitech_USB_Headset-00.analog-stereo	module-alsa-card.c	s16le 2ch 44100Hz	SUSPENDED
+2	alsa_output.pci-0000_00_1b.0.iec958-stereo	module-alsa-card.c	s16le 2ch 44100Hz	SUSPENDED
+'''
+
+
+
+You can list detailed information using the following command
+'''
+[tpulliam@zephyr ~]$ pacmd list-sinks
+3 sink(s) available.
+    index: 0
+	name: <alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1>
+	driver: <module-alsa-card.c>
+	flags: HARDWARE DECIBEL_VOLUME LATENCY DYNAMIC_LATENCY
+	state: RUNNING
+	suspend cause: 
+	priority: 9030
+	volume: front-left: 42698 /  65% / -11.16 dB,   front-right: 42698 /  65% / -11.16 dB
+	        balance 0.00
+	base volume: 65536 / 100% / 0.00 dB
+	volume steps: 65537
+	muted: no
+	current latency: 20.45 ms
+	max request: 4 KiB
+	max rewind: 344 KiB
+	monitor source: 0
+	sample spec: s16le 2ch 44100Hz
+	channel map: front-left,front-right
+	             Stereo
+	used by: 1
+	linked by: 2
+	configured latency: 23.22 ms; range is 8.00 .. 1999.82 ms
+	card: 0 <alsa_card.pci-0000_01_00.1>
+	module: 6
+'''
+...
+...
+
+To set a default audio device that will survive reboot
+$ pacmd set-default-sink "SINKNAME" to set the default output sink
+$ pacmd set-default-source "SOURCENAME" to set the default input
+
 
 ==== Creating ISO Files From CD/DVD ====
 https://askubuntu.com/questions/147800/ripping-dvd-to-iso-accurately

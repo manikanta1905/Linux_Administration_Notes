@@ -8,10 +8,153 @@ Created Friday 16 February 2018
 ==== Zones ====
 https://www.apnic.net/about-apnic/corporate-documents/documents/resource-guidelines/reverse-zones/
 
-== SOA (Start Of Authority) ==
-The SOA record is the first record in a properly configured zone. It contains information about the zone in a string of fields. An SOA record tells the server to be authoritative for the zone. The SOA record takes the format:
+==== Origin and the use of trailing dot ====
+http://www.zytrax.com/books/dns/apa/origin.html
+The origin (also written as '@', or simply left blank) fills in the domain name of a host. It defaults to the zone in the [[/etc/named.conf]] file, for example
 
-==== Forwarding Name Server ====
+zone "example.com" IN {
+....
+
+* With an implicit $ORIGIN declaration
+
+'''
+; zone file fragment for example.com
+; the named.conf file contains 'zone "example.com"'
+; there is no $ORIGIN statement and therefore one is synthesized
+; name in the line below is expanded to joe.example.com.
+joe               IN      A      192.168.254.3 
+; line below - www.example.com. aliased to joe.example.com.
+www               IN      CNAME  joe 
+; next line is functionally the same as line above
+www.example.com. IN      CNAME  joe.example.com.
+; and so is this line
+www               IN      CNAME  joe.example.com.
+; the name in this record defaults to example.com
+; assuming it was placed at the zone apex 
+                  IN      A      192.168.254.3
+; and could have been written as 
+example.com.      IN      A      192.168.254.3
+; OR
+@                 IN      A      192.168.254.3
+'''
+
+
+* With an explicit $ORIGIN declaration (considered best practice)
+
+'''
+; zone file fragment for example.com
+$ORIGIN example.com.
+....
+; name in the line below is expanded to joe.example.com. by adding $ORIGIN
+joe               IN      A      192.168.254.3 
+; line below - www.example.com. aliased to joe.example.com.
+www               IN      CNAME  joe 
+; next line is functionally the same as line above
+www.example.com. IN      CNAME  joe.example.com.
+; and so is this line
+www               IN      CNAME  joe.example.com.
+; the name in this is record defaults to example.com
+; assuming it was placed at the zone apex 
+'''
+				'''
+				  IN      A      192.168.254.3
+				; and could have been written as 
+				example.com.      IN      A      192.168.254.3
+				; OR
+				@                 IN      A      192.168.254.3
+				'''
+
+* An example where the ending dot makes an important difference
+
+'''
+; zone file fragment for example.com 
+; $ORIGIN must terminate with a DOT ALWAYS
+$ORIGIN example.com
+; in the above case the dot is missing from the $ORIGIN
+; using the substitution rule this will give a substitution value of
+; example.com.example.com.
+
+
+; In A RR's the right hand expression is an address not a label
+; thus expansion will be applied to the left hand label but not
+; the right hand side
+joe               IN      A      192.168.254.3 
+; line above expands to - joe.example.com. IN A 192.168.254.3
+'''
+
+
+* Reverse zone mapping example
+'''
+; zone file fragment for 2.168.192.IN-ADDR.ARPA
+$ORIGIN 2.168.192.IN-ADDR.ARPA.
+....
+1      IN PTR joe.example.com.
+; In the above case the left hand value is a name (or label) not an address
+; and therefore subsitution is applied giving
+; 1.2.168.192.IN-ADDR.ARPA.  IN PTR joe.example.com.
+; which maps 192.168.2.1 to the host name joe.example.com
+
+; and if you wrote the above PTR like this
+1      IN PTR joe
+; it will expand to 
+; 1.2.168.192.IN-ADDR.ARPA.  IN PTR joe.2.168.192.IN-ADDR.ARPA.
+; which is probably not what you intended
+'''
+
+
+== SOA (Start Of Authority) ==
+http://www.zytrax.com/books/dns/ch8/soa.html
+The SOA record is the first record in a properly configured zone. It contains information about the zone in a string of fields. An SOA record tells the server to be authoritative for the zone. The SOA defines the global parameters for the zone (domain). Only one SOA resource record (RR) is allowed in a zone file and it must be the first RR in the zone. The format for a SOA record is
+
+'''
+owner-name  ttl class rr    name-server email-addr  (sn ref ret ex min)
+example.com.    IN    SOA   ns.example.com. hostmaster.example.com. (
+                              2003080800 ; sn = serial number
+                              172800     ; ref = refresh = 2d
+                              900        ; ret = update retry = 15m
+                              1209600    ; ex = expiry = 2w
+                              3600       ; nx = nxdomain ttl = 1h
+                              )
+; the following are also valid using @ and blank 
+@               IN    SOA   ns.example.com. hostmaster.example.com. (
+                IN    SOA   ns.example.com. hostmaster.example.com. (
+NOTE: We are reliably informed that while a blank is a perfectly
+      valid format certain DNSSEC signing tools may choke on this format.
+'''
+
+
+
+For example (values not defined take their default values)
+
+
+'''
+; zone file fragment for example.com 
+$TTL 2d ; zone TTL default = 2 days or 172800 seconds
+$ORIGIN example.com.
+@      IN      SOA   ns.example.com. hostmaster.example.com. (
+               2003080800 ; serial number
+               1d12h      ; refresh =  1 day 12 hours
+               15M        ; update retry = 15 minutes
+               3W12h      ; expiry = 3 weeks + 12 hours
+               2h20M      ; minimum = 2 hours + 20 minutes
+               )
+       IN      NS  ns.example.com.
+       IN      NS  ns.example.net. ; out-of-zone 
+...
+; A record for ns.example.com. RR above
+ns     IN      A   192.168.2.1
+; the above could have been written as
+; ns.example.com. IN  A   192.168.2.1
+; ns.example.net is out-of-zone (or out-of-bailiwick)
+; an A RRs is not required (and will be rejected if present)
+'''
+
+
+==== Reverse Zones ====
+http://www.zytrax.com/books/dns/ch3/
+In order to perform Reverse Mapping using normal recursive and Iterative (non-recursive) queries the DNS designers defined the special (reserved) Domain Name of IN-ADDR.ARPA for IPv4 addresses and IP6.ARPA for IPv6 addresses.
+
+==== Adding Zones to named.conf ====
 '''
 //
 // named.conf

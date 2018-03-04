@@ -1,0 +1,61 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-02-27T16:51:16-05:00
+
+====== Installation ======
+Created Tuesday 27 February 2018
+
+==== Ansible ====
+# This Ansible playbook is for building an authoritative DNS
+# server. Recursion is disabled. Also, named listens on all IP
+# interfaces. This is not a secure server.
+
+'''
+---
+- hosts: all
+  tasks:
+    - name: Install bind bind-utils
+      yum:
+        state: latest
+        name: "{{ item }}"
+      with_items:
+        - bind
+        - bind-utils
+    - name: Open firewall for DNS
+      firewalld:
+        state: enabled
+        service: dns
+        permanent: true
+    - name: Make backup of /etc/named.conf to /etc/named.conf.orig
+      copy:
+        remote_src: yes
+        src: /etc/named.conf
+        dest: /etc/named.conf.orig
+    - name: named listens on all ipv4 interfaces
+      lineinfile:
+        path: /etc/named.conf
+        state: present
+        regexp: 'listen-on port'
+        # named will listen all all ipv4 interfaces
+        line: "\tlisten-on port 53 { any; };"
+    - name: named listens on all ipv6 interfaces
+      lineinfile:
+        path: /etc/named.conf
+        state: present
+        regexp: 'listen-on-v6 port'
+        # named will listen all all ipv4 interfaces
+        line: "\tlisten-on-v6 port 53 { any; };"
+    - name: Allow any host on the network to query named
+      lineinfile:
+        path: /etc/named.conf
+        state: present
+        regexp: 'allow-query'
+        line: "\tallow-query     { any; };"
+    - name: Disable recursion for authoritative DNS
+      lineinfile:
+        path: /etc/named.conf
+        state: present
+        regexp: 'recursion yes;'
+        line: "\trecursion no;"
+'''
+

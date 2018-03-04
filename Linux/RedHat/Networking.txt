@@ -5,6 +5,16 @@ Creation-Date: 2017-08-25T15:23:28-04:00
 ====== Networking ======
 Created Friday 25 August 2017
 
+==== Setting Static Routes ====
+https://www.centos.org/docs/5/html/5.2/Deployment_Guide/s1-networkscripts-static-routes.html
+The default route can be set in the network script using the **GATEWAY=** setting. Simply edit this setting accordingly and then run
+$ ifdown $interface && ifup $interface
+
+You can temporarily add static routes using
+$ ip route add dst-network via gateway dev device_name
+$ ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0
+
+
 ==== Layer 1/2 ====
 Use **ethtool** command to get layer 1 information about an ethernet port (speeds, is active, etc.). For example, we see that the link below is capable of 10Gigabit/second speeds, but is currently only running at a 1Gb/s (possible because the switch it is connected to only offers 1Gb/s).
 

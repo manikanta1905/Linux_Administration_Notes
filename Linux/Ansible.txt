@@ -48,3 +48,6 @@ It is possible you may run into the following issue.
 https://stackoverflow.com/questions/36724870/ansible-error-the-field-hosts-is-required-but-was-not-set
 
 
+==== List of predifined Ansible host variables ====
+To see a list of all pre defined variables for a host, run
+$ ansible all -i hosts -m setup --limit host
