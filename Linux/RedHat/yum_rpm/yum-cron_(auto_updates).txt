@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-03-04T20:15:04-05:00
+
+====== yum-cron (auto updates) ======
+Created Sunday 04 March 2018
+
+https://www.techrepublic.com/article/how-to-enable-automatic-security-updates-on-centos-7-with-yum-cron/
+
+Use caution when auto-updating systems. Know that it is possible for an update to break your system. It is actually BAD PRACTICE to auto-update systems with yum-cron. You should instead
+test updates on a staging version of your system before applying to a production system. Also know that a reboot may be required for updates to actually take effect. Anyways, here is how to use yum-cron
+to make sure security updates are applied automatically.
+
+Config file: **/etc/yum/yum-cron.conf**
+
+'''
+$ sudo yum -y install yum-cron
+$ sudo systemctl start yum-cron
+​$ sudo systemctl enable yum-cron
+$ vim /etc/yum/yum-cron.conf
+
+# Only apply security patches
+update_cmd = security
+# Actually apply the updates
+apply_updates = yes
+# Email us about updates
+emit_via = email
+[email]
+email_from = root@localhost
+email_to = admin@company.com
+'''
+
+''$ sudo systemctl restart yum-cron''
+
+You can exclude certain packages from getting updated by adding the following to **/etc/yum/yum-cron.conf** , for example to exclude kernel packages.
+
+'''
+[base]
+exclude = kernel*
+'''
+
+
+==== Config Files / Crontab Entries ====
+The main config files are located at 
+* **/etc/yum/yum-cron.conf** (daily crontab)
+* **/etc/yum/yum-cron-hourly.conf** (hourly crontab)
+
+There are two crontab files that actually trigger yum-cron. The daily and the hourly crontab files.
+* **/etc/cron.daily/0yum-daily.cron** uses the daily config file
+* **/etc/cron.hourly/0yum-hourly.cron** uses the hourly config file. 

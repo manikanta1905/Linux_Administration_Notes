@@ -1,0 +1,107 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-03-04T14:43:20-05:00
+
+====== Best Practices ======
+Created Sunday 04 March 2018
+
+https://www.cisco.com/c/en/us/about/security-center/dns-best-practices.html
+
+Maliciously Abusing Implementation Flaws in DNS
+Flaws in the implementation of the DNS protocol allow it to be exploited and used for malicious activities. Because DNS is such a critical protocol for Internet operations, countless operating systems, and applications, operators and administrators must harden DNS servers to prevent them from being used maliciously. Some of these flaws are presented in this document to inform operators how they can be used maliciously. Techniques are shared that can be used to prevent these types of activities.
+
+DNS Open Resolvers
+A DNS open resolver is a DNS server that allows DNS clients that are not part of its administrative domain to use that server for performing recursive name resolution. Essentially, a DNS open resolver provides responses (answers) to queries (questions) from anyone asking a question. DNS open resolvers are vulnerable to multiple malicious activities, including the following:
+
+DNS cache poisoning attacks
+DNS cache poisoning attacks‡
+Resource utilization attacks
+‡Denial of Service (DoS) or Distributed DoS (DDoS)
+
+DNS Cache Poisoning Attacks
+DNS cache poisoning occurs when an attacker sends falsified and usually spoofed RR information to a DNS resolver. Once the DNS resolver receives the falsified RR information, it is stored in the DNS cache for the lifetime (Time To Live [TTL]) set in the RR. To exploit this flaw in the DNS resolver implementation so it will store the falsified information, an attacker must be able to correctly predict the DNS transaction identifier (TXID) and the UDP source port for the DNS query (request) message. Attackers use this exploitation technique to redirect users from legitimate sites to malicious sites or to inform the DNS resolver to use a malicious name server (NS) that is providing RR information used for malicious activities.
+
+DNS Amplification and Reflection Attacks
+DNS amplification and reflection attacks use DNS open resolvers to increase the volume of attacks and to hide the true source of an attack, actions that typically result in a DoS or DDoS attack. These attacks are possible because the open resolver will respond to queries from anyone asking a question. Attackers use these DNS open resolvers for malicious activities by sending DNS messages to the open resolvers using a forged source IP address that is the target for the attack. When the open resolvers receive the spoofed DNS query messages, they respond by sending DNS response messages to the target address. Attacks of these types use multiple DNS open resolvers so the effects on the target devices are magnified.
+
+Resource Utilization Attacks
+Resource utilization attacks on DNS open resolvers consume resources on the device. Examples of such resources include CPU, memory, and socket buffers. These types of attacks try to consume all available resources to negatively impact operations of the open resolver. The impact of these attacks may require the device to be rebooted or a service to be stopped and restarted.
+
+Prevent DNS Open Resolver Configurations
+Multiple vendors have products that implement the DNS protocol and that can be configured as a DNS open resolver intentionally or unintentionally. A configured open resolver exposed to the Internet allows anyone to send DNS queries to the resolver. The examples that follow are configurations for some vendor products that are broadly deployed throughout the Internet. These example configurations show how to prevent a DNS server from acting as an open resolver.
+
+Berkeley Internet Name Domain
+Berkeley Internet Name Domain (BIND), a software product of Internet Systems Consortium, Inc., implements the DNS protocol that is discussed in this document. The following configurations can be applied to BIND so that the DNS server is prevented from acting as an open resolver. These configurations are applied in the 'named.conf' configuration file.
+
+Note: Recursion is enabled by default for Version 9.5 of the BIND software and prior. BIND also allows operators to define views that can use the following configuration methods for disabling recursion. Views are not discussed in this document.
+
+Note: The example configurations for BIND will use version 9.5.
+
+
+	1. Disable Recursion
+		   ''// Disable recursion for the DNS service''
+'''
+    //
+    options {
+        recursion no;
+    };
+'''
+
+	2. Permit Recursion from Trusted Sources
+			   ''// Permit recursive DNS queries for DNS messages with source''
+''    // addresses in the 192.168.1.0/24 netblock''
+''    //''
+''    options {''
+''        allow-recursion {192.168.1.0/24;};''
+''    };''
+	3. Permit Queries from Trusted Sources
+			  ''// Permit DNS queries for DNS messages with source addresses''
+''    // in the 192.168.1.0/24 netblock. The 'allow-query-cache'''
+''    // options configuration can also be used to limit the IP''
+''    // addresses permitted to obtain answers from the cache of''
+''    // the DNS server.''
+''    //''
+''    // Note: The function of 'allow-query-cache' changed between''
+''    // BIND version 9.4 and 9.4.1. Additional information about''
+''    // using this options configuration can be found in the BIND''
+''    // 9.5 Administrator Reference Manual (ARM).''
+''    //''
+''    options {''
+''        allow-query {192.168.1.0/24;};''
+''    };''
+	4. Permit and Deny Recursion Using an ACL
+			  ''// Create an Access List (ACL) defined as 'recursive-permit'''
+''    // that will permit devices in the ACL to use the DNS server''
+''    // for recursive DNS queries.''
+''    //''
+''    acl recursive-permit {''
+''        192.168.1.0/24; 10.0.1.0/24; 172.16.1.0/24; 172.31.1.0/24;''
+''    };''
+''    // Create an Access List (ACL) defined as 'rfc5735-deny' that''
+''    // will deny devices in the ACL from using the DNS server for''
+''    // recursive DNS queries.''
+''    //''
+''    acl rfc5735-deny {''
+''        0.0.0.0/8; 10.0.0.0/8; 169.254.0.0/16; 172.16.0.0/12;''
+''        192.0.0.0/24; 192.0.2.0/24; 192.88.99.0/24; 192.168.0.0/16;''
+''        198.18.0.0/15; 198.51.100.0/24; 203.0.113.0/24; 224.0.0.0/4;''
+''        240.0.0.0/4;''
+    
+''    // Apply 'recursive-permit' ACL created above to the options''
+''    // 'allow-query' or 'allow-recursion' configuration and then''
+''    // apply the 'rfc5735-deny' ACL created above to the 'blackhole'''
+''    // configuration.''
+''    options {''
+''        // Output Truncated.''
+''        allow-recursion { recursive-permit; };''
+''        allow-query { recursive-permit; };''
+''        // Output Truncated.''
+''        blackhole { rfc5735-deny; };''
+''    };''
+''    // The 'blackhole' options configuration can be used to prevent''
+''    // the DNS server from accepting queries for IP addresses that''
+''    // are explicitly configured or defined in an ACL. This option''
+''    // will also prevent the DNS server from using devices defined''
+''    // in the ACL for resolving queries. The 'blackhole' option may''
+''    // also be used to prevent the DNS server from sending queries''
+''    // to known malicious DNS servers.''

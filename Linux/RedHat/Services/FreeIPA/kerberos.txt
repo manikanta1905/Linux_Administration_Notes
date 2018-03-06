@@ -1,0 +1,48 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-03-06T14:05:09-05:00
+
+====== kerberos ======
+Created Tuesday 06 March 2018
+
+Kerberos requires a functioning DNS server (or complete [[/etc/hosts]]) and an accurate NTP server to work.
+
+==== Network Ports ====
+The main kerberos ports used are
+
+'''
+[tpulliam@zephyr ~]$ grep -i kerberos /etc/services
+kerberos        88/tcp          kerberos5 krb5  # Kerberos v5
+kerberos        88/udp          kerberos5 krb5  # Kerberos v5
+kpasswd         464/tcp         kpwd            # Kerberos "passwd"
+kpasswd         464/udp         kpwd            # Kerberos "passwd"
+kerberos-adm    749/tcp                         # Kerberos `kadmin' (v5)
+kerberos-adm    749/udp                         # kerberos administration
+'''
+
+
+==== Configure Client to Authenticate Using Kerberos ====
+On the client system
+$ yum -y install krb5-workstation
+$ cat [[/etc/krb5.conf]]
+
+On the KDC server login as root principal
+$ kadmin -p root/admin
+Add the client to the KDC database
+kadmin: addprinc -randkey host/server.example.com
+Extract the principal's keytab file and store it in [[/etc/krb5.keytab]]
+kadmin: ktadd -k [[/etc/kerb5.keytab]] host/server.example.com
+
+activate kerberos for authentication
+$ authconfig --enablekrb5 --update
+
+edit [[/etc/ssh/ssh_config]] on the client
+GSSAPIAuthentication yes
+[[GSSAPIDelegateCredentials]] yes
+
+log in as user1
+$ kinit
+
+$ klist
+
+You should now be able to log into other server's that act as Service Hosts without being prompted for a password.

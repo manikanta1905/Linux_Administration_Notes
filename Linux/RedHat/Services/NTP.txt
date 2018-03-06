@@ -20,8 +20,10 @@ Stratum Level 2: Possibly a Secondary NTP server.
 Stratum Levels 3-15: Higher stratum levels will give less accurate time because of how the servers are placed on the network physically and topologically.
 
 ==== ntpd vs. chronyd ====
-
 chronyd is a newer version of ntpd. It is better suited for laptops, virtual machines, and other devices which will be powered off frequently. However chronyd cannot be an NTP server, thus if you want to run an NTP server, you must disable chronyd and install ntpd.
+
+https://chrony.tuxfamily.org/faq.html
+"It is designed to perform well in a wide range of conditions, including intermittent network connections, heavily congested networks, changing temperatures (ordinary computer clocks are sensitive to temperature), and systems that do not run continuosly, or run on a virtual machine."
 
 ==== Configuration Files ====
 * /etc/ntp.conf

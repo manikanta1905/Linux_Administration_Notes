@@ -13,7 +13,7 @@ To permamently change the kernel boot parameters, edit the GRUB_CMDLINE_LINUX=""
 $ grub2-mkconfig -o /boot/grub2/grub.cfg
 
 
-== Tuning kernel paramaters in real time with sysctl ==
+== Tuning kernel paramaters at run time with sysctl ==
 To see a list of kernel parameters that can be tuned at run time, use
 $ sysctl -a
 
@@ -24,7 +24,14 @@ You will see output such as
 Say you wish to change the swappiness of the system. You would run
 $ sysctl -w vm.swappiness = 100
 
-Such changes do not survive reboot (???).
+__NOTE: Such changes do not survive reboot.__
+
+If you want the changes to survive reboot you will need to set the values in either of the following locations:
+* [[/etc/sysctl.conf]]
+* [[/etc/sysctl.d/]]
+* /usr/lib/sysctl.d/00-systecm.conf
+
+Then run **sysctl -p** to load the new values.
 
 === Kernel Documentation (kernel-doc) ===
 

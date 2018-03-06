@@ -40,6 +40,9 @@ Set the monitoring core to nagios, if it is not already.
 $ omd start prod
 More installation information can be found [[https://labs.consol.de/omd/#installation|here]].
 
+==== Plugin Location ====
+Plugins are located at **/omd/versions/version/ share/check_mk/agents/plugins/**
+
 == Client Installation ==
 The server comes with the check_mk_agent client RPMs which can be copied over to any hosts you wish to monitor. Simply go to "WATO > Monitoring Agents > Linux Agents > check-mk-agent-xxxxx.RPM" 
 Save the link from this agent, then on the system you wish to install the agent to run

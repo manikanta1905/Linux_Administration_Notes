@@ -36,3 +36,12 @@ if you make any changes to /etc/default/grub (e.g. change the GRUB_DEFAULT param
 Resources:
 http://fedoraproject.org/wiki/GRUB_2
 http://www.linuxreaders.com/2011/11/fedora-16-how-to-change-boot-sequence-grub2.html
+
+==== Boot into windows from grub command line ====
+Assuming windows is installed on hardrive 0 on the first partition (/dev/sda1), when the grub menu loads, press "c" to drop into a command prompt. Then  type.
+'''
+insmod chain
+insmod ntfs
+set root=(hd0,1)
+chainloader +1
+'''
