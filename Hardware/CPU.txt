@@ -1,0 +1,35 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-04-06T13:11:12-04:00
+
+====== CPU ======
+Created Friday 06 April 2018
+
+
+==== RISC Architecture ====
+https://en.wikipedia.org/wiki/Reduced_instruction_set_computer
+from wikipedia
+A reduced instruction set computer, or RISC, is one whose instruction set architecture (ISA) allows it to have fewer cycles per instruction (CPI) than a complex instruction set computer. Various suggestions have been made regarding a precise definition of RISC, but the general concept is that such a computer has a small set of simple and general instructions, rather than a large set of complex and specialized instructions. 
+
+Basically, RISC based CPUs (such as ARM) run faster and on less power than non-RISC based CPUs. This is why ARM processors are used almost exclusively in smart phones. RISC based architectures are used in special cases (such as smart phones)
+
+
+==== Instruction-Level Parallelism ====
+https://en.wikipedia.org/wiki/Instruction-level_parallelism
+Instruction-level parallelism (ILP) is a measure of how many of the instructions in a computer program can be executed simultaneously.
+
+There are two approaches to instruction level parallelism:
+* Hardware
+* Software
+
+Hardware level works upon dynamic parallelism whereas, the software level works on static parallelism. Dynamic parallelism means the processor decides at run time which instructions to execute in parallel, whereas static parallelism means the compiler decides which instructions to execute in parallel.
+
+Consider the following program:
+'''
+1. e = a + b
+2. f = c + d
+3. m = e * f
+'''
+
+
+Operation 3 depends on the results of operations 1 and 2, so it cannot be calculated until both of them are completed. However, operations 1 and 2 do not depend on any other operation, so they can be calculated simultaneously. If we assume that each operation can be completed in one unit of time then these three instructions can be completed in a total of two units of time, giving an ILP of 3/2.

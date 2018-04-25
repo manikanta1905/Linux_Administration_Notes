@@ -5,6 +5,10 @@ Creation-Date: 2017-08-25T16:21:32-04:00
 ====== yum rpm ======
 Created Friday 25 August 2017
 
+==== Delta RPMs ====
+https://www.pks.mpg.de/~mueller/docs/suse10.2/html/opensuse-manual_en/manual/sec.rpm.delta.html
+Delta RPM packages contain the difference between an old and a new version of an RPM package. Applying a delta RPM on an old RPM results in the complete new RPM. It is not necessary to have a copy of the old RPM, because a delta RPM can also work with an installed RPM. The delta RPM packages are even smaller in size than patch RPMs, which is an advantage when transferring update packages over the Internet. The drawback is that update operations with delta RPMs involved consume considerably more CPU cycles than plain or patch RPMs.
+
 === Yum Repo Configuration Files ===
 
 

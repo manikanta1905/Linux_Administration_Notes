@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-04-06T12:35:39-04:00
+
+====== Hardware ======
+Created Friday 06 April 2018
+
+==== BMC (Baseboard Management Controller) ====
+https://en.wikipedia.org/wiki/Intelligent_Platform_Management_Interface#Baseboard_management_controller
+
+The BMC is the microcontroller that implements IPMI. IPMI (Intelligent Platform Management Interface) is used by the admin to conrtol servers BIOS remotely, view logs, reboot systems or even log into a system via a KVM console. Using IPMI makes managing many servers easier. BMC also alerts the admin if temperature, voltage, or other measurements exceed certain limits.

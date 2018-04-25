@@ -1,0 +1,53 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-04-10T12:32:26-04:00
+
+====== Zabbix ======
+Created Tuesday 10 April 2018
+
+==== Features ====
+https://www.zabbix.com/documentation/3.4/manual/introduction/features
+
+
+==== Terms ====
+https://www.zabbix.com/documentation/3.4/manual/definitions
+
+==== Overview of Toplogy ====
+
+==== Interacting with Zabbix Daemon ====
+Examples of running Zabbix server with command line parameters:
+
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf
+shell> zabbix_server --help
+shell> zabbix_server -V
+Runtime control
+Runtime control options:
+
+Option	Description	Target
+config_cache_reload	Reload configuration cache. Ignored if cache is being currently loaded.	
+housekeeper_execute	Start the housekeeping procedure. Ignored if the housekeeping procedure is currently in progress.	
+log_level_increase[=<target>]	Increase log level, affects all processes if target is not specified.	pid - Process identifier (1 to 65535) 
+process type - All processes of specified type (e.g., poller) 
+process type,N - Process type and number (e.g., poller,3)
+log_level_decrease[=<target>]	Decrease log level, affects all processes if target is not specified.
+Allowed range of PIDs for changing the log level of a single Zabbx process is from 1 to 65535. On systems with large PIDs <process type,N> target option can be used for changing the log level of a single process.
+
+Example of using runtime control to reload the server configuration cache:
+
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R config_cache_reload
+Example of using runtime control to trigger execution of housekeeper:
+
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R housekeeper_execute
+Examples of using runtime control to change log level:
+
+Increase log level of all processes:
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R log_level_increase
+
+Increase log level of second poller process:
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R log_level_increase=poller,2
+
+Increase log level of process with PID 1234:
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R log_level_increase=1234
+
+Decrease log level of all http poller processes:
+shell> zabbix_server -c /usr/local/etc/zabbix_server.conf -R log_level_decrease="http poller"

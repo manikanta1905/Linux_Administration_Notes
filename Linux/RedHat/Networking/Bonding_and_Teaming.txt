@@ -8,3 +8,121 @@ Created Tuesday 03 October 2017
 ==== Overview ====
 **Link Aggregation** is the process of combining two or more NICs into one logical NIC. The networking benefits of this are increased bandwidth, ability to load balance across the NICs, and fault tolerence for the network. The NICs can be physical or virtual. There are two types of Link Aggregation, **Bonding **and** Teaming**. Teaming is new to RHEL 7 and offers more features than Bonding.
 
+==== Bonding ====
+* Make sure the **bonding** kernel module is loading
+	 ''$ modprobe bonding''
+* The preferred way to configure bonding is to use [[NetworkManager]] (nmcli). Make sure the service is started
+'''
+$ systemctl is-active NetworkManager
+active
+'''
+
+
+Assume the following interfaces:ooks
+
+'''
+[root@wiki ~]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 08:00:27:36:30:8a brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.192/16 brd 192.168.255.255 scope global enp0s3
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe36:308a/64 scope link 
+       valid_lft forever preferred_lft forever
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 08:00:27:28:a2:ce brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.246/24 brd 192.168.1.255 scope global dynamic enp0s8
+       valid_lft 82831sec preferred_lft 82831sec
+    inet6 fe80::ba56:cb0f:775c:5a39/64 scope link 
+       valid_lft forever preferred_lft forever
+4: enp0s9: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 08:00:27:f6:8a:48 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.78/24 brd 192.168.1.255 scope global dynamic enp0s9
+       valid_lft 82834sec preferred_lft 82834sec
+    inet6 fe80::4d3d:aedf:eb0:dc55/64 scope link 
+       valid_lft forever preferred_lft forever
+'''
+
+
+We are going making enp0s{8,9} bonding slaves for a new bond interface named bond0. To do this, I am going to delete all the unused network profiles.
+
+'''
+[root@wiki ~]# nmcli con show
+NAME                UUID                                  TYPE            DEVICE 
+Wired connection 3  f840c703-351b-3e9d-a856-3b44add8de1e  802-3-ethernet  enp0s8 
+Wired connection 4  7229ed14-7b5c-3ed4-8cba-6807969a8e9e  802-3-ethernet  enp0s9 
+enp0s3              207afe2b-33b7-4f09-9f14-d968600587f2  802-3-ethernet  enp0s3 
+Wired connection 1  df11c346-cdb3-34bd-a155-f3c9d28b60c1  802-3-ethernet  --     
+Wired connection 2  04197b9b-8a3c-350c-aef2-2870649f7b6b  802-3-ethernet  --
+'''
+  
+
+Be careful doing this through SSH because if you delete the network connection (profile) you are using for the SSH connection you will not be able to SSH back into your server. You can see which device you are using by inspecting your
+default route. For example, I am logged in through my **enp0s3** device, so I will be removing all the connections that are not used by this device.
+
+'''
+[root@wiki ~]# ip route
+default via 192.168.1.1 dev enp0s3 proto static metric 100 
+192.168.0.0/16 dev enp0s3 proto kernel scope link src 192.168.1.192 metric 100
+'''
+ 
+
+
+'''
+[root@wiki ~]# nmcli connection delete Wired\ connection\ 1
+Connection 'Wired connection 1' (df11c346-cdb3-34bd-a155-f3c9d28b60c1) successfully deleted.
+[root@wiki ~]# nmcli connection delete Wired\ connection\ 2
+Connection 'Wired connection 2' (04197b9b-8a3c-350c-aef2-2870649f7b6b) successfully deleted.
+[root@wiki ~]# nmcli connection delete Wired\ connection\ 3
+Connection 'Wired connection 3' (f840c703-351b-3e9d-a856-3b44add8de1e) successfully deleted.
+[root@wiki ~]# nmcli connection delete Wired\ connection\ 4
+Connection 'Wired connection 4' (7229ed14-7b5c-3ed4-8cba-6807969a8e9e) successfully deleted.
+[root@wiki ~]# nmcli con show
+NAME    UUID                                  TYPE            DEVICE 
+enp0s3  207afe2b-33b7-4f09-9f14-d968600587f2  802-3-ethernet  enp0s3
+'''
+ 
+
+Next we add the bond interface and slave interfaces
+
+'''
+[root@wiki ~]# nmcli connection add type bond con-name bond0 ifname bond0 mode balance-rr ipv4.addresses 192.168.1.193/24 ipv4.gateway 192.168.1.1
+Connection 'bond0' (c395dca5-a163-4b9d-bfea-1f917e7e8629) successfully added.
+[root@wiki ~]# nmcli connection add type bond-slave ifname enp0s8 master bond0
+Connection 'bond-slave-enp0s8' (5ecc1d8d-4fff-40bf-8167-6d7251253745) successfully added.
+[root@wiki ~]# nmcli connection add type bond-slave ifname enp0s9 master bond0
+Connection 'bond-slave-enp0s9' (ef89ef36-9f7f-460e-bcb0-cf1c0b4d8be4) successfully added.
+'''
+
+
+Let's check the new connections:
+
+'''
+[root@wiki ~]# nmcli device  status
+DEVICE  TYPE      STATE      CONNECTION        
+bond0   bond      connected  bond0             
+enp0s3  ethernet  connected  enp0s3            
+enp0s8  ethernet  connected  bond-slave-enp0s8 
+enp0s9  ethernet  connected  bond-slave-enp0s9 
+[root@wiki ~]# ip a
+...
+...
+3: enp0s8: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master bond0 state UP qlen 1000
+    link/ether 08:00:27:28:a2:ce brd ff:ff:ff:ff:ff:ff
+4: enp0s9: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master bond0 state UP qlen 1000
+    link/ether 08:00:27:28:a2:ce brd ff:ff:ff:ff:ff:ff
+5: bond0: <BROADCAST,MULTICAST,MASTER,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP qlen 1000
+    link/ether 08:00:27:28:a2:ce brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.246/24 brd 192.168.1.255 scope global dynamic bond0
+       valid_lft 86387sec preferred_lft 86387sec
+    inet 192.168.1.192/24 brd 192.168.1.255 scope global secondary bond0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::94bd:bb8d:3098:6fd1/64 scope link 
+       valid_lft forever preferred_lft forever
+'''
+

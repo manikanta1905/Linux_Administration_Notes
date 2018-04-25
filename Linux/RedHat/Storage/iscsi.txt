@@ -1,0 +1,311 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-03-12T15:46:29-04:00
+
+====== iscsi ======
+Created Monday 12 March 2018
+
+==== Configuring an ISCSI target ====
+
+IP address of ISCSI target serving up the storage is 192.168.1.192
+
+Using [[/dev/sdb]] and [[/dev/sdc]] to create ISCSI Targets.
+
+'''
+[root@wiki ~]# lsblk
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda            8:0    0  100G  0 disk 
+├─sda1         8:1    0  500M  0 part /boot
+└─sda2         8:2    0 99.5G  0 part 
+  ├─vg0-root 253:0    0 34.1G  0 lvm  /
+  ├─vg0-swap 253:1    0    2G  0 lvm  [SWAP]
+  ├─vg0-tmp  253:2    0 19.5G  0 lvm  /tmp
+  ├─vg0-var  253:3    0 19.5G  0 lvm  /var
+  └─vg0-home 253:4    0  9.8G  0 lvm  /home
+sdb            8:16   0    8G  0 disk 
+sdc            8:32   0    8G  0 disk 
+sr0           11:0    1 1024M  0 rom
+'''
+  
+
+
+
+'''
+[root@wiki ~]# modprobe iscsi_target_mod
+[root@wiki ~]# yum install -y targetcli
+[root@wiki ~]# systemctl start target
+[root@wiki ~]# systemctl enable target
+[root@wiki ~]# targetcli
+/> help
+..
+/> ls
+o- / ......................................................................................................................... [...]
+  o- backstores .............................................................................................................. [...]
+  | o- block .................................................................................................. [Storage Objects: 0]
+  | o- fileio ................................................................................................. [Storage Objects: 0]
+  | o- pscsi .................................................................................................. [Storage Objects: 0]
+  | o- ramdisk ................................................................................................ [Storage Objects: 0]
+  o- iscsi ............................................................................................................ [Targets: 0]
+  o- loopback ......................................................................................................... [Targets: 0]
+'''
+
+
+=== Create the backstore ===
+This step should only need to be done once (or not very often). Basically, LUNs are akin to Logical Volumes, and the Backstore is the Physical Volume. Once a backstore is created, many LUNs will be made from it. Those LUNs will then be presented a logical disks to iscsi initiators (clients). For example, you may want to have a backstore just for your virtual machines. In that case you would name your backstore **vms** instead of **iscsidisk{1,2}**.
+
+
+'''
+/> cd /backstores/block/
+/backstores/block>
+'''
+ 
+'''
+/backstores/block> create iscsidisk1 dev=/dev/sdb
+Created block storage object iscsidisk1 using /dev/sdb.
+/backstores/block> create iscsidisk2 dev=/dev/sdc
+Created block storage object iscsidisk2 using /dev/sdc.
+'''
+
+
+=== Build the ISCSI targets ===
+The iscsi target is essential the iscsi server. It is the system hosting the backstore and the LUNs. In order for it to be accessible from iscsi initiators, you must give it 3 things.
+* WWN address (like a hostname) usually of the form **iqn.YEAR-MONTH.backward-hostname:backstore-name**
+* IP address
+* tcp port
+
+'''
+/backstores/block> cd /iscsi 
+/iscsi> create wwn=iqn.2018-01.home.wiki:iscsidisk1
+Created target iqn.2018-01.home.wiki:iscsidisk1.
+Created TPG 1.
+Global pref auto_add_default_portal=true
+Created default portal listening on all IPs (0.0.0.0), port 3260.
+/iscsi> create wwn=iqn.2018-01.home.wiki:iscsidisk2
+Created target iqn.2018-01.home.wiki:iscsidisk2.
+Created TPG 1.
+Global pref auto_add_default_portal=true
+Created default portal listening on all IPs (0.0.0.0), port 3260.
+'''
+
+
+=== Create the network portals ===
+Target portals are the IP address / TCP port combination where the LUNs will be accessed. Basically, what we are doing here is changing the default target portal (0.0.0.0:3260) which listens on all network interfaces to only listen on the one we specify. Replace 192.168.1.192 with your IP address.
+
+If you get the following error
+
+'''
+/iscsi> cd iqn.2018-01.home.wiki:iscsidisk1/tpg1/
+/iscsi/iqn.20...csidisk1/tpg1> portals/ create 192.168.1.192
+Using default IP port 3260
+Could not create NetworkPortal in configFS
+'''
+
+
+You need to delete the default portal for ALL targets on your server. For each target you will need to run
+'''
+/iscsi> cd iqn.2018-01.home.wiki:iscsidisk2/tpg1/portals 
+/iscsi/iqn.20.../tpg1/portals> delete 0.0.0.0 3260 
+Deleted network portal 0.0.0.0:3260
+'''
+
+
+'''
+/iscsi/iqn.20.../tpg1/portals> create 192.168.1.192
+Using default IP port 3260
+Created network portal 192.168.1.192:3260.
+/iscsi/iqn.20.../tpg1/portals> cd /iscsi/iqn.2018-01.home.wiki:iscsidisk1/tpg1/portals 
+/iscsi/iqn.20.../tpg1/portals> create 192.168.1.192
+Using default IP port 3260
+Created network portal 192.168.1.192:3260.
+'''
+
+
+
+=== Create the LUNs ===
+We are almost there. We just need to slice up the backstore into LUNs to serve up to our Virtual Machines. Ideally, each virtual machine would get one LUN for storage. Although they could get more that one LUN for other reasons.
+
+
+'''
+/iscsi/iqn.20...sk1/tpg1/luns> create /backstores/block/iscsidisk1
+Created LUN 0.
+/iscsi/iqn.20...sk1/tpg1/luns> ls
+o- luns .................................................................................................................. [LUNs: 1]
+  o- lun0 ......................................................................... [block/iscsidisk1 (/dev/sdb) (default_tg_pt_gp)]
+
+/iscsi/iqn.20...sk1/tpg1/luns> cd /iscsi/iqn.2018-01.home.wiki:iscsidisk2/tpg1/luns 
+/iscsi/iqn.20...sk2/tpg1/luns> create /backstores/block/iscsidisk2
+Created LUN 0.
+/iscsi/iqn.20...sk2/tpg1/luns> ls
+o- luns .................................................................................................................. [LUNs: 1]
+  o- lun0 ......................................................................... [block/iscsidisk2 (/dev/sdc) (default_tg_pt_gp)]
+'''
+
+
+
+=== Final Configurations ===
+
+Turn off authentication so that any inititator can access any target LUN
+
+'''
+/iscsi/iqn.20...csidisk2/tpg1> pwd
+/iscsi/iqn.2018-01.home.wiki:iscsidisk2/tpg1
+/iscsi/iqn.20...csidisk2/tpg1> set attribute authentication=0 demo_mode_write_protect=0 generate_node_acls=1
+Parameter authentication is now '0'.
+Parameter demo_mode_write_protect is now '0'.
+Parameter generate_node_acls is now '1'.
+
+/iscsi/iqn.20...csidisk1/tpg1> pwd
+/iscsi/iqn.2018-01.home.wiki:iscsidisk1/tpg1
+/iscsi/iqn.20...csidisk1/tpg1> set attribute authentication=0 demo_mode_write_protect=0 generate_node_acls=1
+Parameter authentication is now '0'.
+Parameter demo_mode_write_protect is now '0'.
+Parameter generate_node_acls is now '1'.
+'''
+
+Finally, view the entire configuration for this target LUN
+
+'''
+/iscsi/iqn.20...csidisk1/tpg1> cd /
+/> ls
+o- / ......................................................................................................................... [...]
+  o- backstores .............................................................................................................. [...]
+  | o- block .................................................................................................. [Storage Objects: 2]
+  | | o- iscsidisk1 ....................................................................... [/dev/sdb (8.0GiB) write-thru activated]
+  | | | o- alua ................................................................................................... [ALUA Groups: 1]
+  | | |   o- default_tg_pt_gp ....................................................................... [ALUA state: Active/optimized]
+  | | o- iscsidisk2 ....................................................................... [/dev/sdc (8.0GiB) write-thru activated]
+  | |   o- alua ................................................................................................... [ALUA Groups: 1]
+  | |     o- default_tg_pt_gp ....................................................................... [ALUA state: Active/optimized]
+  | o- fileio ................................................................................................. [Storage Objects: 0]
+  | o- pscsi .................................................................................................. [Storage Objects: 0]
+  | o- ramdisk ................................................................................................ [Storage Objects: 0]
+  o- iscsi ............................................................................................................ [Targets: 2]
+  | o- iqn.2018-01.home.wiki:iscsidisk1 .................................................................................. [TPGs: 1]
+  | | o- tpg1 .................................................................................................. [gen-acls, no-auth]
+  | |   o- acls .......................................................................................................... [ACLs: 0]
+  | |   o- luns .......................................................................................................... [LUNs: 1]
+  | |   | o- lun0 ................................................................. [block/iscsidisk1 (/dev/sdb) (default_tg_pt_gp)]
+  | |   o- portals .................................................................................................... [Portals: 1]
+  | |     o- 192.168.1.192:3260 ............................................................................................... [OK]
+  | o- iqn.2018-01.home.wiki:iscsidisk2 .................................................................................. [TPGs: 1]
+  |   o- tpg1 .................................................................................................. [gen-acls, no-auth]
+  |     o- acls .......................................................................................................... [ACLs: 0]
+  |     o- luns .......................................................................................................... [LUNs: 1]
+  |     | o- lun0 ................................................................. [block/iscsidisk2 (/dev/sdc) (default_tg_pt_gp)]
+  |     o- portals .................................................................................................... [Portals: 1]
+  |       o- 192.168.1.192:3260 ............................................................................................... [OK]
+  o- loopback ......................................................................................................... [Targets: 0]
+'''
+
+
+
+== Firewall ==
+Open up tcp port 3260 on this server so that iSCSI initiators can reach the server to get to the LUNs
+[root@wiki ~]# firewall-cmd --permanent --add-port=3260/tcp
+[root@wiki ~]# firewall-cmd --reload
+success
+
+
+===== Configuring an iSCSI Initiator (client) =====
+
+[root@omd ~]# yum install -y iscsi-initiator-utils
+[root@omd ~]# systemctl enable iscsid
+
+There are two important configuration files in **/etc/iscsi**
+* initiatorname.iscsi
+Filled with node names and aliases for initiators. It is basically like the [[/etc/fstab]] for iSCSI initiators.
+* iscsid.conf
+The main configuration file
+
+Discover the iSCSI LUNs on the target storage server. The discovered
+'''
+[root@omd ~]# iscsiadm -m discovery -t st -p 192.168.1.192
+192.168.1.192:3260,1 iqn.2018-01.home.wiki:iscsidisk1
+192.168.1.192:3260,1 iqn.2018-01.home.wiki:iscsidisk2
+'''
+
+
+Log into the target to establish an iSCSI session
+'''
+[root@omd ~]# iscsiadm -m node -T iqn.2018-01.home.wiki:iscsidisk1 -p 192.168.1.192 -l
+Logging in to [iface: default, target: iqn.2018-01.home.wiki:iscsidisk1, portal: 192.168.1.192,3260] (multiple)
+Login to [iface: default, target: iqn.2018-01.home.wiki:iscsidisk1, portal: 192.168.1.192,3260] successful.
+'''
+
+
+The target LUN should now be present on the initiator system (/dev/sdb)
+'''
+[root@omd ~]# lsblk
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda            8:0    0  100G  0 disk 
+├─sda1         8:1    0  500M  0 part /boot
+└─sda2         8:2    0 99.5G  0 part 
+  ├─vg0-root 253:0    0 34.1G  0 lvm  /
+  ├─vg0-swap 253:1    0    2G  0 lvm  [SWAP]
+  ├─vg0-tmp  253:2    0 19.5G  0 lvm  /tmp
+  ├─vg0-var  253:3    0 19.5G  0 lvm  /var
+  └─vg0-home 253:4    0  9.8G  0 lvm  /home
+sdb            8:16   0    8G  0 disk 
+sr0           11:0    1 1024M  0 rom
+'''
+  
+
+You can view information about the current iSCSI session
+'''
+[root@omd ~]# iscsiadm -m session -P3
+iSCSI Transport Class version 2.0-870
+version 6.2.0.874-2
+Target: iqn.2018-01.home.wiki:iscsidisk1 (non-flash)
+	Current Portal: 192.168.1.192:3260,1
+	Persistent Portal: 192.168.1.192:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1994-05.com.redhat:b99cd28de1f
+		Iface IPaddress: 192.168.1.191
+		Iface HWaddress: <empty>
+		Iface Netdev: <empty>
+		SID: 1
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: <empty>
+		password: ********
+		username_in: <empty>
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 262144
+		FirstBurstLength: 65536
+		MaxBurstLength: 262144
+		ImmediateData: Yes
+		InitialR2T: Yes
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 3	State: running
+		scsi3 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdb		State: running
+'''
+
+
+You can edit the **/etc/iscsi/initiatorname.iscsi** file to manually connect to a target. 
+
+At this point you can format the iSCSI drive to create partitions, filesystems or LVM logical volumes just as if the driver were connected directly to the local system. And the whole thing works over Ethernet.

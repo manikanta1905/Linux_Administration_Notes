@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-03-28T19:07:45-04:00
+
+====== fail2ban ======
+Created Wednesday 28 March 2018
+
+==== Overview ====
+fail2ban is used to prevent malicious actors from gaining SSH access via brute force. From the fail2ban package description
+
+'''
+Description : Fail2Ban scans log files and bans IP addresses that makes too many password
+            : failures. It updates firewall rules to reject the IP address. These rules can
+            : be defined by the user. Fail2Ban can read multiple log files such as sshd or
+            : Apache web server ones.
+            : 
+            : Fail2Ban is able to reduce the rate of incorrect authentications attempts
+            : however it cannot eliminate the risk that weak authentication presents.
+            : Configure services to use only two factor or public/private authentication
+            : mechanisms if you really want to protect services.
+'''
+
+

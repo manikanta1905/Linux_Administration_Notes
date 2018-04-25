@@ -1,0 +1,36 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-04-23T13:17:43-04:00
+
+====== example ======
+Created Monday 23 April 2018
+
+[[/dev/sda3]] is an empty ext4 disk, ready to hold some Virtual Machines.
+
+'''
+[root@zephyr ~]# lsblk -f
+NAME                   FSTYPE      LABEL           UUID                                   MOUNTPOINT
+sda                                                                                       
+├─sda1                 vfat                        A46B-C958                              
+├─sda2                 ntfs        Windows 10      F68EABE48EAB9C1D                       
+└─sda3                 ext4        ext4            0706ced9-b433-4d67-ad62-e994f56c9f14
+'''
+   
+
+
+
+Create a backstore on [[/dev/sda3]] to hold the LUNs for the VMs
+
+'''
+/> cd backstores/block 
+/backstores/block> ls
+o- block ...................................................................................................... [Storage Objects: 0]
+/backstores/block> create vms dev=/dev/sda3
+Created block storage object vms using /dev/sda3.
+/backstores/block> ls
+o- block ...................................................................................................... [Storage Objects: 1]
+  o- vms .............................................................................. [/dev/sda3 (0 bytes) write-thru deactivated]
+    o- alua ....................................................................................................... [ALUA Groups: 1]
+      o- default_tg_pt_gp ........................................................................... [ALUA state: Active/optimized]
+'''
+

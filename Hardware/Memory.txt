@@ -1,0 +1,24 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-04-06T12:35:49-04:00
+
+====== Memory ======
+Created Friday 06 April 2018
+
+== SRAM vs DRAM ==
+https://en.wikipedia.org/wiki/Static_random-access_memory
+from wikipedia
+
+The term static differentiates SRAM from DRAM (dynamic random-access memory) which must be periodically refreshed. SRAM is faster and more expensive than DRAM; it is typically used for CPU cache while DRAM is used for a computer's main memory.
+
+SRAM has the following characteristics
+
+Advantages:
+* Low power consumption
+* Simplicity – a refresh circuit is not needed
+* Reliability
+* Speed
+
+Disadvantages:
+* Price
+* Capacity
