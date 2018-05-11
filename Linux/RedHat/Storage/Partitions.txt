@@ -31,3 +31,92 @@ Partition number? 1
 '''
     
 
+Alternatively, if you need to use exact numbers, you can use the following syntax
+
+'''
+[root@storage dev]# parted -a optimal /dev/sdf mkpart primary 0% 6GB
+...
+...
+(parted) align-check                                                      
+alignment type(min/opt)  [optimal]/minimal? opt                           
+Partition number? 1
+1 aligned
+'''
+
+
+==== Resizing Partitions ====
+https://www.gnu.org/software/parted/manual/parted.html#resizepart
+Parted version 3.1 comes with the abitlity to resize partitions. The partition should be unmounted. Note that this does not modify any filesystem present in the partition. If you wish to do this, you will need to use external tools, such as resize2fs.
+
+When growing a partition you will want to grow the filesystem afterwards, but when shrinking, you need to shrink the filesystem before the partition.
+
+In this way, the partition is like a container and the filesystem is like a liquid. The container should always be the same size as the liquid it holds.
+
+Assume the following situation. 
+
+'''
+[root@storage dev]# parted /dev/sdd print
+Model: ATA VBOX HARDDISK (scsi)
+Disk /dev/sdd: 8590MB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name  Flags
+ 1      1049kB  3436MB  3435MB  ext2         ext2
+ 2      3436MB  5154MB  1718MB  ext3         ext3
+ 3      5154MB  8589MB  3435MB  ext4         ext4
+'''
+
+
+                                                             
+We want to shrink the ext3 filesystem and grow the ext4 file system. We will accomplish this by doing the following:
+1) Shrinking the ext3 file system enpoint
+2) Shrinking the ext3 partition endpoint to match the file system size
+3) growing the ext4 partition by changing the start point
+4) growing the ext4 file system by changing the start point to match the partition
+
+1)  Here I shrink the ext3 file system to a 1GB (1000MB) size
+
+'''
+[root@storage dev]# resize2fs /dev/sdd2 1000m
+resize2fs 1.42.9 (28-Dec-2013)
+Resizing the filesystem on /dev/sdd2 to 256000 (4k) blocks.
+The filesystem on /dev/sdd2 is now 256000 blocks long.
+'''
+
+
+2) Next I shrink the ext3 partition to a 1GB (1000MB) size. 
+
+'''
+[root@storage dev]# parted /dev/sdd
+GNU Parted 3.1
+Using /dev/sdd
+Welcome to GNU Parted! Type 'help' to view a list of commands.
+(parted) resize                                                           
+Error: The resize command has been removed in parted 3.0
+(parted) resize 2                                                         
+Error: The resize command has been removed in parted 3.0
+(parted) resizepart
+Partition number? 2                                                       
+End?  [5154MB]? 4436MB                                                    
+Warning: Shrinking a partition can cause data loss, are you sure you want to continue?
+Yes/No? yes                                                               
+(parted) p                                                                
+Model: ATA VBOX HARDDISK (scsi)
+Disk /dev/sdd: 8590MB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start   End     Size    File system  Name  Flags
+ 1      1049kB  3436MB  3435MB  ext2         ext2
+ 2      3436MB  4436MB  1000MB  ext3         ext3
+ 3      5154MB  8589MB  3435MB  ext4         ext4
+'''
+
+
+3) Third, I grow the ext4 partition by placing the start of the ext4 partition where the ext3 partition used to end
+
+It looks like parted can only change the end of partitions and not the starts??? 
+

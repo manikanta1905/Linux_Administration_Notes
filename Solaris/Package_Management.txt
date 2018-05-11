@@ -1,0 +1,131 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T10:44:59-04:00
+
+====== Package Management ======
+Created Tuesday 01 May 2018
+
+==== pkg - Image Packaging System retrieval client ====
+Overview of pkg commands
+https://docs.oracle.com/cd/E23824_01/html/E24456/gljrb.html
+
+Oracle 11 uses IPS for package management. It's alright. I don't know if it even resolves dependencies. There is another option. You can install a package manager called **OpenCSW**. However, the two are not compatible and use different packaging types [[/]] archive types. Therefore it is good to use IPS unless you really need to use [[OpenCSW]] (which uses an older SVR4 package system) .
+List all packages installed on the system along with version
+
+$ pkg list
+'''
+NAME (PUBLISHER)                                  VERSION                    IFO
+archiver/gnu-tar                                  1.27.1-0.175.3.0.0.30.0    i--
+audio/audio-utilities                             0.5.11-0.175.3.0.0.30.0    i--
+codec/flac                                        1.2.1-0.175.3.0.0.14.0     i--
+codec/libtheora                                   1.1.1-0.175.2.0.0.24.0     i--
+'''
+
+...
+...
+
+from man pkg:
+
+ ''The last column contains a set of flags that show the status of the''
+''           package:''
+
+''               o      An  i  in  the  I  column  shows  that  the  package  is''
+''                      installed.''
+
+''               o      An f in the F column shows that the package is frozen.''
+
+''               o      An o in the O column shows that the package is obsolete.''
+''                      An  r  in  the  O column shows that the package has been''
+''                      renamed (a form of obsoletion).''
+
+
+You can also see "detailed" information about installed packages using **pkg info**
+
+'''
+root@solaris:~# pkg info gnu-tar
+          Name: archiver/gnu-tar
+       Summary: GNU version of the tar archiving utility
+   Description: Tar is a program for packaging a set of files as a single
+                archive in tar format.
+      Category: Development/GNU
+         State: Installed
+     Publisher: solaris
+       Version: 1.27.1
+ Build Release: 5.11
+        Branch: 0.175.3.0.0.30.0
+Packaging Date: August 21, 2015 04:13:50 PM 
+          Size: 2.02 MB
+          FMRI: 
+'''
+pkg://solaris/archiver/gnu-tar@1.27.1,5.11-0.175.3.0.0.30.0:20150821T161350Z
+''...''
+''...''
+
+
+Search for available packages
+
+'''
+jack@webserv:~$ pkg search httpd
+INDEX      ACTION VALUE                                            PACKAGE
+basename   file   etc/puppet/modules/apache/files/httpd            pkg:/system/management/puppet/puppetlabs-apache@1.8.1-5.12.0.0.0.115.0
+'''
+	 ''basename   file   usr/apache2/2.4/bin/httpd                        ''pkg:/web/server/apache-24@2.4.12-0.175.3.0.0.30.0
+'''
+basename   file   etc/puppet/modules/apache/files/httpd            pkg:/system/management/puppet/puppet-apache@1.4.0-5.12.0.0.0.90.0
+basename   file   usr/apache2/2.2/bin/amd64/httpd                  pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+basename   file   usr/apache2/2.2/bin/httpd                        pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+basename   file   usr/apache2/2.2/bin/sparcv9/httpd                pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+...
+...
+
+'''
+install packages
+
+'''
+root@solaris:~# pkg install pkg:/web/server/apache-24@2.4.12-0.175.3.0.0.30.0
+           Packages to install:   1
+            Packages to change:   1
+           Mediators to change:   1
+            Services to change:   2
+       Create boot environment:  No
+Create backup boot environment: Yes
+
+DOWNLOAD                                PKGS         FILES    XFER (MB)   SPEED
+Completed                                2/2     1581/1581      7.3/7.3  1.1M/s
+
+PHASE                                          ITEMS
+Removing old actions                             3/3
+Installing new actions                     1655/1655
+Updating package state database                 Done 
+Updating package cache                           0/0 
+Updating image state                            Done 
+Creating fast lookup database                   Done 
+Updating package cache                           1/1
+'''
+ 
+
+Check the contents of a package 
+
+'''
+root@solaris:~# pkg contents apache-24 | head
+PATH
+etc/apache2/2.4/conf.d
+etc/apache2/2.4/envvars
+etc/apache2/2.4/httpd.conf
+etc/apache2/2.4/magic
+etc/apache2/2.4/mime.types
+etc/apache2/2.4/original/httpd.conf
+...
+...
+'''
+
+
+== Patching the system ==
+Because both the default IPS and the [[OpenCSW]] package management options both run separate from one another, you must still occasionally run an update using the pkg
+
+# pkg update
+
+
+
+
+

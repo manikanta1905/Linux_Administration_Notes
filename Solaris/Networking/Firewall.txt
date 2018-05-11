@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-02T17:42:29-04:00
+
+====== Firewall ======
+Created Wednesday 02 May 2018
+
+==== Overview ====
+https://docs.oracle.com/cd/E53394_01/html/E54829/pfovw-comparall.html
+Packet Filter (PF) is replacing IP Filter on Solaris 11 and should be used if at all possible. Because of this, it may be necessary to learn both firewalls. PF is similar to IP Tables.
+
+
+== Install PF Firewall ==
+# pkg install firewall
+# svcadm enable firewall
+
+Add rules to [[/etc/pf.conf,]] for example, to block incoming http requests
+https://docs.oracle.com/cd/E53394_01/html/E54829/pfovw-rls.html#scrolltoc
+
+

@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T19:13:49-04:00
+
+====== Zones ======
+Created Tuesday 01 May 2018
+
+==== Overview ====
+Zones are basically virtual machines
+https://docs.oracle.com/cd/E18440_01/doc.111/e18415/chapter_zones.htm#OPCUG427
+https://docs.oracle.com/cd/E19044-01/sol.containers/817-1592/zones.intro-1/index.html
+
+All zones reside within the default global zone. The global zone is essentially the host OS and all other zones act as the guest OSes.
+
+* Booting the global zone is equivalent to booting the system hardware.
+* Each zone, including the global zone, is assigned a zone name. The global zone always has the name "global".
+* Each zone is assigned a unique numeric identifier. The global zone always has the identifier ID 0.
+* Each zone has a path to its root directory that is relative to the global zone's root directory.
+* The global zone is the only zone from which a non-global zone can be configured and installed.

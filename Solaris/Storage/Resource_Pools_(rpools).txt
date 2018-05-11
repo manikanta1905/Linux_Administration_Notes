@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-02T12:00:41-04:00
+
+====== Resource Pools (rpools) ======
+Created Wednesday 02 May 2018
+
+https://docs.oracle.com/cd/E19044-01/sol.containers/817-1592/rmpool-1/index.html

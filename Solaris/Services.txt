@@ -1,0 +1,157 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T08:57:23-04:00
+
+====== Services ======
+Created Tuesday 01 May 2018
+
+== Overview ==
+Service Management Facility (SMF) is the equilavent to the legacy init scripts on Oracle for managing services.
+
+http://www.oracle.com/technetwork/articles/servers-storage-admin/intro-smf-basics-s11-1729181.html
+Important commands to interact with services
+
+* svcadm	Manage the state of service instances
+* svcs	Provide information about services, including their status
+* svcprop	Get information about service configuration properties
+* svccfg	Import, export, and modify service configuration
+
+== svcs ==
+**svcs -?** will produce a list of common commands.
+
+For example to list out currently running services
+
+'''
+jack@webserv:~$ svcs 
+STATE          STIME    FMRI
+legacy_run     12:43:42 lrc:/etc/rc2_d/S47pppd
+legacy_run     12:43:42 lrc:/etc/rc2_d/S81dodatadm_udaplt
+legacy_run     12:43:42 lrc:/etc/rc2_d/S89PRESERVE
+online         12:35:17 svc:/system/svc/restarter:default
+online         12:35:18 svc:/network/socket-config:default
+online         12:35:18 svc:/network/connectx/unified-driver-post-upgrade:default
+online         12:35:18 svc:/network/tcp/congestion-control:highspeed
+'''
+...
+...
+
+This output only shows currently running services, to show disables services, pass the **-a** option. Now we see disabled services as well.
+
+'''
+jack@webserv:~$ svcs -a
+STATE          STIME    FMRI
+legacy_run     12:43:42 lrc:/etc/rc2_d/S47pppd
+legacy_run     12:43:42 lrc:/etc/rc2_d/S81dodatadm_udaplt
+legacy_run     12:43:42 lrc:/etc/rc2_d/S89PRESERVE
+disabled       12:35:17 svc:/network/tcp/tcpkey:default
+disabled       12:35:17 svc:/network/install:default
+disabled       12:35:17 svc:/system/device/mpxio-upgrade:default
+disabled       12:35:18 svc:/network/ipsec/ike:default
+'''
+...
+...
+
+You can see the status of a single service by running the following command
+
+'''
+jack@webserv:~$ svcs -l ssh
+fmri         svc:/network/ssh:default
+name         SSH server
+enabled      true
+state        online
+next_state   none
+state_time   May  1, 2018 01:04:19 PM UTC
+logfile      /var/svc/log/network-ssh:default.log
+restarter    svc:/system/svc/restarter:default
+contract_id  177 
+manifest     /etc/svc/profile/generic_limited_net.xml
+manifest     /usr/share/distro_const/profile/generic.xml
+manifest     /lib/svc/manifest/network/ssh.xml
+dependency   require_all/none svc:/system/filesystem/local (online)
+dependency   optional_all/none svc:/system/filesystem/autofs (online)
+dependency   require_all/none svc:/network/loopback (online)
+dependency   require_all/none svc:/network/physical:default (online)
+dependency   require_all/none svc:/system/utmp (online)
+dependency   optional_all/error svc:/network/ipfilter:default (disabled)
+dependency   require_all/restart file://localhost/etc/ssh/sshd_config (online)
+'''
+
+
+You can then enable or disable a service with the **svcadm** command. For example to start / enable the httpd service
+
+jack@webserv:~$ svcadm enable http
+jack@webserv:~$ echo $?
+0
+jack@webserv:~$ svcs http
+STATE          STIME    FMRI
+maintenance    14:40:45 svc:/network/http:apache22
+
+
+(From http://www.oracle.com/technetwork/articles/servers-storage-admin/intro-smf-basics-s11-1729181.html)
+Each service on the system can be described using a Fault Management Resource Indicator (FMRI) that shows the service name, the service instance, and an associating category. For example, the SSH server has the following FMRI:
+
+''svc:/network/ssh:default''
+
+In this case, the service name is ssh, the service instance is default, and the category is network. All SMF-related FMRIs are prefixed with the svc:/ scheme, except for "legacy services," which are prefixed with the lrc:/ scheme, as we will see below. Administrators use FMRIs as the main way to manipulate services on an Oracle Solaris system. In some cases, we can use abbreviated forms to refer to the same service, which we will see a little later in this article.
+
+
+==== Service States ====
+From man SMF
+
+   States
+	   Each  service  instance  is always in a well-defined state based on its
+	   dependencies, the results of the execution  of  its  methods,  and  its
+	   potential contracts events. The following states are defined:
+
+	   UNINITIALIZED    This  is  the initial state for all service instances.
+						Instances are moved to maintenance, offline, or a dis-
+						abled  state  upon evaluation by svc.startd(1M) or the
+						appropriate restarter.
+
+	   OFFLINE          The instance is enabled, but not yet running or avail-
+						able  to  run.  If  restarter execution of the service
+						start method or the equivalent method  is  successful,
+						the instance moves to the online state. Failures might
+						lead to a degraded or maintenance  state.  Administra-
+						tive action can lead to the uninitialized state.
+
+	   ONLINE           The instance is enabled and running or is available to
+						run. The specific nature of the online state is appli-
+						cation-model  specific and is defined by the restarter
+						responsible for the service instance.  Online  is  the
+						expected  operating  state  for  a properly configured
+						service with all dependencies satisfied.  Failures  of
+						the  instance  can  lead  to a degraded or maintenance
+						state. Failures of  services  on  which  the  instance
+						depends can lead to offline or degraded states.
+
+	   DEGRADED         The  instance  is  enabled and running or available to
+						run. The instance, however, is functioning at  a  lim-
+						ited capacity in comparison to normal operation. Fail-
+						ures of the  instance  can  lead  to  the  maintenance
+						state.  Failures  of  services  on  which the instance
+						depends  can  lead  to  offline  or  degraded  states.
+						Restoration  of capacity should result in a transition
+						to the online state.
+
+	   MAINTENANCE      The instance was not able to start, stop  or  continue
+						running.  Administrative action (through svcadm clear,
+						after corrective steps are taken) is required to  move
+						the  instance  out  of  the  maintenance state. If the
+						instance is disabled, the maintenance state is  tempo-
+						rary.  In  this case, if a svcadm clear is issued, the
+						instance will not  re-execute  the  stop  method  that
+						caused  the  instance  to enter the maintenance state,
+						but will simply revert to the disabled state.
+
+	   DISABLED         The instance is disabled. Enabling the service results
+						in a transition to the offline state and eventually to
+						the online state with all dependencies satisfied.
+
+	   LEGACY-RUN       This state represents a legacy instance  that  is  not
+						managed  by the service management facility. Instances
+						in this state have been started  at  some  point,  but
+						might  or  might not be running. Instances can only be
+						observed using the facility and  are  not  transferred
+						into other states.
+:

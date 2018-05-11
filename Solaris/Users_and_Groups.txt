@@ -1,0 +1,54 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-02T11:04:52-04:00
+
+====== Users and Groups ======
+Created Wednesday 02 May 2018
+
+== Reserved UIDs ==
+Do not assign UIDs 0 through 99. These UIDs are reserved for allocation by Oracle Solaris.
+
+* 0 – 99 root, daemon, bin, sys, and so on Reserved for use by the operating system
+* 100 – 2147483647 Regular users General purpose accounts
+* 60001 and 65534 nobody and nobody4 Anonymous users
+* 60002 noaccess Non trusted users
+
+== Default File Permissions (Umask) ==
+
+'''
+Default File Permissions (umask)
+
+When you create a file or directory, the default file permissions assigned to the file or directory
+are controlled by the user mask. The user mask is set by the umask command in a user
+initialization file. You can display the current value of the user mask by typing umask and
+pressing Return.
+The user mask contains the following octal values:
+■ The first digit sets permissions for the user
+■ The second digit sets permissions for group
+■ The third digit sets permissions for other, also referred to as world
+Note that if the first digit is zero, it is not displayed. For example, if the user mask is set to 022, 22
+is displayed.
+To determine the umask value that you want to set, subtract the value of the permissions you
+want from 666 (for a file) or 777 (for a directory). The remainder is the value to use with the
+umask command. For example, suppose you want to change the default mode for files to 644
+(rw-r--r--). The difference between 666 and 644 is 022, which is the value you would use as an
+argument to the umask command.
+You can also determine the umask value you want to set by using the following table. This table
+shows the file and directory permissions that are created for each of the octal values of umask.
+
+TABLE 1–11 Permissions for umask Values
+umaskOctal Value File Permissions Directory Permissions
+
+umask octal value 	file permissions	directory permissions
+0 			rw- 			rwx
+1 			rw- 			rw-
+2 			r-- 			r-x
+3 			r-- 			r--
+4 			-w- 			-wx
+5 			-w- 			-w-
+6 			--x 			--x
+7 			--- (none) 		--- (none)
+
+The following line in a user initialization file sets the default file permissions to rw-rw-rw- and directory permissions to rwxrwxrwx.
+umask 000
+'''

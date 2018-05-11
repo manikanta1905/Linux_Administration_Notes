@@ -1,0 +1,67 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T15:18:00-04:00
+
+====== Storage ======
+Created Tuesday 01 May 2018
+
+==== Terminology ====
+* disk slice = partition
+
+==== Block Storage ====
+https://docs.oracle.com/cd/E23824_01/html/E24456/device-2.html#scrolltoc
+Device Naming
+https://docs.oracle.com/cd/E19455-01/805-6331/6j5vgg680/index.html
+
+== Naming Convention ==
+https://docs.oracle.com/cd/E19455-01/805-6331/6j5vgg680/index.html
+
+== Finding Block Storage on the System ==
+https://initialprogramload.blogspot.com/2008/07/how-solaris-disk-device-names-work.html
+
+First Find what block devices are available
+
+'''
+root@solaris:~# format
+Searching for disks...done
+
+
+AVAILABLE DISK SELECTIONS:
+       0. 
+'''
+__c1t0d0__'' <ATA-VBOX HARDDISK-1.0-100.00GB>''
+''          /pci@0,0/pci8086,2829@d/disk@0,0''
+''Specify disk (enter its number):'' 
+
+
+Here we can see there is one disk ()
+
+Then, you can see the partition tables for these devices using the **prtvtoc **command.
+
+'''
+root@solaris:~# prtvtoc 
+'''
+__/dev/dsk/c1t0d0__
+''* /dev/dsk/c1t0d0 partition map''
+''*''
+''* Dimensions:''
+''*     512 bytes/sector''
+''* 209715200 sectors''
+''* 209715133 accessible sectors''
+''*''
+''* Flags:''
+''*   1: unmountable''
+''*  10: read-only''
+''*''
+''* Unallocated space:''
+''*       First     Sector    Last''
+''*       Sector     Count    Sector ''
+''*          34       222       255''
+''*      524288       256    524543''
+''*   209712384      2782 209715165''
+''*''
+''*                          First     Sector    Last''
+''* Partition  Tag  Flags    Sector     Count    Sector  Mount Directory''
+''       0      4    00     524544 209171456 209695999''
+''       1     24    00        256    524032    524287''
+''       8     11    00  209696000     16384 209712383''

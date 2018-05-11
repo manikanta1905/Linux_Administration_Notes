@@ -5,7 +5,17 @@ Creation-Date: 2018-03-12T15:46:29-04:00
 ====== iscsi ======
 Created Monday 12 March 2018
 
+==== Target Install ====
+'''
+[root@wiki ~]# modprobe iscsi_target_mod
+[root@wiki ~]# yum install -y targetcli
+[root@wiki ~]# systemctl start target
+[root@wiki ~]# systemctl enable target
+'''
+
+
 ==== Configuring an ISCSI target ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/online-storage-management#osm-target-setup
 
 IP address of ISCSI target serving up the storage is 192.168.1.192
 
@@ -28,13 +38,8 @@ sr0           11:0    1 1024M  0 rom
 '''
   
 
-
-
 '''
-[root@wiki ~]# modprobe iscsi_target_mod
-[root@wiki ~]# yum install -y targetcli
-[root@wiki ~]# systemctl start target
-[root@wiki ~]# systemctl enable target
+
 [root@wiki ~]# targetcli
 /> help
 ..
@@ -51,7 +56,11 @@ o- / ...........................................................................
 
 
 === Create the backstore ===
+There are several types of backstores. The most common is **block** (HDD, SSDs) basically hard drives. This is the one we use here. The others are **fileio, pscsi, and ramdisk.**They are for advanced cases.
+
 This step should only need to be done once (or not very often). Basically, LUNs are akin to Logical Volumes, and the Backstore is the Physical Volume. Once a backstore is created, many LUNs will be made from it. Those LUNs will then be presented a logical disks to iscsi initiators (clients). For example, you may want to have a backstore just for your virtual machines. In that case you would name your backstore **vms** instead of **iscsidisk{1,2}**.
+
+
 
 
 '''
@@ -62,7 +71,12 @@ This step should only need to be done once (or not very often). Basically, LUNs 
 '''
 /backstores/block> create iscsidisk1 dev=/dev/sdb
 Created block storage object iscsidisk1 using /dev/sdb.
-/backstores/block> create iscsidisk2 dev=/dev/sdc
+
+'''
+''You can also pass the name of the backstore explicitly using the name= argument.''
+'''
+
+/backstores/block> create name=iscsidisk2 dev=/dev/sdc
 Created block storage object iscsidisk2 using /dev/sdc.
 '''
 
@@ -73,6 +87,8 @@ The iscsi target is essential the iscsi server. It is the system hosting the bac
 * IP address
 * tcp port
 
+The IP address and TCP port are collectively referred to as the **Target Portal.** Multiple Target Portals can exist in **Target Portal Groups** (TPG).
+
 '''
 /backstores/block> cd /iscsi 
 /iscsi> create wwn=iqn.2018-01.home.wiki:iscsidisk1
@@ -80,6 +96,7 @@ Created target iqn.2018-01.home.wiki:iscsidisk1.
 Created TPG 1.
 Global pref auto_add_default_portal=true
 Created default portal listening on all IPs (0.0.0.0), port 3260.
+
 /iscsi> create wwn=iqn.2018-01.home.wiki:iscsidisk2
 Created target iqn.2018-01.home.wiki:iscsidisk2.
 Created TPG 1.
@@ -87,8 +104,22 @@ Global pref auto_add_default_portal=true
 Created default portal listening on all IPs (0.0.0.0), port 3260.
 '''
 
+You can now see that a target directory structure has been created under the iscsi directory. This example is from a different iSCSI target.
 
-=== Create the network portals ===
+'''
+/iscsi> ls
+o- iscsi .............................................................................................................. [Targets: 1]
+  o- iqn.2018-05.home.storage:test ....................................................................................... [TPGs: 1]
+    o- tpg1 ................................................................................................. [no-gen-acls, no-auth]
+      o- acls ............................................................................................................ [ACLs: 0]
+      o- luns ............................................................................................................ [LUNs: 0]
+      o- portals ...................................................................................................... [Portals: 1]
+        o- 0.0.0.0:3260 ....................................................................................................... [OK]
+'''
+
+
+
+=== Change the network portals ===
 Target portals are the IP address / TCP port combination where the LUNs will be accessed. Basically, what we are doing here is changing the default target portal (0.0.0.0:3260) which listens on all network interfaces to only listen on the one we specify. Replace 192.168.1.192 with your IP address.
 
 If you get the following error
@@ -113,6 +144,7 @@ Deleted network portal 0.0.0.0:3260
 /iscsi/iqn.20.../tpg1/portals> create 192.168.1.192
 Using default IP port 3260
 Created network portal 192.168.1.192:3260.
+
 /iscsi/iqn.20.../tpg1/portals> cd /iscsi/iqn.2018-01.home.wiki:iscsidisk1/tpg1/portals 
 /iscsi/iqn.20.../tpg1/portals> create 192.168.1.192
 Using default IP port 3260
@@ -144,7 +176,7 @@ o- luns ........................................................................
 
 === Final Configurations ===
 
-Turn off authentication so that any inititator can access any target LUN
+Turn off authentication so that any inititator can access any target LUN. Note, tab autocomplete is very useful here.
 
 '''
 /iscsi/iqn.20...csidisk2/tpg1> pwd
@@ -198,6 +230,15 @@ o- / ...........................................................................
 '''
 
 
+'''
+/iscsi/iqn.20...age:test/tpg1> exit
+Global pref auto_save_on_exit=true
+Last 10 configs saved in /etc/target/backup.
+Configuration saved to /etc/target/saveconfig.json
+[root@storage ~]#
+'''
+ 
+
 
 == Firewall ==
 Open up tcp port 3260 on this server so that iSCSI initiators can reach the server to get to the LUNs
@@ -209,6 +250,7 @@ success
 ===== Configuring an iSCSI Initiator (client) =====
 
 [root@omd ~]# yum install -y iscsi-initiator-utils
+[root@omd ~]# systemctl start iscsid
 [root@omd ~]# systemctl enable iscsid
 
 There are two important configuration files in **/etc/iscsi**
@@ -217,7 +259,7 @@ Filled with node names and aliases for initiators. It is basically like the [[/e
 * iscsid.conf
 The main configuration file
 
-Discover the iSCSI LUNs on the target storage server. The discovered
+Discover the iSCSI LUNs on the target storage server. The **-t** **st** option (send targets) instructs the iscsi server to send a list of iscsi targets with its response.
 '''
 [root@omd ~]# iscsiadm -m discovery -t st -p 192.168.1.192
 192.168.1.192:3260,1 iqn.2018-01.home.wiki:iscsidisk1
@@ -250,7 +292,7 @@ sr0           11:0    1 1024M  0 rom
 '''
   
 
-You can view information about the current iSCSI session
+You can view information about the current iSCSI session, including how the iSCSI disk is presented to your Linux system (/dev/sd?). Use the following command and see the last section **Attached SCSI devices**, we see that the device is mounted as /dev/sdb.
 '''
 [root@omd ~]# iscsiadm -m session -P3
 iSCSI Transport Class version 2.0-870

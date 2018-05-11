@@ -1,0 +1,81 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-02T14:05:22-04:00
+
+====== Apache HTTPD ======
+Created Wednesday 02 May 2018
+
+==== Installation ====
+Find and install the apache2.4 web server using [[OpenCSW]] repository
+
+'''
+jack@webserv:~$ pkg search httpd
+INDEX      ACTION VALUE                                            PACKAGE
+basename   file   etc/puppet/modules/apache/files/httpd            pkg:/system/management/puppet/puppetlabs-apache@1.8.1-5.12.0.0.0.115.0
+basename   file   usr/apache2/2.4/bin/httpd                        pkg:/web/server/apache-24@2.4.12-0.175.3.0.0.30.0
+basename   file   etc/puppet/modules/apache/files/httpd            pkg:/system/management/puppet/puppet-apache@1.4.0-5.12.0.0.0.90.0
+basename   file   usr/apache2/2.2/bin/amd64/httpd                  pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+basename   file   usr/apache2/2.2/bin/httpd                        pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+basename   file   usr/apache2/2.2/bin/sparcv9/httpd                pkg:/web/server/apache-22@2.2.31-0.175.3.1.0.3.0
+'''
+
+'''
+
+
+root@solaris:~# pkg install pkg:/web/server/apache-24@2.4.12-0.175.3.0.0.30.0
+           Packages to install:   1
+            Packages to change:   1
+           Mediators to change:   1
+            Services to change:   2
+       Create boot environment:  No
+Create backup boot environment: Yes
+
+DOWNLOAD                                PKGS         FILES    XFER (MB)   SPEED
+Completed                                2/2     1581/1581      7.3/7.3  1.1M/s
+
+PHASE                                          ITEMS
+Removing old actions                             3/3
+Installing new actions                     1655/1655
+Updating package state database                 Done 
+Updating package cache                           0/0 
+Updating image state                            Done 
+Creating fast lookup database                   Done 
+Updating package cache                           1/1
+'''
+
+Check the contents of the apache-24 package
+
+''root@solaris:~# pkg contents apache-24 | less''
+
+Start the apache-24 service
+
+'''
+root@solaris:~# svcs -a | grep apache
+..
+..
+disabled       15:43:10 svc:/network/http:apache24
+'''
+
+
+'''
+root@solaris:~# svcadm enable svc:/network/http:apache24
+root@solaris:~# svcs -l svc:/network/http:apache24
+fmri         svc:/network/http:apache24
+name         Apache 2.4 HTTP server
+enabled      true
+state        online
+next_state   none
+state_time   May  3, 2018 03:53:10 PM EDT
+logfile      /var/svc/log/network-http:apache24.log
+restarter    svc:/system/svc/restarter:default
+contract_id  273 
+manifest     /lib/svc/manifest/network/http-apache24.xml
+manifest     /lib/svc/manifest/network/http-apache22.xml
+dependency   require_all/error svc:/milestone/network:default (online)
+dependency   require_all/none svc:/system/filesystem/local:default (online)
+dependency   optional_all/error svc:/system/filesystem/autofs:default (online)
+'''
+
+
+
+You should be able to now visit the ipaddress of the host and see "It Works!" in the web browser. You can get the server's ip address with **ifconfig -a** or **ipadm** 

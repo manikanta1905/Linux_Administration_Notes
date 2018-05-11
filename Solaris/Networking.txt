@@ -1,0 +1,267 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T15:30:16-04:00
+
+====== Networking ======
+Created Tuesday 01 May 2018
+
+==== Overview ====
+http://www.oracle.com/technetwork/articles/servers-storage-dev/s11-network-config-1632927.html
+Oracle Solaris 11 introduced two new commands for manually administering networks, dladm and ipadm, and both supersede ifconfig. Unlike ifconfig, changes made by dladm and ipadm are persistent across reboots. They share a common, consistent command format and, unlike ifconfig, they have parseable output that can be used in scripts.\
+
+It should be noted that you can still get network information using ifconfig, although setting networks with ifconfig will not persist across reboots.
+
+== Layer 2 Info ==
+http://www.unixrock.com/2014/08/solaris-11-basic-of-network.html
+
+To get information about the data link layer
+
+'''
+root@solaris:~# dladm
+LINK                CLASS     MTU    STATE    OVER
+net0                phys      1500   up       --
+'''
+
+We see that Link **net0** is a physical network connection. We can get more information using the following commands
+
+'''
+root@solaris:~# dladm show-phys
+LINK              MEDIA                STATE      SPEED  DUPLEX    DEVICE
+net0              Ethernet             up         1000   full      e1000g0
+root@solaris:~# dladm show-ether
+LINK              PTYPE    STATE    AUTO  SPEED-DUPLEX                    PAUSE
+net0              current  up       yes   1G-f                            bi
+
+
+'''
+''Or get the MAC address with''
+'''
+
+root@solaris:~# dladm show-phys -m
+LINK                SLOT     ADDRESS            INUSE CLIENT
+net0                primary  8:0:27:8b:26:95    yes   net0
+
+'''
+
+
+== Layer 3 Info ==
+To obtain IP information, use the **ipadm** command. Below we see there are two IP interfaces, **lo0** (loopback) and **net0**.
+
+'''
+root@solaris:~# ipadm
+NAME              CLASS/TYPE STATE        UNDER      ADDR
+lo0               loopback   ok           --         --
+   lo0/v4         static     ok           --         127.0.0.1/8
+   lo0/v6         static     ok           --         ::1/128
+net0              ip         ok           --         --
+   net0/v4        dhcp       ok           --         192.168.1.245/24
+   net0/v6        addrconf   ok           --         fe80::a00:27ff:fe8b:2695/10
+'''
+
+'''
+root@solaris:~# ipadm show-addr
+ADDROBJ           TYPE     STATE        ADDR
+lo0/v4            static   ok           127.0.0.1/8
+net0/v4           dhcp     ok           192.168.1.245/24
+lo0/v6            static   ok           ::1/128
+net0/v6           addrconf ok           fe80::a00:27ff:fe8b:2695/10
+'''
+
+
+
+Or you can simply use **ifconfig -a**
+
+'''
+root@solaris:~# ifconfig -a
+lo0: flags=2001000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv4,VIRTUAL> mtu 8232 index 1
+	inet 127.0.0.1 netmask ff000000 
+net0: flags=100001004843<UP,BROADCAST,RUNNING,MULTICAST,DHCP,IPv4,PHYSRUNNING> mtu 1500 index 4
+	inet 192.168.1.245 netmask ffffff00 broadcast 192.168.1.255
+	ether 8:0:27:8b:26:95 
+lo0: flags=2002000849<UP,LOOPBACK,RUNNING,MULTICAST,IPv6,VIRTUAL> mtu 8252 index 1
+	inet6 ::1/128 
+net0: flags=120002004841<UP,RUNNING,MULTICAST,DHCP,IPv6,PHYSRUNNING> mtu 1500 index 4
+	inet6 fe80::a00:27ff:fe8b:2695/10 
+	ether 8:0:27:8b:26:95
+'''
+ 
+
+Show detailed view of interfaces and all of their properties
+
+'''
+root@solaris:~# ipadm show-ifprop
+IFNAME      PROPERTY        PROTO PERM CURRENT    PERSISTENT DEFAULT    POSSIBLE
+lo0         arp             ipv4  rw   on         --         on         on,off
+lo0         exchange_routes ipv4  rw   on         --         on         on,off
+lo0         forwarding      ipv4  rw   off        --         off        on,off
+lo0         metric          ipv4  rw   0          --         0          --
+lo0         mtu             ipv4  rw   8232       --         8232       68-8232
+lo0         usesrc          ipv4  rw   none       --         none       --
+lo0         exchange_routes ipv6  rw   on         --         on         on,off
+lo0         forwarding      ipv6  rw   off        --         off        on,off
+lo0         metric          ipv6  rw   0          --         0          --
+lo0         mtu             ipv6  rw   8252       --         8252       1280-8252
+lo0         nud             ipv6  rw   on         --         on         on,off
+lo0         usesrc          ipv6  rw   none       --         none       --
+lo0         group           ip    rw   --         --         --         --
+lo0         standby         ip    rw   off        --         off        on,off
+net0        arp             ipv4  rw   on         --         on         on,off
+net0        exchange_routes ipv4  rw   on         --         on         on,off
+net0        forwarding      ipv4  rw   off        --         off        on,off
+net0        metric          ipv4  rw   0          --         0          --
+net0        mtu             ipv4  rw   1500       --         1500       68-1500
+net0        usesrc          ipv4  rw   none       --         none       --
+net0        exchange_routes ipv6  rw   on         --         on         on,off
+net0        forwarding      ipv6  rw   off        --         off        on,off
+net0        metric          ipv6  rw   0          --         0          --
+net0        mtu             ipv6  rw   1500       --         1500       1280-1500
+net0        nud             ipv6  rw   on         --         on         on,off
+net0        usesrc          ipv6  rw   none       --         none       --
+net0        group           ip    rw   --         --         --         --
+net0        standby         ip    rw   off        --         off        on,off
+'''
+
+
+You can then change an interface's property by using the following command
+
+== Set the Hostname ==
+'''
+root@test:/dev/dsk# hostname test2.home
+root@test:/dev/dsk# bash
+root@test2:/dev/dsk#
+'''
+ 
+The long way of setting the hostname (in case you are interested)
+
+'''
+root@solaris:~# svccfg -s svc:/system/identity:node setprop config/nodename = astring: hostname
+root@solaris:~# svcadm refresh svc:/system/identity:node
+root@solaris:~# svcadm restart identity:node
+root@solaris:/dev/dsk# hostname
+test.home
+'''
+
+The hostname will be displayed once you start a new bash session, I.E. run the following command
+
+'''
+root@solaris:/dev/dsk# bash
+root@test:/dev/dsk#
+'''
+ 
+
+== Changing the IP Address of an interface ==
+Given the following configuration
+
+'''
+# ipadm show-addr
+ADDROBJ           TYPE     STATE        ADDR
+lo0/v4            static   ok           127.0.0.1/8
+net0/v4           dhcp     ok           192.168.1.245/24
+lo0/v6            static   ok           ::1/128
+net0/v6           addrconf ok           fe80::a00:27ff:fe8b:2695/10
+'''
+
+
+You can change the address of the **net0/v4** object using the following method (WARNING this will kill your SSH connection)
+
+'''
+# ipadm delete-addr addrobj
+# ipadm create-addr -a IP-address addrobj
+'''
+
+For example
+
+# ipadm delete-addr net0/v4 && ipadm create-addr -a 192.168.1.246 net0/v4
+
+== Configure System DNS Client ==
+https://www.itfromallangles.com/2012/05/solaris-11-dns-client-configuration-using-svccfg/
+
+View current DNS settings
+
+'''
+root@solaris:/dev/dsk# svccfg -s network/dns/client listprop config
+config                      application        
+config/value_authorization astring     solaris.smf.value.name-service.dns.client
+config/nameserver          net_address 8.8.8.8 192.168.1.1
+'''
+
+
+Change name servers to Cloudflare's 1.1.1.1 and Google's 8.8.8.8
+
+'''
+root@solaris:/dev/dsk# svccfg -s network/dns/client setprop config/nameserver = net_address: "(1.1.1.1 8.8.8.8)"
+root@solaris:/dev/dsk# svcadm refresh network/dns/client
+root@solaris:/dev/dsk# cat /etc/resolv.conf 
+
+#
+# _AUTOGENERATED_FROM_SMF_V1_
+#
+# WARNING: THIS FILE GENERATED FROM SMF DATA.
+#   DO NOT EDIT THIS FILE.  EDITS WILL BE LOST.
+# See resolv.conf(4) for details.
+
+nameserver	1.1.1.1
+nameserver	8.8.8.8
+
+
+'''
+==== Routing ====
+https://docs.oracle.com/cd/E36784_01/html/E37475/gmyag.html
+
+''Show Current Routes (Including default route / gateway)''
+'''
+
+root@test2:~# netstat -rn
+
+Routing Table: IPv4
+  Destination           Gateway           Flags  Ref     Use     Interface 
+-------------------- -------------------- ----- ----- ---------- --------- 
+default              192.168.1.1          UG        2         46 net0      
+127.0.0.1            127.0.0.1            UH        2        596 lo0       
+192.168.1.0          192.168.1.211        U         4         81 net0      
+
+Routing Table: IPv6
+  Destination/Mask            Gateway                   Flags Ref   Use    If   
+--------------------------- --------------------------- ----- --- ------- ----- 
+::1                         ::1                         UH      2       0 lo0   
+fe80::/10                   fe80::a00:27ff:fe59:8d51    U       2       0 net0  
+
+
+'''
+''Adding a route''
+'''
+
+# route -p add default ip-address
+# route -p show
+# netstat -rn
+
+
+'''
+== Changing the Default Gateway ==
+
+''Note the following example, doesn't actually make any sense. It merely explains how to change the default gateway.''
+
+''root@test2:~# route -p delete default 192.168.1.1''
+''delete net default: gateway 192.168.1.1''
+''delete persistent net default: gateway 192.168.1.1: not in file''
+''root@test2:~# route -p add default 192.168.1.0''
+''add net default: gateway 192.168.1.0''
+''root@test2:~# netstat -rn''
+
+''Routing Table: IPv4''
+''  Destination           Gateway           Flags  Ref     Use     Interface ''
+''-------------------- -------------------- ----- ----- ---------- --------- ''
+''default              192.168.1.0          UG        1          0           ''
+''127.0.0.1            127.0.0.1            UH        2        610 lo0       ''
+''192.168.1.0          192.168.1.211        U         4        343 net0      ''
+
+''Routing Table: IPv6''
+''  Destination/Mask            Gateway                   Flags Ref   Use    If   ''
+''--------------------------- --------------------------- ----- --- ------- ----- ''
+''::1                         ::1                         UH      2       0 lo0   ''
+''fe80::/10                   fe80::a00:27ff:fe59:8d51    U       2       0 net0  ''
+
+==== Useful commands ====
+
+See network traffic stats in real time
+$ ipstat

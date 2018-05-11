@@ -1,0 +1,507 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-09T13:34:21-04:00
+
+====== RAID ======
+Created Wednesday 09 May 2018
+
+==== Overview ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/ch-raid
+The basic idea behind RAID is to combine multiple small, inexpensive disk drives into an array to accomplish performance or redundancy goals not attainable with one large and expensive drive. This array of drives appears to the computer as a single logical storage unit or drive.
+
+Primary reasons to deploy RAID include:
+* Enhances speed
+* Increases storage capacity using a single virtual disk
+* Minimizes data loss from disk failure
+
+== Raid Terminology ==
+https://www.digitalocean.com/community/tutorials/an-introduction-to-raid-terminology-and-concepts
+
+Raid Volume = All the disks in a RAID array to form one logical disk.
+
+==== mdadm ====
+mdadm is the preferred tool for creating software raid arrays on RHEL/Centos. It's usage is covered below.
+
+== Create a new Raid 1 Array ==
+https://raid.wiki.kernel.org/index.php/RAID_setup
+
+You have two devices of approximately same size, and you want the two to be mirrors of each other. Eventually you have more devices, which you want to keep as stand-by spare-disks, that will automatically become a part of the mirror if one of the active devices break.
+
+I will be raiding [[/dev/sdc]] and [[/dev/sdd]] with [[/dev/sde]] as a spare.
+
+'''
+[root@storage ~]# lsblk
+NAME         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda            8:0    0  100G  0 disk 
+├─sda1         8:1    0  500M  0 part /boot
+└─sda2         8:2    0 99.5G  0 part 
+  ├─vg0-root 253:0    0 34.1G  0 lvm  /
+  ├─vg0-swap 253:1    0    2G  0 lvm  [SWAP]
+  ├─vg0-tmp  253:2    0 19.5G  0 lvm  /tmp
+  ├─vg0-var  253:3    0 19.5G  0 lvm  /var
+  └─vg0-home 253:4    0  9.8G  0 lvm  /home
+sdb            8:16   0    8G  0 disk 
+sdc            8:32   0    8G  0 disk 
+sdd            8:48   0    8G  0 disk 
+sde            8:64   0    8G  0 disk
+'''
+ 
+
+
+''[root@storage ~]# mdadm --create --verbose /dev/md0 --level=mirror --raid-devices=2 /dev/sdc /dev/sdd --spare-devices=1 /dev/sde''
+
+At this point, you can inspect the contents of [[/proc/mdstat]] to see the status of the raid array. We can see that [[/dev/sde]] is set to be a spare as it has a letter S next to it. 
+
+'''
+[root@storage ~]# cat /proc/mdstat 
+Personalities : [raid1] 
+md0 : active raid1 sde[2](S) sdd[1] sdc[0]
+      8380416 blocks super 1.2 [2/2] [UU]
+      [=================>...]  resync = 85.9% (7203584/8380416) finish=0.0min speed=200052K/sec
+'''
+
+      
+unused devices: <none>
+
+According to the docs, you need not  wait for the raid array to inititalize to use it. You can format the disks, mount them, etc. before they are actually finished initializing and they should be fine. Just make sure not to break the wrong disk!
+
+We can run lsblk to see which disks are in a raid array. We see that [[/dev/sd{c,d,e}]] are in [[/dev/md0.]] We can get more information using mdadm --query.
+
+'''
+[root@storage ~]# lsblk -f
+NAME         FSTYPE            LABEL          UUID                                   MOUNTPOINT
+sda                                                                                  
+├─sda1       xfs                              1f7b8428-9fbe-4863-a43d-1ef7ce3f671c   /boot
+└─sda2       LVM2_member                      2ImvFZ-3sC8-hUdG-Z3Cv-1hw2-vhQe-k8drEf 
+  ├─vg0-root xfs                              001c73b1-0db0-40f9-85da-414f12e5cf28   /
+  ├─vg0-swap swap                             8a8e0b6b-a0f2-4ba6-8cf3-7faef392ca21   [SWAP]
+  ├─vg0-tmp  xfs                              48fd5f3d-7a35-4ad9-ad47-7f260b09cd88   /tmp
+  ├─vg0-var  xfs                              1647cf75-2e4b-4e90-94c2-9e09f57cebb1   /var
+  └─vg0-home xfs                              0049bac8-3e95-4ed9-b482-559ee55336f7   /home
+sdb                                                                                  
+sdc          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   
+└─md0                                                                                
+sdd          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   
+└─md0                                                                                
+sde          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   
+└─md0                                                                                
+sr0
+'''
+                                                                            
+
+
+The Version listed shows which metadata version was used for the raid array (not the version of mdadm itself). 
+
+'''
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+           Version : 1.2
+     Creation Time : Wed May  9 14:41:06 2018
+        Raid Level : raid1
+        Array Size : 8380416 (7.99 GiB 8.58 GB)
+     Used Dev Size : 8380416 (7.99 GiB 8.58 GB)
+      Raid Devices : 2
+     Total Devices : 3
+       Persistence : Superblock is persistent
+
+       Update Time : Wed May  9 14:41:48 2018
+             State : clean 
+    Active Devices : 2
+   Working Devices : 3
+    Failed Devices : 0
+     Spare Devices : 1
+
+Consistency Policy : resync
+
+              Name : storage.home:0  (local to host storage.home)
+              UUID : 218f69b4:2f403d17:83a253d8:659b7eb2
+            Events : 17
+
+    Number   Major   Minor   RaidDevice State
+       0       8       32        0      active sync   /dev/sdc
+       1       8       48        1      active sync   /dev/sdd
+
+       2       8       64        -      spare   /dev/sde
+'''
+
+
+Now, if I pull one of the active hard drives (/dev/sdc) the spare [[/dev/sde]] should activate and resync. We can check this progress by inspecting the [[/proc/mdstat]] file.
+
+== Adding spares to a RAID-1 array ==
+Assume the following configuration. We want to add [[/dev/sdc]] back into the raid array as a hot spare.
+
+'''
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+           Version : 1.2
+     Creation Time : Wed May  9 14:41:06 2018
+        Raid Level : raid1
+        Array Size : 8380416 (7.99 GiB 8.58 GB)
+     Used Dev Size : 8380416 (7.99 GiB 8.58 GB)
+      Raid Devices : 2
+     Total Devices : 2
+       Persistence : Superblock is persistent
+
+       Update Time : Wed May  9 15:49:46 2018
+             State : clean 
+    Active Devices : 2
+   Working Devices : 2
+    Failed Devices : 0
+     Spare Devices : 0
+
+Consistency Policy : resync
+
+              Name : storage.home:0  (local to host storage.home)
+              UUID : 218f69b4:2f403d17:83a253d8:659b7eb2
+            Events : 41
+
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       1       8       48        1      active sync   /dev/sdd
+'''
+
+
+
+
+'''
+[root@storage ~]# mdadm --verbose --add-spare /dev/md0 /dev/sdc
+mdadm: added /dev/sdc
+'''
+
+
+
+'''
+[root@storage ~]# cat /proc/mdstat 
+Personalities : [raid1] 
+md0 : active raid1 sdc[3](S) sde[2] sdd[1]
+      8380416 blocks super 1.2 [2/2] [UU]
+      
+unused devices: <none>
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+           Version : 1.2
+     Creation Time : Wed May  9 14:41:06 2018
+        Raid Level : raid1
+        Array Size : 8380416 (7.99 GiB 8.58 GB)
+     Used Dev Size : 8380416 (7.99 GiB 8.58 GB)
+      Raid Devices : 2
+     Total Devices : 3
+       Persistence : Superblock is persistent
+
+       Update Time : Wed May  9 16:15:32 2018
+             State : clean 
+    Active Devices : 2
+   Working Devices : 3
+    Failed Devices : 0
+     Spare Devices : 1
+
+Consistency Policy : resync
+
+              Name : storage.home:0  (local to host storage.home)
+              UUID : 218f69b4:2f403d17:83a253d8:659b7eb2
+            Events : 42
+
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       1       8       48        1      active sync   /dev/sdd
+
+       3       8       32        -      spare   /dev/sdc
+'''
+
+
+
+== Adding Active Drives to a RAID-1 Array ==
+If you want to add a drive to an array (not as a spare)
+
+''[root@storage ~]# mdadm --add /dev/md0 /dev/sdd''
+
+== Creating a Raid 10 array ==
+You will need at least 4 drives to create a raid 10 array. Note that there are two sets in a raid 10 array. You can lose only one disk from each set before all data is lost. Raid 10 increases write and read performance.
+
+'''
+[root@storage dev]# mdadm -v --create /dev/md0 --level=raid10 --raid-devices=4 /dev/sd{f,c,d,e}
+[root@storage dev]# mdadm --query --detail /dev/md0
+/dev/md0:
+           Version : 1.2
+     Creation Time : Thu May 10 13:04:27 2018
+        Raid Level : raid10
+        Array Size : 16760832 (15.98 GiB 17.16 GB)
+     Used Dev Size : 8380416 (7.99 GiB 8.58 GB)
+      Raid Devices : 4
+     Total Devices : 4
+       Persistence : Superblock is persistent
+
+       Update Time : Thu May 10 13:04:48 2018
+             State : clean, resyncing 
+    Active Devices : 4
+   Working Devices : 4
+    Failed Devices : 0
+     Spare Devices : 0
+
+            Layout : near=2
+        Chunk Size : 512K
+
+Consistency Policy : resync
+
+     Resync Status : 26% complete
+
+              Name : storage.home:0  (local to host storage.home)
+              UUID : 0a01174d:1cb16c02:a980a138:4c1289e5
+            Events : 4
+
+    Number   Major   Minor   RaidDevice State
+       0       8       80        0      active sync set-A   /dev/sdf
+       1       8       32        1      active sync set-B   /dev/sdc
+       2       8       48        2      active sync set-A   /dev/sdd
+       3       8       64        3      active sync set-B   /dev/sde
+'''
+
+
+
+==== Removing Drives from an array ====
+
+Only inactive or spare drives can be removed from an array. You can remove a spare drive from an array using
+
+'''
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+...
+...
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       4       8       48        1      active sync   /dev/sdd
+
+       3       8       32        -      spare   /dev/sdc
+'''
+
+
+'''
+[root@storage ~]# mdadm --remove /dev/md0 /dev/sdc
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+...
+...
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       4       8       48        1      active sync   /dev/sdd
+'''
+
+
+
+You can remove an active drive from the array by first placing it in a failed state
+
+'''
+[root@storage ~]# mdadm --remove /dev/md0 /dev/sdd
+mdadm: hot remove failed for /dev/sdd: Device or resource busy
+[root@storage ~]# mdadm --fail /dev/md0 /dev/sdd
+mdadm: set /dev/sdd faulty in /dev/md0
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+...
+...
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       -       0        0        1      removed
+
+       4       8       48        -      faulty   /dev/sdd
+'''
+
+'''
+[root@storage ~]# mdadm --remove /dev/md0 /dev/sdd
+mdadm: hot removed /dev/sdd from /dev/md0
+'''
+
+'''
+[root@storage ~]# mdadm --query --detail /dev/md0
+/dev/md0:
+...
+...
+    Number   Major   Minor   RaidDevice State
+       2       8       64        0      active sync   /dev/sde
+       -       0        0        1      removed
+'''
+
+
+
+Note: You can fail a drive and remove it in a single step using 
+
+# mdadm /dev/md0 --fail /dev/sda1 --remove /dev/sda1
+
+
+== Stopping and starting arrays ==
+You can stop an array and linux won't see the [[/dev/md*]] device as a usable block device any longer. For example assume the following configuration
+
+'''
+[root@storage ~]# lsblk
+NAME         MAJ:MIN RM  SIZE RO TYPE  MOUNTPOINT
+sda            8:0    0  100G  0 disk  
+├─sda1         8:1    0  500M  0 part  /boot
+└─sda2         8:2    0 99.5G  0 part  
+  ├─vg0-root 253:0    0 34.1G  0 lvm   /
+  ├─vg0-swap 253:1    0    2G  0 lvm   [SWAP]
+  ├─vg0-tmp  253:2    0 19.5G  0 lvm   /tmp
+  ├─vg0-var  253:3    0 19.5G  0 lvm   /var
+  └─vg0-home 253:4    0  9.8G  0 lvm   /home
+sdb            8:16   0    8G  0 disk  
+sdc            8:32   0    8G  0 disk  
+└─md0          9:0    0    8G  0 raid1 
+  └─md0p1    259:0    0    8G  0 md    
+sdd            8:48   0    8G  0 disk  
+sde            8:64   0    8G  0 disk  
+└─md0          9:0    0    8G  0 raid1 
+  └─md0p1    259:0    0    8G  0 md    
+sr0           11:0    1 1024M  0 rom
+'''
+   
+
+'''
+[root@storage ~]# mdadm --stop /dev/md0
+mdadm: stopped /dev/md0
+[root@storage ~]# lsblk -f
+NAME         FSTYPE            LABEL          UUID                                   MOUNTPOINT
+sda                                                                                  
+├─sda1       xfs                              1f7b8428-9fbe-4863-a43d-1ef7ce3f671c   /boot
+└─sda2       LVM2_member                      2ImvFZ-3sC8-hUdG-Z3Cv-1hw2-vhQe-k8drEf 
+  ├─vg0-root xfs                              001c73b1-0db0-40f9-85da-414f12e5cf28   /
+  ├─vg0-swap swap                             8a8e0b6b-a0f2-4ba6-8cf3-7faef392ca21   [SWAP]
+  ├─vg0-tmp  xfs                              48fd5f3d-7a35-4ad9-ad47-7f260b09cd88   /tmp
+  ├─vg0-var  xfs                              1647cf75-2e4b-4e90-94c2-9e09f57cebb1   /var
+  └─vg0-home xfs                              0049bac8-3e95-4ed9-b482-559ee55336f7   /home
+sdb                                                                                  
+sdc          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   
+sdd          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   
+sde          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2
+'''
+   
+
+[[/dev/md0]] has been disabled. You can re-enable the raid array by scanning for raid arrays
+
+'''
+[root@storage ~]# mdadm --assemble --scan
+mdadm: /dev/md/0 has been started with 2 drives.
+mdadm: Found some drive for an array that is already active: /dev/md/0
+mdadm: giving up.
+
+'''
+''We now have access to the /dev/md0 raid device''
+
+''[root@storage ~]# lsblk -f''
+''NAME         FSTYPE            LABEL          UUID                                   MOUNTPOINT''
+''sda                                                                                  ''
+''├─sda1       xfs                              1f7b8428-9fbe-4863-a43d-1ef7ce3f671c   /boot''
+''└─sda2       LVM2_member                      2ImvFZ-3sC8-hUdG-Z3Cv-1hw2-vhQe-k8drEf ''
+''  ├─vg0-root xfs                              001c73b1-0db0-40f9-85da-414f12e5cf28   /''
+''  ├─vg0-swap swap                             8a8e0b6b-a0f2-4ba6-8cf3-7faef392ca21   [SWAP]''
+''  ├─vg0-tmp  xfs                              48fd5f3d-7a35-4ad9-ad47-7f260b09cd88   /tmp''
+''  ├─vg0-var  xfs                              1647cf75-2e4b-4e90-94c2-9e09f57cebb1   /var''
+''  └─vg0-home xfs                              0049bac8-3e95-4ed9-b482-559ee55336f7   /home''
+''sdb                                                                                  ''
+''sdc          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   ''
+''└─md0                                                                                ''
+''  └─md0p1    ext4                             62790509-ab87-4bca-a7fb-7abe36b335c6   ''
+''sdd          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   ''
+''sde          linux_raid_member storage.home:0 218f69b4-2f40-3d17-83a2-53d8659b7eb2   ''
+''└─md0                                                                                ''
+''  └─md0p1    ext4                             62790509-ab87-4bca-a7fb-7abe36b335c6   ''
+''sr0''                                                                              
+
+
+==== Deleting a raid array (volume) ====
+Stop the raid array
+
+'''
+[root@storage ~]# mdadm --stop /dev/md0
+mdadm: stopped /dev/md0
+'''
+
+
+Zero the super blocks of **each** disk in the raid array
+
+''[root@storage ~]# mdadm --zero-superblock /dev/sdc /dev/sdd /dev/sde''
+
+Now if you list out the block devices, they should no longer appear as a linux_raid_member
+
+'''
+[root@storage ~]# lsblk -f
+NAME         FSTYPE      LABEL UUID                                   MOUNTPOINT
+sda                                                                   
+├─sda1       xfs               1f7b8428-9fbe-4863-a43d-1ef7ce3f671c   /boot
+└─sda2       LVM2_member       2ImvFZ-3sC8-hUdG-Z3Cv-1hw2-vhQe-k8drEf 
+  ├─vg0-root xfs               001c73b1-0db0-40f9-85da-414f12e5cf28   /
+  ├─vg0-swap swap              8a8e0b6b-a0f2-4ba6-8cf3-7faef392ca21   [SWAP]
+  ├─vg0-tmp  xfs               48fd5f3d-7a35-4ad9-ad47-7f260b09cd88   /tmp
+  ├─vg0-var  xfs               1647cf75-2e4b-4e90-94c2-9e09f57cebb1   /var
+  └─vg0-home xfs               0049bac8-3e95-4ed9-b482-559ee55336f7   /home
+sdb                                                                   
+sdc                                                                   
+sdd                                                                   
+sde                                                                   
+sr0
+'''
+   
+
+== Troubleshooting mdadm ==
+You can also cat the following file to troubleshoot mdadm. 
+
+[root@storage ~]# cat /sys/block/md0/md/sync_action
+idle
+If the state is frozen, then that is bad. You should be able to fix with
+root@galaxy:~# echo idle > /sys/block/md0/md/sync_action
+
+
+The following command can re-add drives that have (for whatever reason) dropped out of the array, or it can also remove disks from the array in an attempt to re-add them to fix any issues. Note, this may not fix all issues.
+# mdadm --re-add
+
+
+Sometimes, disks end up in a detached state. The are completely unresponsive to the OS and you get mdadm errors such as 
+'''
+mdadm: super1.x cannot open /dev/sdb: Device or resource busy
+mdadm: ddf: Cannot use /dev/sdb: Device or resource busy
+'''
+
+
+You can verify this by checking the disk state. You can also try to rescan the device, although I don't believe this helps. Your only option may be to reseat the drive physically.
+
+'''
+[root@storage ~]# cat /sys/block/sdb/device/dh_state
+detached
+
+[root@storage ~]# lsblk -S
+NAME HCTL       TYPE VENDOR   MODEL             REV TRAN
+sda  0:0:0:0    disk ATA      VBOX HARDDISK    1.0  sata
+sdb  1:0:0:0    disk ATA      VBOX HARDDISK    1.0  sata
+sdc  2:0:0:0    disk ATA      VBOX HARDDISK    1.0  sata
+sdd  3:0:0:0    disk ATA      VBOX HARDDISK    1.0  sata
+sde  4:0:0:0    disk ATA      VBOX HARDDISK    1.0  sata
+sr0  6:0:0:0    rom  VBOX     CD-ROM           1.0  ata
+'''
+
+
+''[root@storage ~]# echo 1 >>/sys/class/scsi_device/1\:0\:0\:0//device/rescan'' 
+
+
+==== Raid Levels ====
+https://www.youtube.com/watch?v=U-OCdTeZLac
+http://www.raid-calculator.com/raid-types-reference.aspx
+https://cdn.ttgtmedia.com/searchSMBStorage/downloads/Standard_RAID_levels_defined.pdf
+
+Note, that the most common RAID levels are 0,1,5,6 and 10.
+
+
+
+==== RAID Types ====
+
+== Firmware RAID ==
+If used, presents a raid array as a single disk to the OS.
+
+== Hardware RAID ==
+Dedicated hardware takes care of the RAID array and I/O of disks freeing up the system's CPU for other things. Hardware RAID becomes necessary when a storage array contains many disks.
+
+== Software RAID ==
+Software RAID uses the systems resources (CPU) and Operating System to manage the RAID array. It is the cheapest solution, as no hardware is necessary, and offers several advantages over hardware raid. 
+
+* Portability of arrays between Linux machines without reconstruction
+* Resync checkpointing so that if you reboot your computer during a resync, at startup the resync will pick up where it left off and not start all over again
+* The ability to change parameters of the array after installation. For example, you can grow a 4-disk RAID5 array to a 5-disk RAID5 array when you have a new disk to add. This grow operation is done live and does not require you to reinstall on the new array.
+
+The Linux kernel contains a multi-disk (MD) driver that allows the RAID solution to be completely hardware independent. The performance of a software-based array depends on the server CPU performance and load.

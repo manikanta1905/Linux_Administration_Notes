@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T08:57:14-04:00
+
+====== Solaris ======
+Created Tuesday 01 May 2018
+
+==== RHEL vs Solaris 11 ====
+http://www.oracle.com/technetwork/server-storage/solaris11/overview/redhat-mapping-guide-1555721.html

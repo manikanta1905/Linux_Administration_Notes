@@ -1,0 +1,66 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-07T17:35:41-04:00
+
+====== IP Filter ======
+Created Monday 07 May 2018
+
+==== Overview ====
+https://docs.oracle.com/cd/E19082-01/819-3000/ipfilter-admin-2/index.html
+http://dlc.openindiana.org/docs/20090715/SYSADV3/html/ezltg.html
+
+Solaris IP Filter requires direct editing of configuration files.
+
+Solaris IP Filter is installed as part of the Solaris OS. By default, Solaris IP Filter is not activated after a fresh install. To configure filtering, you must edit configuration files and manually activate Solaris IP Filter. You can activate filtering by either rebooting the system or by plumbing the interfaces using the ifconfig command.
+
+IP Network Multipathing (IPMP) supports stateless filtering only.
+
+Sun Cluster configurations do not support filtering with Solaris IP Filter.
+
+Filtering between zones is not currently supported with Solaris IP Filter.
+
+
+==== Configuration ====
+https://docs.oracle.com/cd/E26502_01/html/E28990/ipfad-10.html#ipfad-4
+If you are using custom IP Filter rules (or custom file locations) you must let IP Filter know about these files by setting the firewall config policy to "custom", then point IP filter to the location of the new config file.
+
+$ svccfg -s ipfilter:default setprop firewall_config_default/policy = astring: "custom"
+$ svccfg -s ipfilter:default \
+setprop firewall_config_default/custom_policy_file = astring: "/etc/ipf/ipf.conf"
+
+'''
+root@test2:~# svcadm enable ipfilter
+root@test2:~# svcs -l ipfilter
+fmri         svc:/network/ipfilter:default
+name         IP Filter
+enabled      true
+state        offline
+next_state   online
+state_time   May  7, 2018 06:18:45 PM EDT
+logfile      /var/svc/log/network-ipfilter:default.log
+restarter    svc:/system/svc/restarter:default
+contract_id  153 
+manifest     /lib/svc/manifest/network/ipfilter.xml
+manifest     /lib/svc/manifest/network/network-location.xml
+dependency   require_all/none svc:/system/filesystem/minimal (online)
+dependency   require_all/restart svc:/network/physical:default (online)
+dependency   require_all/restart svc:/system/identity:node (online)
+dependency   require_all/restart svc:/system/identity:domain (online)
+dependency   optional_all/none svc:/network/location:default (online)
+'''
+
+
+Solaris IP Filter can be used to provide firewall services or network address translation (NAT). Solaris IP Filter can be implemented using loadable configuration files. Solaris IP Filter includes a directory called /etc/ipf. You can create and store configuration files called ipf.conf, ipnat.conf and ippool.conf in the /etc/ipf directory. These files are loaded automatically during the boot process when they reside in the /etc/ipf directory.
+
+To set firewall rules, add the following contents to [[/etc/ipf/ipf.conf.]] Then restart the ipfilter service.
+
+Block all incoming traffic, as well as outgoing traffic
+
+'''
+block in all
+block out all
+'''
+
+
+Block HTTP traffic
+

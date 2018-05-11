@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-02T12:43:50-04:00
+
+====== OpenCSW ======
+Created Wednesday 02 May 2018
+
+==== Overview ====
+https://www.opencsw.org/package/alternatives/
+[[OpenCSW]] is a better (???) package manager for solaris. To install it run the following commands
+
+
+== Installation ==
+pkgadd -d http://get.opencsw.org/now
+/opt/csw/bin/pkgutil -U
+/opt/csw/bin/pkgutil -y -i alternatives 
+/usr/sbin/pkgchk -L CSWalternatives # list files
+
+==== Full Setup ====
+https://www.opencsw.org/manual/for-administrators/setup.html
+
+You will then need to add [[OpenCSW]] binaries and man pages to your path. You can accomplish this by adding the following to either your [[/etc/profile]] (recommended) or to /root/.bashrc
+
+	 ''# Add OpenCSW package manager to path''
+'''
+export PATH=/opt/csw/bin:/usr/bin:/usr/sbin
+export MANPATH=/opt/csw/share/man:/usr/share/man
+'''
+
+
+'''
+# source /root/.bashrc
+# source /etc/profile
+'''
+
+
+== Patching the system ==
+Make sure you upgrade both IPS and OpenCSW
+
+# pkgutil --upgrade
+# pkg update 

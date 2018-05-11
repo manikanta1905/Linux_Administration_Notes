@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-07T17:40:49-04:00
+
+====== PF Firewall ======
+Created Monday 07 May 2018
+
+==== Overview ====
+https://docs.oracle.com/cd/E53394_01/html/E54829/pfovw-proc.html#scrolltoc
+
+PF uses the /etc/pf.conf file for all firewall configuration information. The svc:/network/firewall service loads the rules from the file location specified for the firewall/rules service property. By default, the file location is [[/etc/firewall/pf.conf.]]
+

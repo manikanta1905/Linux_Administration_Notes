@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-01T19:05:46-04:00
+
+====== Create a local repository ======
+Created Tuesday 01 May 2018
+
+== Overview ==
+https://www.unixarena.com/2014/08/create-ips-repository-solaris-11-2.html
+http://www.oracle.com/technetwork/server-storage/solaris11/downloads/local-repository-2245081.html
+
