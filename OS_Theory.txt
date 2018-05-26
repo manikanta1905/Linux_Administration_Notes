@@ -1,0 +1,136 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-26T09:28:39-04:00
+
+====== OS Theory ======
+Created Saturday 26 May 2018
+
+All information is from "OS Design and Implemtation 3rd Ed." Pages should follow for sources.
+
+==== System Calls ====
+http://www.8bitavenue.com/2015/07/difference-between-system-call-procedure-call-and-function-call/
+https://stackoverflow.com/questions/2668747/system-call-vs-function-call
+A system call is a call into kernel code, typically performed by executing an interrupt. The interrupt causes the kernel to take over and perform the requested action, then hands control back to the application. This mode switching is the reason that system calls are slower to execute than an equivalent application-level function.
+fopen is a function from the C library that, internally, performs one or more system calls. Generally, as a C programmer, you rarely need to use system calls because the C library wraps them for you.
+
+System calls are how user programs interface with the kernel. For example, if a user program wants to read a file, it would first execute the open syscall, then it would execute the read syscall, followed by the close syscall. Syscalls are required when a program in user space wants to access resources in the kernel space.
+
+Very rarely will a programmer write code with syscalls directly. More commonly, the C standard library will be used which uses functions like **fopen**, which in turn, uses syscalls. This frees the programmer from having to worry about syscalls.
+
+See **man syscalls** for a list of all syscalls.
+
+== Common Syscalls ==
+
+== Processes ==
+Create a child process, identical to the parent. This is how processes are born!
+pid = fork()
+
+Wait for a child to terminate
+pid = waitpid (pid, &statloc, opts)
+
+Terminate process execution and return status
+exit (status)
+
+Return the caller's process id
+pid = getpid ()
+
+Used for debugging
+l = ptrace (req, pid, addr, data)
+
+Send a signal to a process
+s = kill (pid, sig)
+
+
+== Signals ==
+Suspend the caller until the next signal
+s = pause ()
+
+== Files ==
+Create a regular, special, or directory i-node
+fd = mknod (name, mode, addr)
+
+Open a file for reading, writing or both
+fd = open (file, how, ...)
+
+Close an open file
+s = close (fd)
+
+Read data from a file into a buffer
+n = read (fd, buffer, nbytes)
+
+Write data from a buffer into a file
+n = write (fd, buffer, nbytes)
+
+Get a file's status information
+s = stat (name, &buf)
+
+== Time ==
+Get the elapsed time since Jan. 1, 1970
+seconds = time (&seconds)
+
+seconds = time (&seconds)
+s = utime (file, timep)
+
+==== Processes ====
+section 1.3 page 19 
+Processes possess the following attributes
+
+* Address Space (contains executable, program's data, program's stack)
+* Current Working Directory
+* Parent Process ID (PPID)
+* Process ID (PID)
+
+
+==== Files ====
+
+==== Reading files ====
+**Page 24**
+Before a file can be read or written, it must be opened, at which time the permissions are
+checked. If access is permitted, the system returns a small integer called a file descriptor to use
+in subsequent operations. If the access is prohibited, an error code (1) is returned.
+
+
+==== Named Pipes (or just pipes) ====
+
+A pipe is a "pseudofile" that is used to connect or allow two processes to communicate with each other. Processes are connected via Named Pipes. The pipes we are used to using (with the "|" character) are referred to as Unnamed Pipes.
+
+[process A] =====Pipe=====[process B]
+
+In linux, you can list all pipes used by processes by using the following commands
+
+# ls -l [[/proc/$PID/fd]]
+# lsof -p PID | grep FIFO
+
+
+Example:
+
+# ll /proc/1/fd
+total 0
+lrwx------ 1 root root 64 May 26 10:12 10 -> /dev/initctl
+# file /dev/initctl
+/dev/initctl: fifo (named pipe)
+
+==== Processess ====
+When a parent processes forks a child process, the child process is an identical clone of the parent process, except it receives a new PID. The child's values are then overwritten over time.
+
+Page 29
+
+
+Simple REPL Shell. I
+
+'''
+#define TRUE 1
+while (TRUE){ 					/* repeat forever */
+	type_prompt(); 				/* display prompt on the screen */
+	read_command(command, parameters); 	/* read input from terminal */
+
+	if (fork() != 0){				/* fork off child process */
+		/* Parent code. */
+		waitpid(1, &status, 0);				/* wait for child to exit */
+	} else {
+		/* Child code. */
+		execve(command, parameters, 0); /* execute command */
+	}
+}
+'''
+

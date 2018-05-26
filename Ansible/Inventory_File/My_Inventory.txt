@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2017-09-15T19:38:55-04:00
+
+====== My Inventory ======
+Created Friday 15 September 2017
+
+A sample inventory I have been working on
+
+client.home ansible_host=192.168.1.157 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/default/virtualbox/private_key ansible_become_user=root

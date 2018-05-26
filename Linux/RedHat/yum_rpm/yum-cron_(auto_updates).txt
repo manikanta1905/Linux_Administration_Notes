@@ -6,6 +6,7 @@ Creation-Date: 2018-03-04T20:15:04-05:00
 Created Sunday 04 March 2018
 
 https://www.techrepublic.com/article/how-to-enable-automatic-security-updates-on-centos-7-with-yum-cron/
+http://www.linuxandchill.xyz/automating-rhel-7-centos-7-updates-with-yum-cron.html
 
 Use caution when auto-updating systems. Know that it is possible for an update to break your system. It is actually BAD PRACTICE to auto-update systems with yum-cron. You should instead
 test updates on a staging version of your system before applying to a production system. Also know that a reboot may be required for updates to actually take effect. Anyways, here is how to use yum-cron

@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-26T08:34:08-04:00
+
+====== System Information ======
+Created Saturday 26 May 2018
+
+https://docs.oracle.com/cd/E23824_01/html/821-1451/gkkwk.html
+
+To get information like memory, cpu use the commands listed below. Note, there is no [[/proc/cpuinfo]] or [[/proc/meminfo]] like in Linux.
+

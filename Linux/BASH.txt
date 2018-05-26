@@ -5,6 +5,34 @@ Creation-Date: 2017-09-23T11:31:28-04:00
 ====== BASH ======
 Created Saturday 23 September 2017
 
+==== Redirection / Piping / Backgrounding jobs ====
+Output to stdout
+$ date
+
+Output to file
+$ date > out.txt
+
+Input from file
+$ sort < in.txt
+
+Input from file, output to file
+$ sort < in.txt > out.txt
+
+standard error to file
+$ [[./myprog.sh]] 2> errors.txt
+
+stdout to file
+$ [[./mprog.sh]] 1> stdout.txt
+
+both stdout and stderr to file
+$ [[./myprog.sh]] &> stdout_stderr.txt
+
+Background a job
+$ [[./myprog.sh]] &
+
+check jobs
+$ jobs
+
 ==== Viewing your TTY settings ====
 Your current tty
 '''

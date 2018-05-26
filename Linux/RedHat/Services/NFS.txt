@@ -12,6 +12,8 @@ Created Monday 28 August 2017
 Show which shares an NFS server is exporting (from a client)
 $ showmount -e <NFSserver>
 
+Use the df command to see what server an nfs mount is coming from.
+
 ==== NFS Installation ====
 Assume we have an NFS server with hostname server.home and NFS client named client.home. We want to be able to mount home directories from the NFS server to the NFS client.
 

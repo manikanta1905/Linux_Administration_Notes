@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-23T08:01:46-04:00
+
+====== Processes ======
+Created Wednesday 23 May 2018
+
+List processes by memory usage (Resident Set Size)
+
+prstat -s rss

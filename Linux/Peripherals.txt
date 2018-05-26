@@ -1,0 +1,143 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-26T09:03:45-04:00
+
+====== Peripherals ======
+Created Saturday 26 May 2018
+
+== Mouse / Keyboard ==
+https://askubuntu.com/questions/688270/mouse-speed-too-fast
+You can find out information about what mouse and keyboard you are using by the following commands
+'''
+[tpulliam@zephyr ~]$ xinput --list --short
+⎡ Virtual core pointer                    	id=2	[master pointer  (3)]
+⎜   ↳ Virtual core XTEST pointer              	id=4	[slave  pointer  (2)]
+⎜   ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=10	[slave  pointer  (2)]
+⎜   ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=11	[slave  pointer  (2)]
+⎜   ↳ Holtek USB Gaming Mouse                 	id=13	[slave  pointer  (2)]
+⎣ Virtual core keyboard                   	id=3	[master keyboard (2)]
+    ↳ Virtual core XTEST keyboard             	id=5	[slave  keyboard (3)]
+    ↳ Power Button                            	id=6	[slave  keyboard (3)]
+    ↳ Video Bus                               	id=7	[slave  keyboard (3)]
+    ↳ Power Button                            	id=8	[slave  keyboard (3)]
+    ↳ Microsoft Microsoft® 2.4GHz Transceiver v8.0	id=9	[slave  keyboard (3)]
+    ↳ Holtek USB Gaming Mouse                 	id=12	[slave  keyboard (3)]
+    ↳ UVC Camera (046d:0825)                  	id=14	[slave  keyboard (3)]
+    ↳ Logitech Logitech USB Headset           	id=15	[slave  keyboard (3)]
+    ↳ Eee PC WMI hotkeys                      	id=16	[slave  keyboard (3)]
+'''
+
+
+For example, to find information about the USB mouse (id=13)
+'''
+[tpulliam@zephyr ~]$ xinput --list-props 13
+Device 'Holtek USB Gaming Mouse':
+	Device Enabled (155):	1
+	Coordinate Transformation Matrix (157):	1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000
+	Device Accel Profile (286):	0
+	Device Accel Constant Deceleration (287):	1.000000
+	Device Accel Adaptive Deceleration (288):	1.000000
+	Device Accel Velocity Scaling (289):	10.000000
+	Device Product ID (275):	1241, 41072
+	Device Node (276):	"/dev/input/event8"
+	Evdev Axis Inversion (290):	0, 0
+	Evdev Axes Swap (292):	0
+	Axis Labels (293):	"Rel X" (165), "Rel Y" (166), "Rel Horiz Wheel" (282), "Rel Dial" (283), "Rel Vert Wheel" (284)
+	Button Labels (294):	"Button Left" (158), "Button Middle" (159), "Button Right" (160), "Button Wheel Up" (161), "Button Wheel Down" (162), "Button Horiz Wheel Left" (163), "Button Horiz Wheel Right" (164), "Button Side" (280), "Button Extra" (281), "Button Unknown" (278), "Button Unknown" (278), "Button Unknown" (278), "Button Unknown" (278)
+	Evdev Scrolling Distance (295):	1, 1, 1
+	Evdev Middle Button Emulation (296):	0
+	Evdev Middle Button Timeout (297):	50
+	Evdev Middle Button Button (298):	2
+	Evdev Third Button Emulation (299):	0
+	Evdev Third Button Emulation Timeout (300):	1000
+	Evdev Third Button Emulation Button (301):	3
+	Evdev Third Button Emulation Threshold (302):	20
+	Evdev Wheel Emulation (303):	0
+	Evdev Wheel Emulation Axes (304):	0, 0, 4, 5
+	Evdev Wheel Emulation Inertia (305):	10
+	Evdev Wheel Emulation Timeout (306):	200
+	Evdev Wheel Emulation Button (307):	4
+	Evdev Drag Lock Buttons (308):	0
+'''
+
+
+For example, you can set the mouse speed like so (lower number is faster)
+xinput --set-prop 13 "Device Accel Constant Deceleration" 1.85
+
+== Monitors ==
+To list available monitors
+
+'''
+[tpulliam@zephyr ~]$ xrandr -q
+Screen 0: minimum 8 x 8, current 1920 x 1080, maximum 16384 x 16384
+DVI-I-0 disconnected (normal left inverted right x axis y axis)
+DVI-I-1 disconnected (normal left inverted right x axis y axis)
+HDMI-0 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis) 598mm x 336mm
+   1920x1080     60.00*+  59.94    50.00    60.05    60.00    50.04  
+   1680x1050     59.95  
+   1600x1200     60.00  
+   1440x900      59.89  
+   1280x1024     75.02    60.02  
+   1280x960      60.00  
+   1280x720      60.00    59.94    50.00  
+   1152x864      75.00  
+   1024x768      75.03    70.07    60.00  
+   800x600       75.00    72.19    60.32    56.25  
+   720x576       50.00  
+   720x480       59.94  
+   640x480       75.00    72.81    59.94    59.93  
+DP-0 disconnected (normal left inverted right x axis y axis)
+DP-1 disconnected (normal left inverted right x axis y axis)
+DVI-D-0 disconnected (normal left inverted right x axis y axis)
+'''
+
+
+== Audio ==
+https://www.freedesktop.org/wiki/Software/PulseAudio/
+https://askubuntu.com/questions/14077/how-can-i-change-the-default-audio-device-from-command-line
+Fedora uses Pulse Audio. To list available audio devices
+
+'''
+[tpulliam@zephyr ~]$ pactl list short sinks
+0	alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1	module-alsa-card.c	s16le 2ch 44100Hz	RUNNING
+1	alsa_output.usb-Logitech_Logitech_USB_Headset-00.analog-stereo	module-alsa-card.c	s16le 2ch 44100Hz	SUSPENDED
+2	alsa_output.pci-0000_00_1b.0.iec958-stereo	module-alsa-card.c	s16le 2ch 44100Hz	SUSPENDED
+'''
+
+
+
+You can list detailed information using the following command
+'''
+[tpulliam@zephyr ~]$ pacmd list-sinks
+3 sink(s) available.
+    index: 0
+	name: <alsa_output.pci-0000_01_00.1.hdmi-stereo-extra1>
+	driver: <module-alsa-card.c>
+	flags: HARDWARE DECIBEL_VOLUME LATENCY DYNAMIC_LATENCY
+	state: RUNNING
+	suspend cause: 
+	priority: 9030
+	volume: front-left: 42698 /  65% / -11.16 dB,   front-right: 42698 /  65% / -11.16 dB
+	        balance 0.00
+	base volume: 65536 / 100% / 0.00 dB
+	volume steps: 65537
+	muted: no
+	current latency: 20.45 ms
+	max request: 4 KiB
+	max rewind: 344 KiB
+	monitor source: 0
+	sample spec: s16le 2ch 44100Hz
+	channel map: front-left,front-right
+	             Stereo
+	used by: 1
+	linked by: 2
+	configured latency: 23.22 ms; range is 8.00 .. 1999.82 ms
+	card: 0 <alsa_card.pci-0000_01_00.1>
+	module: 6
+'''
+...
+...
+
+To set a default audio device that will survive reboot
+$ pacmd set-default-sink "SINKNAME" to set the default output sink
+$ pacmd set-default-source "SOURCENAME" to set the default input
