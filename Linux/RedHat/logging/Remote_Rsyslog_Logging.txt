@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-05-20T18:48:07-04:00
+
+====== Remote Rsyslog Logging ======
+Created Sunday 20 May 2018
+
+==== Server Configuration ====
+Ensure the following is present in the /etc/rsyslog.conf file. We are using tcp reception as it is more reliable than udp.
+
+'''
+[root@elk log]# vim /etc/rsyslog.conf 
+
+# Provides TCP syslog reception
+$ModLoad imtcp
+$InputTCPServerRun 514
+'''
+
+
+If you wish to run rsyslog on a non-standard port (e.g. 5514) you will need to set this in the config above, as well as make the following selinux changes.
+
+'''
+# semanage port -l| grep syslog
+syslogd_port_t                 udp      514
+# semanage port -a -t syslogd_port_t -p tcp 5514
+'''
+
+
+==== Client Configuration ====
+1 @ instructs the host to send logs via udp, @@ instructs to send via tcp. Append the following to the end of your [[/etc/rsyslog.conf]] file
+
+
+'''
+[root@log-client ~]# vim /etc/rsyslog.conf 
+*.* @@192.168.1.96:514
+'''
+
+
+Test your configuration with the logger command below, while tailing [[/var/log/messages]] on the remote server.
+
+''[root@log-client ~]# logger "testing"''

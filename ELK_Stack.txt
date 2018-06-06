@@ -9,6 +9,28 @@ start here
 https://www.elastic.co/webinars/introduction-elk-stack
 ELK Stack Overview
 https://www.elastic.co/guide/en/beats/libbeat/current/getting-started.html
+Help
+https://discuss.elastic.co/
+
+==== List of config files ====
+The ELK stack uses YAML and INI style config files in the following locations.
+
+[root@elk ~]# for i in {elasticsearch,filebeat,logstash,kibana}; do rpm -qc $i; done
+/etc/elasticsearch/elasticsearch.yml
+/etc/elasticsearch/jvm.options
+/etc/elasticsearch/log4j2.properties
+/etc/init.d/elasticsearch
+/etc/sysconfig/elasticsearch
+/usr/lib/sysctl.d/elasticsearch.conf
+/usr/lib/systemd/system/elasticsearch.service
+/etc/filebeat/filebeat.yml
+/etc/logstash/jvm.options
+/etc/logstash/log4j2.properties
+/etc/logstash/logstash.yml
+/etc/logstash/pipelines.yml
+/etc/logstash/startup.options
+/etc/kibana/kibana.yml
+
 
 ==== Overview ====
 https://www.elastic.co/guide/en/beats/libbeat/current/beats-reference.html
@@ -88,7 +110,7 @@ i''nput {''
 ''}''
 
 You can test this configuration file by running the logstash command below. It may take a while to see some output but you should see somthing like the following
-[root@elk ~]# /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/test.conf 
+[root@elk ~]# /usr/share/logstash/bin/logstash -f [[/etc/logstash/conf.d/logstash.conf]] --path.settings /etc/logstash
 
 '''
 OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
@@ -104,17 +126,17 @@ Could not find log4j2 configuration at path /usr/share/logstash/config/log4j2.pr
 '''
 
 
-Lastly, make sure that the beats input plugin is up to date
-'''
-[root@elk ~]# /usr/share/logstash/bin/logstash-plugin update logstash-input-beats
-OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
-Updating logstash-input-beats
-Updated logstash-input-beats 5.0.13 to 5.0.14
-'''
-
-
 For now this is fine. Warnings and errors will be covered later. Now, make sure to restart logstash after making these changes.
 $ systemctl restart logstash
+
+Open firewall for logstash access
+
+'''
+[root@elk filebeat]# firewall-cmd --add-port=5044/tcp
+success
+[root@elk filebeat]# firewall-cmd --add-port=5044/tcp --permanent
+'''
+
 
 == Install Kibana ==
 Kibana is a visualization application that gets its data from Elasticsearch. It provides a customizable and user-friendly UI in which you can combine various widget types to create your own dashboards. The dashboards can be easily saved, shared, and linked.
@@ -155,6 +177,7 @@ File beat is used to collect logs and can be tailored to collect logs from rsysl
 
 == Configure the beats RPM Repository ==
 https://www.elastic.co/guide/en/beats/filebeat/6.2/setup-repositories.html
+If you want automatic updates, you will need to set up the beats repository
 
 $ sudo rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch
 
@@ -192,8 +215,7 @@ filebeat.prospectors:
     #- c:\programdata\elasticsearch\logs\*
 '''
 
-
-If you plan to use the sample Kibana dashboards provided with Filebeat, configure the Kibana endpoint. In this case the kibana host is the same host as filebeat (localhost).
+If you plan to use the sample Kibana dashboards provided with Filebeat, configure the Kibana endpoint. In this case the kibana host is the same host as filebeat (localhost). In a typical instance, filebeat will be on many systems and you will need to point them to your single kibana server (which in this case is 192.168.1.96 or localhost)
 
 $ vim /etc/filebeat/filebeat.yml
 '''
@@ -220,10 +242,11 @@ $ vim [[/etc/filebeat/filebeat.yml]]
 output.logstash:
   # The Logstash hosts
   hosts: ["localhost:5044"]
+
 '''
+''[root@elk ~]# systemctl restart filebeat''
 
-
-You must also make sure you have the beats input plugin for logstash installed. You can verify this using the following command.
+On your elk server, You must also make sure you have the beats input plugin for logstash installed. You can verify this using the following command.
 
 '''
 [root@elk ~]# /usr/share/logstash/bin/logstash-plugin list | grep beat
@@ -236,22 +259,100 @@ If you don't have it installed, you can install it with
 
 ''[root@elk ~]# /usr/share/logstash/bin/logstash-plugin install logstash-input-beats''
 
+Lastly, make sure that the beats input plugin is up to date
+'''
+[root@elk ~]# /usr/share/logstash/bin/logstash-plugin update logstash-input-beats
+OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
+Updating logstash-input-beats
+Updated logstash-input-beats 5.0.13 to 5.0.14
+'''
+
+
 
 __For this configuration, you must load the index template into Elasticsearch manually because the options for auto loading the template are only available for the Elasticsearch output.__ https://www.elastic.co/guide/en/beats/filebeat/6.2/filebeat-template.html
 
+==== Load the index template in Elasticsearch ====
+
+If you have followed the directions up to this point you can simply run the following command. This assumes elasticsearch output is disabled and logstash output is enabled.
+[root@elk filebeat]# filebeat setup --template -E output.logstash.enabled=false -E 'output.elasticsearch.hosts=["localhost:9200"]'
+Loaded index template
+
+You can check your filebeat configuration using the **filebeat** command
+
+'''
+[root@elk filebeat]# filebeat export config
+filebeat:
+  config:
+    modules:
+      path: /etc/filebeat/modules.d/*.yml
+      reload:
+        enabled: false
+  prospectors:
+  - enabled: true
+    paths:
+    - /var/log/*.log
+    type: log
+output:
+  logstash:
+    hosts:
+    - localhost:5044
+path:
+  config: /etc/filebeat
+  data: /var/lib/filebeat
+  home: /usr/share/filebeat
+  logs: /var/log/filebeat
+setup:
+  kibana:
+    host: localhost:5601
+  template:
+    settings:
+      index:
+        number_of_shards: 3
+'''
 
 
+You can also export the template with **filebeat export template** to examine your template.
 
+==== Set up the kibana dashboards ====
+https://www.elastic.co/guide/en/beats/filebeat/6.2/load-kibana-dashboards.html
 
+[root@elk filebeat]# filebeat setup --dashboards
+Loaded dashboards
 
+We should now be able to view example dashboards that we have loaded.
+https://www.elastic.co/guide/en/beats/filebeat/6.2/view-kibana-dashboards.html
+To open the dashboards, launch the Kibana web interface by pointing your browser to port 5601. For example, http://127.0.0.1:5601.
 
+On the Discover page, make sure that the predefined filebeat-* index pattern is selected to see Filebeat data.
 
+Go to the Dashboard page and select the dashboard that you want to open.
 
-
+Visit http://192.168.1.96:5601/status, you should see all green.
 
 
 For handling multiline logs
 https://www.elastic.co/guide/en/beats/filebeat/current/multiline-examples.html
+
+
+==== Configuring a Client (with filebeat) ====
+
+Go back and install filebeat. You should see client data in kibana
+
+==== Misc ====
+
+View elasticsearch data
+curl -XGET 'localhost:9200/filebeat-*/_search?pretty'
+
+
+
+
+
+
+
+
+
+
+
 
 ==== Download and Install ====
 https://www.elastic.co/guide/en/elastic-stack/current/installing-elastic-stack.html
