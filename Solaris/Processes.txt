@@ -8,3 +8,5 @@ Created Wednesday 23 May 2018
 List processes by memory usage (Resident Set Size)
 
 prstat -s rss
+
+

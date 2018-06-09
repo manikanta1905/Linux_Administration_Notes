@@ -7,6 +7,26 @@ Created Saturday 26 May 2018
 
 All information is from "OS Design and Implemtation 3rd Ed." Pages should follow for sources.
 
+
+
+==== Processes ====
+Processes are created when a parent process forks a child process using the fork syscall. A single CPU can only execute a single process at a time, however it switches between processes quick enough to give the illusion of parallelism.
+
+Daemon = Process that stay in the background to handle some activity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ==== System Calls ====
 http://www.8bitavenue.com/2015/07/difference-between-system-call-procedure-call-and-function-call/
 https://stackoverflow.com/questions/2668747/system-call-vs-function-call

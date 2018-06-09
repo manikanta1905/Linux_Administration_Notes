@@ -7,6 +7,28 @@ Created Tuesday 28 November 2017
 
 ==== Overview ====
 
+==== Full / filesystem ====
+Find out where the disk space is being used
+
+Recursively run the following command, starting from [[/,]] and working into the following.
+# du --max-depth=1 -h -x ./
+
+Compress any log files if necessary
+
+Any files in use by a process will still be seen by the file system as open. You will need to restart processes that were using the files before space will be freed up. You can see which processes are locking files using lsof. In the example below, nmbd (samba process) was locking a 7GB log file. I first compressed the log file to 134MB, then I killed the process to free up the disk space.
+
+'''
+# lsof +L1
+COMMAND    PID  USER   FD   TYPE DEVICE   SIZE/OFF NLINK   NODE NAME
+init         1  root    9r   REG    8,3   10406312     0 666620 /var/lib/sss/mc/initgroups (deleted)
+sssd      4180  root   16r   REG    8,3   10406312     0 666620 /var/lib/sss/mc/initgroups (deleted)
+sssd_be   4181  root   18r   REG    8,3   10406312     0 666620 /var/lib/sss/mc/initgroups (deleted)
+nmbd      4716  root    2w   REG    8,3 7472324608     0 655468 /var/log/samba/log.nmbd (deleted)
+nmbd      4716  root    4w   REG    8,3 7472324608     0 655468 /var/log/samba/log.nmbd (deleted)
+
+# pkill -HUP nmbd
+'''
+
 
 
 ==== Viewing Disk/Block Device information in the /sys filesystem ====

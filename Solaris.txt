@@ -7,3 +7,4 @@ Created Tuesday 01 May 2018
 
 ==== RHEL vs Solaris 11 ====
 http://www.oracle.com/technetwork/server-storage/solaris11/overview/redhat-mapping-guide-1555721.html
+

@@ -1,0 +1,24 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-06-02T12:31:01-04:00
+
+====== Kernel ======
+Created Saturday 02 June 2018
+
+==== View Memory Usage of kernel ====
+http://www.asgaur.com/wp/high-memory-utilized-by-zfs-file-data-in-solaris/
+
+'''
+[root@host ~]# echo "::memstat" | mdb -k
+Page Summary                            Pages             Bytes  %Tot
+---------------------------- ----------------  ----------------  ----
+Kernel                                 634523              4.8G   15%
+ZFS                                   1570411             11.9G   37%
+Anon                                  1330743             10.1G   32%
+Exec and libs                           79601            621.8M    2%
+Page cache                              21262            166.1M    0%
+OSM                                     80896              632M    2%
+Free (cachelist)                           15              120k    0%
+Free (freelist)                        476853              3.6G   11%
+Total                                 4194304               32G
+'''

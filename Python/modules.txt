@@ -1,0 +1,29 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-06-06T14:09:48-04:00
+
+====== modules ======
+Created Wednesday 06 June 2018
+
+===== pywebview =====
+https://github.com/r0x0r/pywebview
+A lightweight cross-platform native wrapper around a webview component that allows to display HTML content in its own dedicated window
+
+== installation ==
+''pip install pywebview''
+
+(on windows)
+''pip install pythonnet''
+
+== Hello World ==
+'''
+import webview
+webview.create_window("It works, Jim!", "http://www.flowrl.com")
+'''
+
+
+== Usage ==
+''webview.create_window(title, url='', js_api=None, width=800, height=600, resizable=True, fullscreen=False, min_size=(200, 100)), strings={}, confirm_quit=False, background_color='#FFF', debug=False, text_select=False)''
+
+
+

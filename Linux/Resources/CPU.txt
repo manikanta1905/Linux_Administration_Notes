@@ -1,0 +1,57 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-06-09T14:31:33-04:00
+
+====== CPU ======
+Created Saturday 09 June 2018
+http://sebastien.godard.pagesperso-orange.fr/man_sar.html
+
+# sar -u
+# sar -u ALL
+
+
+An explanation of the values shown
+
+-u [ ALL ]
+
+'''
+Report CPU utilization. The ALL keyword indicates that all the CPU fields should be displayed. The report may show the following fields:
+%user 
+
+Percentage of CPU utilization that occurred while executing at the user level (application). Note that this field includes time spent running virtual processors.
+%usr
+
+Percentage of CPU utilization that occurred while executing at the user level (application). Note that this field does NOT include time spent running virtual processors.
+%nice 
+
+Percentage of CPU utilization that occurred while executing at the user level with nice priority.
+%system 
+
+Percentage of CPU utilization that occurred while executing at the system level (kernel). Note that this field includes time spent servicing hardware and software interrupts.
+%sys
+
+Percentage of CPU utilization that occurred while executing at the system level (kernel). Note that this field does NOT include time spent servicing hardware and software interrupts.
+%iowait 
+
+Percentage of time that the CPU or CPUs were idle during which the system had an outstanding disk I/O request.
+%steal 
+
+Percentage of time spent in involuntary wait by the virtual CPU or CPUs while the hypervisor was servicing another virtual processor.
+%irq
+
+Percentage of time spent by the CPU or CPUs to service hardware interrupts.
+%soft
+
+Percentage of time spent by the CPU or CPUs to service software interrupts.
+%guest
+
+Percentage of time spent by the CPU or CPUs to run a virtual processor.
+%gnice
+
+
+Percentage of time spent by the CPU or CPUs to run a niced guest.
+%idle 
+
+Percentage of time that the CPU or CPUs were idle and the system did not have an outstanding disk I/O request.
+'''
+ 
