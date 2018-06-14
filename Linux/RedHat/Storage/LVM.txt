@@ -13,6 +13,22 @@ Physical volumes are combined into volume groups (VGs). This creates a pool of d
 Within a volume group, the disk space available for allocation is divided into units of a fixed-size called extents. An extent is the smallest unit of space that can be allocated. Within a physical volume, extents are referred to as physical extents.
 A logical volume is allocated into logical extents of the same size as the physical extents. The extent size is thus the same for all logical volumes in the volume group. The volume group maps the logical extents to physical extents.
 
+==== Steps to extend an logical volume ====
+https://www.rootusers.com/how-to-increase-the-size-of-a-linux-lvm-by-adding-a-new-disk/
+
+Add disk to system, make disk a physical volume, add disk to volume group, extend existing volume, resize filesystem.
+
+Partition [[/dev/sdb]] (recommended https://unix.stackexchange.com/questions/14010/the-merits-of-a-partitionless-filesystem/14017#14017)
+# parted /dev/sdb
+# pvcreate [[/dev/sdb1]]
+# vgextend vg0 [[/dev/sdb1]]
+# lvextend /dev/vg0/root [[/dev/sdb1]]
+If ext4 filesystem
+# resize2fs [[/dev/vg0/root]]
+If xfs filesystem
+# xfs_growfs /dev/vg0/root
+
+
 ==== Logical Volume Types ====
 
 == Linear Volumes ==
@@ -208,6 +224,12 @@ To remove the vg entirely
 '''
 
 
+==== ADDING PHYSICAL VOLUMES TO A VOLUME GROUP ====
+
+To add additional physical volumes to an existing volume group, use the vgextend command. The vgextend command increases a volume group's capacity by adding one or more free physical volumes.
+The following command adds the physical volume /dev/sdf1 to the volume group vg1.
+
+''# vgextend vg1 /dev/sdf1''
 
 ==== Creating Logical Volumes ====
 https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/logical_volume_manager_administration/lv

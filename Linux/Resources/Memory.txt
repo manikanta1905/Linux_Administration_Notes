@@ -5,6 +5,8 @@ Creation-Date: 2018-06-09T12:56:26-04:00
 ====== Memory ======
 Created Saturday 09 June 2018
 
+
+
 https://www.linuxatemyram.com/
 Cached memory is good. It is the sign of a healthy system. It speeds up the system. **-/+ buffers/cache**: reveals the true amount of actual memory, including cached memory. When **free** under buffers/cache trends towards zero, this indicates the system is actually running out of memory and about to swap. 
 
@@ -21,3 +23,80 @@ Swap:         4031         29       4002
 Top can also display memory units. **-M m** displays memory in megabytes.
 
 # top -c -M m
+
+
+==== Memory Usage history with SAR ====
+
+
+# sar -B -r -R
+
+==== The difference among VIRT, RES, and SHR in top output ====
+http://mugurel.sumanariu.ro/linux/the-difference-among-virt-res-and-shr-in-top-output/
+VIRT stands for the virtual size of a process, which is the sum of memory it is actually using, memory it has mapped into itself (for instance the video card’s RAM for the X server), files on disk that have been mapped into it (most notably shared libraries), and memory shared with other processes. VIRT represents how much memory the program is able to access at the present moment.
+
+RES stands for the resident size, which is an accurate representation of how much actual physical memory a process is consuming. (This also corresponds directly to the %MEM column.) This will virtually always be less than the VIRT size, since most programs depend on the C library.
+
+SHR indicates how much of the VIRT size is actually sharable (memory or libraries). In the case of libraries, it does not necessarily mean that the entire library is resident. For example, if a program only uses a few functions in a library, the whole library is mapped and will be counted in VIRT and SHR, but only the parts of the library file containing the functions being used will actually be loaded in and be counted under RES.
+
+below is the list of top column output (from man top section 2, fields / columns)
+'''
+
+
+n: %MEM — Memory usage (RES)
+A task’s currently used share of available physical memory.
+
+o: VIRT — Virtual Image (kb)
+The total amount of virtual memory used by the task. It
+includes all code, data and shared libraries plus pages that
+have been swapped out and pages that have been mapped but not
+used.
+
+p: SWAP — Swapped size (kb)
+Memory that is not resident but is present in a task. This is
+memory that has been swapped out but could include additional
+non-resident memory. This column is calculated by subtracting
+physical memory from virtual memory.
+
+q: RES — Resident size (kb)
+The non-swapped physical memory a task has used.
+
+r: CODE — Code size (kb)
+The amount of virtual memory devoted to executable code, also
+known as the ‘text resident set’ size or TRS.
+
+s: DATA — Data+Stack size (kb)
+The amount of virtual memory devoted to other than executable
+code, also known as the ‘data resident set’ size or DRS.
+
+t: SHR — Shared Mem size (kb)
+The amount of shared memory used by a task. It simply reflects
+memory that could be potentially shared with other processes.
+
+u: nFLT — Page Fault count
+The number of major page faults that have occurred for a task.
+A page fault occurs when a process attempts to read from or
+write to a virtual page that is not currently present in its
+address space. A major page fault is when backing storage
+access (such as a disk) is involved in making that page
+available.
+
+v: nDRT — Dirty Pages count
+The number of pages that have been modified since they were
+last written to disk. Dirty pages must be written to disk
+before the corresponding physical memory location can be used
+for some other virtual page.
+
+w: S — Process Status
+The status of the task which can be one of:
+‘D’ = uninterruptible sleep
+‘R’ = running
+‘S’ = sleeping
+‘T’ = traced or stopped
+‘Z’ = zombie
+
+Tasks shown as running should be more properly thought of as
+‘ready to run’ — their task_struct is simply represented on
+the Linux run-queue. Even without a true SMP machine, you may
+see numerous tasks in this state depending on top’s delay
+interval and nice value.
+'''

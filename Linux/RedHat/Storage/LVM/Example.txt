@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-06-13T08:50:41-04:00
+
+====== Example ======
+Created Wednesday 13 June 2018
+
+https://www.rootusers.com/how-to-increase-the-size-of-a-linux-lvm-by-adding-a-new-disk/
+
+Add disk to system, make disk a physical volume, add disk to volume group, extend existing volume, resize filesystem.
+
+Partition [[/dev/sdb]] (recommended https://unix.stackexchange.com/questions/14010/the-merits-of-a-partitionless-filesystem/14017#14017)
+# parted /dev/sdb
+# pvcreate [[/dev/sdb1]]
+# vgextend vg0 [[/dev/sdb1]]
+# lvextend /dev/vg0/root [[/dev/sdb1]]
+If ext4 filesystem
+# resize2fs [[/dev/vg0/root]]
+If xfs filesystem
+# xfs_growfs /dev/vg0/root
