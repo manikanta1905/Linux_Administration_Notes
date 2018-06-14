@@ -5,7 +5,7 @@ Creation-Date: 2018-06-09T12:56:26-04:00
 ====== Memory ======
 Created Saturday 09 June 2018
 
-
+==== Overview (Cached Memory) ====
 
 https://www.linuxatemyram.com/
 Cached memory is good. It is the sign of a healthy system. It speeds up the system. **-/+ buffers/cache**: reveals the true amount of actual memory, including cached memory. When **free** under buffers/cache trends towards zero, this indicates the system is actually running out of memory and about to swap. 
@@ -29,6 +29,7 @@ Top can also display memory units. **-M m** displays memory in megabytes.
 
 
 # sar -B -r -R
+
 
 ==== The difference among VIRT, RES, and SHR in top output ====
 http://mugurel.sumanariu.ro/linux/the-difference-among-virt-res-and-shr-in-top-output/
@@ -100,3 +101,7 @@ the Linux run-queue. Even without a true SMP machine, you may
 see numerous tasks in this state depending on top’s delay
 interval and nice value.
 '''
+
+
+==== Out Of Memory (OOM) Killer ====
+https://unix.stackexchange.com/questions/153585/how-does-the-oom-killer-decide-which-process-to-kill-first

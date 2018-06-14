@@ -5,6 +5,7 @@ Creation-Date: 2018-06-09T14:31:33-04:00
 ====== CPU ======
 Created Saturday 09 June 2018
 http://sebastien.godard.pagesperso-orange.fr/man_sar.html
+https://unix.stackexchange.com/questions/449857/cpu-usage-user-system-idle-always-add-up-to-100
 
 # sar -u
 # sar -u ALL
