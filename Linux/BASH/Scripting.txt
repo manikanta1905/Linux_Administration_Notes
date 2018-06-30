@@ -199,4 +199,11 @@ fi
 '''
 
 
+==== Get password input as hidden text ====
+https://stackoverflow.com/questions/4316730/linux-scripting-hiding-user-input-on-terminal
+Your input will not show up in stdout, or in the .bash_history
 
+# [[/bin/bash]]
+echo "Enter your password"
+read -s passwd
+echo "your password is $passwd

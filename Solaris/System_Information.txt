@@ -9,3 +9,7 @@ https://docs.oracle.com/cd/E23824_01/html/821-1451/gkkwk.html
 
 To get information like memory, cpu use the commands listed below. Note, there is no [[/proc/cpuinfo]] or [[/proc/meminfo]] like in Linux.
 
+$ psrinfo -v
+
+Display the number of physical processers in a system
+$psrinfo -p

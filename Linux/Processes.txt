@@ -1,0 +1,158 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-06-30T12:41:13-04:00
+
+====== Processes ======
+Created Saturday 30 June 2018
+
+==== Overview ====
+Process information is contained with the directory. From here we can learn a great deal about a running process.
+/proc/$PID
+
+==== Processes Control ====
+http://www.comptechdoc.org/os/linux/usersguide/linux_ugprocesses.html
+
+'''
+kill -STOP 1721		Stops (suspends) process 1721 by sending the STOP signal to the process. This process will still be on the task list. The process can't catch or ignore the STOP signal.
+kill -CONT 1721		Continue process 1721 causing it to resume. The CONT signal is sent to the process.
+kill -TERM 1721		Terminates process 1721 by sending the TERM signal to the process. This process will no longer show up on the task list if it is actually terminated. Process terminated cannot be continued. The TERM signal can be caught so TERM is not guaranteed to kill the process.
+kill -HUP 1721		Stops, then restarts process 1721. This is usually done when a process is not working properly or the configuration files for that process have been changed. This command sends the HUP signal to the process which means hangup. This signal can be caught by the process.
+killall -HUP myprint		Restarts any process with the name "myprint".
+kill -TERM myprint		Terminates any process with the name "myprint".
+'''
+
+Whenever you change the configuration file for a process, you must then issue a HUP signal to the process to have it reread the changes to the configuration file. You can tell if a process is using the new config changes or not by looking at the processes [[/proc/$PID]] directory and inspecting the environment variables it using to run.
+
+
+==== File Descriptors ====
+Procesess know which files to read, write and execute by referencing what are called **file descriptors**.
+
+In this case, I compressed [[/var/log/messages]] as it was getting too large. However, rsyslogd still tries to write to the old [[/var/log/messages]] file descriptor that no longer exists. Simply creating another [[/var/log/messages]] file is not enough since the old file descriptor that rsyslogd uses will not point to the new file we have just created. This is made clear by looking at the file descriptors that rsyslogd is using and noting a broken symlink.
+
+[root@tpulliam ~]# cd /proc/$(pidof rsyslogd)/fd
+[root@tpulliam fd]# ll
+total 0
+lr-x------. 1 root root 64 Jun 30 12:27 0 -> /dev/null
+l-wx------. 1 root root 64 Jun 30 12:27 1 -> /dev/null
+l-wx------. 1 root root 64 Jun 30 12:27 2 -> /dev/null
+lr-x------. 1 root root 64 Jun 30 12:27 3 -> anon_inode:inotify
+lrwx------. 1 root root 64 Jun 30 12:27 4 -> socket:[21679]
+lr-x------. 1 root root 64 Jun 30 12:27 5 -> /run/log/journal/b294fe55cade4bfd9517a7024ab86671/system.journal
+__l-wx------. 1 root root 64 Jun 30 12:27 6 -> /var/log/messages (deleted)__
+l-wx------. 1 root root 64 Jun 30 12:27 7 -> /var/log/cron
+l-wx------. 1 root root 64 Jun 30 12:27 8 -> /var/log/secure
+
+We must either restart with systemd (recommended) or we could also use the following command to cause rsyslogd to restart and reread its [[/etc/rsyslog.conf]] configuration file
+
+# kill -HUP $(pidof rsyslogd)
+
+Now we see that rsyslogd is using the correct file descriptor and is writing to [[/var/log/messages.]] The broken symlink is gone.
+
+total 0
+lr-x------. 1 root root 64 Jun 30 12:27 0 -> /dev/null
+l-wx------. 1 root root 64 Jun 30 12:27 1 -> /dev/null
+l-wx------. 1 root root 64 Jun 30 12:27 2 -> /dev/null
+lr-x------. 1 root root 64 Jun 30 12:27 3 -> anon_inode:inotify
+lrwx------. 1 root root 64 Jun 30 12:27 4 -> socket:[21679]
+lr-x------. 1 root root 64 Jun 30 12:27 5 -> /run/log/journal/b294fe55cade4bfd9517a7024ab86671/system.journal
+__l-wx------. 1 root root 64 Jun 30 12:27 6 -> /var/log/messages__
+
+More info can be found about a file descriptor in **/proc/2007/fdinfo/6**
+
+[root@tpulliam 2007]# cat /proc/2007/fdinfo/6
+pos:    10134
+flags:  02102001
+mnt_id: 74
+
+==== Out of Memory (OOM) Score ====
+https://lwn.net/Articles/548180/
+https://lwn.net/Articles/391222/
+https://askubuntu.com/questions/60672/how-do-i-use-oom-score-adj
+
+
+==== Fork vs Thread ====
+https://stackoverflow.com/questions/16354460/forking-vs-threading
+https://stackoverflow.com/questions/2483041/what-is-the-difference-between-fork-and-thread
+When a process forks, the resources that process has are copied over to the child process. Threads within a process, however, share resources. This allows processes with threads to potentially consume less resources (memory) as the threads can share memory, instead of having an entire copy of memory for each thread. Access to shared memory is controlled via semaphores. The main differences between a forked process and a threaded process are summarized below
+
+Forks
+* The child process will be having it’s own unique process ID.
+* The child process shall have it’s own copy of parent’s file descriptor.
+* File locks set by parent process shall not be inherited by child process.
+* Any semaphores that are open in the parent process shall also be open in the child process.
+* Child process shall have it’s own copy of message queue descriptors of the parents.
+* Child will have it’s own address space and memory.
+
+Threads in the same process share
+* Process instructions
+* Most data
+* open files (descriptors)
+* signals and signal handlers
+* current working directory
+* User and group id
+
+
+Below, we see the PID of the process, along with the number of threads the process is running with.
+
+[root@tpulliam 2007]# cat sched
+__rsyslogd (2007, #threads: 3)__
+--------------------
+se.exec_start                                :       7598057.538852
+se.vruntime                                  :        248021.786083
+se.sum_exec_runtime                          :           104.033548
+se.nr_migrations                             :                    3
+nr_switches                                  :                   21
+nr_voluntary_switches                        :                   20
+nr_involuntary_switches                      :                    1
+se.load.weight                               :                 1024
+policy                                       :                    0
+prio                                         :                  120
+clock-delta                                  :                   32
+mm->numa_scan_seq                            :                    0
+numa_migrations, 0
+numa_faults_memory, 0, 0, 1, 0, -1
+numa_faults_memory, 1, 0, 0, 0, -1
+
+We can then view each thread individually by invoking top with the -**p** and -**H** switches. Below, we see the three processes rsyslogd is running with are currently sleeping. Notice that each thread gets its own PID.
+
+'''
+[root@tpulliam 2007]# top -p 2007 -H
+top - 14:26:35 up  2:08,  2 users,  load average: 0.00, 0.01, 0.05
+Threads:   3 total,   0 running,   3 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem :  1882688 total,  1394172 free,   110572 used,   377944 buff/cache
+KiB Swap:  4194300 total,  4194300 free,        0 used.  1583140 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND
+ 2007 root      20   0  216376   3016   2324 S  0.0  0.2   0:00.09 rsyslogd
+ 2009 root      20   0  216376   3016   2324 S  0.0  0.2   0:00.67 in:imjournal
+ 2010 root      20   0  216376   3016   2324 S  0.0  0.2   0:00.07 rs:main Q:Reg
+'''
+
+
+
+==== Process Limits ====
+Processes have limits to what they are allowed to do. These limits can be viewed in /proc/$PID/limits
+
+'''
+[root@tpulliam 2007]# cat limits
+Limit                     Soft Limit           Hard Limit           Units
+Max cpu time              unlimited            unlimited            seconds
+Max file size             unlimited            unlimited            bytes
+Max data size             unlimited            unlimited            bytes
+Max stack size            8388608              unlimited            bytes
+Max core file size        0                    unlimited            bytes
+Max resident set          unlimited            unlimited            bytes
+Max processes             7261                 7261                 processes
+Max open files            1024                 4096                 files
+Max locked memory         65536                65536                bytes
+Max address space         unlimited            unlimited            bytes
+Max file locks            unlimited            unlimited            locks
+Max pending signals       7261                 7261                 signals
+Max msgqueue size         819200               819200               bytes
+Max nice priority         0                    0
+Max realtime priority     0                    0
+Max realtime timeout      unlimited            unlimited            us
+'''
+
+

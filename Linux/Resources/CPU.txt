@@ -7,9 +7,41 @@ Created Saturday 09 June 2018
 http://sebastien.godard.pagesperso-orange.fr/man_sar.html
 https://unix.stackexchange.com/questions/449857/cpu-usage-user-system-idle-always-add-up-to-100
 
-# sar -u
+==== top CPU Percentages ====
+https://web.archive.org/web/20090302080238/http://www.teamquest.com/resources/gunther/display/5/index.htm
+http://blog.scoutapp.com/articles/2009/07/31/understanding-load-averages
+from man uptime
+
+'''
+DESCRIPTION
+       uptime  gives  a  one  line display of the following information.  The current time, how long the system has been running, how many users are
+       currently logged on, and the system load averages for the past 
+'''
+__1, 5, and 15 minutes.__
+
+From this description, you can tell if the load on a system is increasing or decreasing over time. In the below example, the load is actually increasing (slightly)
+'''
+$ uptime
+ 14:26:12 up 161 days, 12:21,  4 users,  load average: 1.14, 1.10, 1.09
+'''
+
+
+
+
+==== CPU Information with lscpu ====
+
+
+
+
+
+==== CPU Usage History With SAR ====
+
+To show what the cpu was doing at any given point in time.
 # sar -u ALL
 
+You may also want to know how many context switches the CPU is making per second. This records how often the CPU has to change tasks, which is computationaly intensive.
+
+sar -w
 
 An explanation of the values shown
 
