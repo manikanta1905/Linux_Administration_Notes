@@ -1,0 +1,18 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-07T08:33:46-04:00
+
+====== Troubleshooting ======
+Created Saturday 07 July 2018
+
+== Use the GssKeyEx option to disable GSS-API key exchange and try again. ==
+'''
+The GSS-API protected key exchange has failed without indication
+from the server, possibly due to misconfiguration of the server.
+Use the GssKeyEx option to disable GSS-API key exchange and try again.
+'''
+
+
+Use the following options to disable GSSAPI Authentication
+
+ssh -o GSSAPIAuthentication=no -o GSSAPIKeyExchange=no host.domain.tld

@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-07T07:30:53-04:00
+
+====== Troubleshooting ======
+Created Saturday 07 July 2018
+
+== Config Error: Error accessing file for config file://///etc/yum.repos.d/epel.repo ==
+The permissions are not set correctly on the repo file
+
+$ sudo chmod 644 /etc/yum.repos.d/epel.repo
+$ ls -l /etc/yum.repos.d                                                  
+total 12
+-rw-r--r-- 1  755 root   0 Mar 31  2014 epel.repo
+
+
+== Error getting repository data for epel.repo, repository not found ==
+The configuration file [[/etc/yum.repos.d/epel.repo]] is not configured properly. Specifically, the baseurl variable is not set, or it is not set properly.
+
