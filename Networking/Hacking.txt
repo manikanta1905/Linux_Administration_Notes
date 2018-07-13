@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-13T15:28:51-04:00
+
+====== Hacking ======
+Created Friday 13 July 2018
+
+
+TCP sequence prediction attack
+https://en.wikipedia.org/wiki/TCP_sequence_prediction_attack

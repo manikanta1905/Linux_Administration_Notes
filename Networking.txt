@@ -1,0 +1,13 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-13T15:20:52-04:00
+
+====== Networking ======
+Created Friday 13 July 2018
+
+Traceroute
+https://networkengineering.stackexchange.com/questions/5007/does-a-traceroute-tracert-show-every-hop-or-does-it-skip-hide-some-details-of-t
+
+Ping
+https://networkengineering.stackexchange.com/questions/2221/interpreting-ping-results?rq=1
+

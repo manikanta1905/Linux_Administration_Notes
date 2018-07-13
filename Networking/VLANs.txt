@@ -1,0 +1,8 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-13T15:32:17-04:00
+
+====== VLANs ======
+Created Friday 13 July 2018
+
+https://networkengineering.stackexchange.com/questions/6483/why-and-how-are-ethernet-vlans-tagged
