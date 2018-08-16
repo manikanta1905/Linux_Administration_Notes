@@ -1,0 +1,27 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-29T10:53:37-04:00
+
+====== Nvidia GPU ======
+Created Sunday 29 July 2018
+
+==== Install Nvidia Proprietary Drivers ====
+
+
+==== Configure Nvidia X Server Settings ====
+'''
+Installed:
+  nvidia-xconfig.x86_64 396.45-1.fc27                                                                                                                                                                              
+
+Complete!
+[root@zephyr X11]# man nvidia-xconfig
+[root@zephyr X11]# nvidia-xconfig
+
+WARNING: Unable to locate/open X configuration file.
+
+New X configuration file written to '/etc/X11/xorg.conf'
+
+[root@zephyr X11]# less /etc/X11/xorg.conf
+'''
+
+''[root@zephyr X11]# systemctl isolate graphical.target''
