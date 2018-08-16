@@ -65,7 +65,7 @@ unused devices: <none>
 
 According to the docs, you need not  wait for the raid array to inititalize to use it. You can format the disks, mount them, etc. before they are actually finished initializing and they should be fine. Just make sure not to break the wrong disk!
 
-We can run lsblk to see which disks are in a raid array. We see that [[/dev/sd{c,d,e}]] are in [[/dev/md0.]] We can get more information using mdadm --query.
+We can run lsblk to see which disks are in a raid array. We see that [[/dev/sd{c,d,e}]] are in the [[/dev/md0 raid array.]] We can get more information using mdadm --query.
 
 '''
 [root@storage ~]# lsblk -f
