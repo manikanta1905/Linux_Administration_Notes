@@ -1,0 +1,9 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T13:14:50-04:00
+
+====== Virtul Memory ======
+Created Friday 17 August 2018
+
+==== Swapping vs Paging ====
+https://stackoverflow.com/questions/4415254/difference-swapping-and-paging

@@ -1,0 +1,70 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T08:50:45-04:00
+
+====== todo ======
+Created Friday 17 August 2018
+
+== Filesystem specific tools ==
+* ext{2,3,4}
+$ tune2fs
+
+* fsck
+* XFS
+xfs_db -V
+
+* disk quotas
+only allow users to use certain amount of disk space. Alert them when they reach a certain threshold
+$ yum install quota-tools
+quota -V
+
+==== Unix Deep Dive ====
+https://en.wikipedia.org/wiki/Lions%27_Commentary_on_UNIX_6th_Edition,_with_Source_Code
+
+==== Decode /proc/meminfo ====
+[root@tpulliam ~]# cat /proc/meminfo
+MemTotal:        1882688 kB
+MemFree:         1614132 kB
+MemAvailable:    1601880 kB
+Buffers:            2108 kB
+Cached:           112648 kB
+SwapCached:            0 kB
+Active:           107692 kB
+Inactive:          75296 kB
+Active(anon):      68624 kB
+Inactive(anon):     8328 kB
+Active(file):      39068 kB
+Inactive(file):    66968 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
+SwapTotal:       4194300 kB
+SwapFree:        4194300 kB
+Dirty:                20 kB
+Writeback:             0 kB
+AnonPages:         68272 kB
+Mapped:            23824 kB
+Shmem:              8720 kB
+Slab:              43328 kB
+SReclaimable:      19156 kB
+SUnreclaim:        24172 kB
+KernelStack:        2272 kB
+PageTables:         4136 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:     5135644 kB
+Committed_AS:     279000 kB
+VmallocTotal:   34359738367 kB
+VmallocUsed:        9276 kB
+VmallocChunk:   34359726080 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:     10240 kB
+CmaTotal:              0 kB
+CmaFree:               0 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+DirectMap4k:       55232 kB
+DirectMap2M:     2041856 kB

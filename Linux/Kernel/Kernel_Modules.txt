@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T08:12:45-04:00
+
+====== Kernel Modules ======
+Created Friday 17 August 2018
+
+kernel modules are device drivers that can be loaded into the kernel while the system is running. Only the modules required for the current hardware are compiled and loaded. This saves the system from having to compile every possible driver for every possible hardware device.
+
+Kernel Modules are loaded by the udev package.
+

@@ -1,0 +1,28 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T07:50:30-04:00
+
+====== Users And Groups ======
+Created Friday 17 August 2018
+
+==== .bashrc vs .bash_profile ====
+This blog post summarizes the difference very nicely and also explains when you would want to use one over the other. 
+http://www.joshstaiger.org/archives/2005/07/bash_profile_vs.html
+
+Basically, anytime you type in your username and password to access a system, you will trigger the [[~/.bash_profile]] to run. You will also enter a login shell.
+
+Any time you open an new terminal window, or enter a new bash instance by typing [[/bin/bash,]] you will trigger the [[~/.bashrc.]] You will also enter an interactive non-login shell.
+
+It is recommended to source your .bashrc from your .bash_profile so that even when you use a login shell, you still get the contents of your .bashrc
+
+https://unix.stackexchange.com/questions/38175/difference-between-login-shell-and-non-login-shell/237672#237672
+You can tell if you are in a login shell by running 
+'''
+prompt> echo $0
+-bash # "-" is the first character. Therefore, this is a login shell.
+
+prompt> echo $0
+bash # "-" is NOT the first character. This is NOT a login shell.
+'''
+
+

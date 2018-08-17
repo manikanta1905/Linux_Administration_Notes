@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T08:55:30-04:00
+
+====== udev ======
+Created Friday 17 August 2018
+
+https://en.wikipedia.org/wiki/Udev
+udev (userspace /dev) is a device manager for the Linux kernel. As the successor of devfsd and hotplug, udev primarily manages device nodes in the /dev directory. At the same time, udev also handles all user space events raised when hardware devices are added into the system or removed from it, including firmware loading as required by certain devices.
+
+from man udev
+
+	   ''			udev supplies the system software with device events, manages permissions of device nodes and may create additional symlinks in the /dev directory, or renames network interfaces. The kernel usually just assigns unpredictable device names based on the order of discovery. Meaningful symlinks or network device names provide a way to reliably identify devices based on their properties or current configuration.''
+
+''       The udev daemon, systemd-udevd.service(8), receives device uevents directly from the kernel whenever a device is added or removed from the system, or it changes its state. When udev receives a device event, it matches its''
+''       configured set of rules against various device attributes to identify the device. Rules that match may provide additional device information to be stored in the udev database or to be used to create meaningful symlink names.''
+
+''       All device information udev processes is stored in the udev database and sent out to possible event subscribers. Access to all stored data and the event sources is provided by the library libudev.''
+
+
+On red hat you can get udev status with the following (udev is managed by systemd)
+$ systemctl status systemd-udevd
+
+==== Flow of Communication ====
+https://en.wikipedia.org/wiki/Udev#Operation
+udev receives messages from the kernel, and passes them on to subsystem daemons such as Network Manager. Applications talk to Network Manager over D-Bus.
+
+ Kernel -----[kernel uevent]---> udev --> Network Manager <--> D-Bus <--> Firefox
+
+==== /etc/udev/udev.conf ====
+Is the configuration file for udev. You can specify custom udev rules here for assigning values to [[/dev]] devices and more.

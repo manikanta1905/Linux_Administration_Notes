@@ -1,0 +1,56 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-17T07:22:48-04:00
+
+====== Building the kernel ======
+Created Friday 17 August 2018
+
+==== References ====
+https://www.kernel.org/
+Linux Kernel In a Nutshell
+
+
+==== WARNING! Build the kernel in your home directory without root privileges ====
+The only commands you should run as root are the commands to install the kernel (make install)
+
+If you download, uncompress or make the linux kernel as a root user, you could introduce bugs or change permissions in an adverse way.
+
+The kernel should only be built in a user's home directory. Do not build the kernel anywhere else.
+
+__The kernel source code should also never be placed in the /usr/src/linux/ direc-__
+__tory, as that is the location of the kernel that the system libraries were built against, not your new custom kernel.__
+
+==== Requirements ====
+You will need the following to build the Linux kernel.
+
+* Compiler - gcc https://gcc.gnu.org/
+$ gcc --version
+* Linker - binutils https://www.gnu.org/software/binutils/
+$ ld -v
+* Make Utility - make https://www.gnu.org/software/make/
+Make is a tool that essentially automates the build and compliation process by walking through the kernel source tree and determining which files need to be compiled and linked together. It is always recommend
+$ make --version
+
+It is important that the above tool version be compatible with the kernel version you are trying to build. Just because you are using the latest gcc does not necessarily mean you will be able to build the latest kernel, since the latest gcc may have bugs, or features not compatible with the latest kernel. The benefit of using a distribution like Ubuntu, is the kernel is built with compatible tools and libraries. If you want a general idea of what versions you should use, check what your distro uses
+
+'''
+[root@tpulliam ~]# cat /proc/version
+Linux version 
+'''
+**3.10.0**''-862.3.2.el7.x86_64 (builder@kbuilder.dev.centos.org) (''**gcc version 4.8.5**'' 20150623 (Red Hat 4.8.5-28) (GCC) ) #1 SMP Mon May 21 23:36:36 UTC 2018''
+
+
+==== Packages Affected from Kernel Upgrade ====
+If you update the kernel, the following packages may be adversely effected. This is because they work closely with the kernel. Be aware when updating the kernel
+
+* util-linux https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/
+util-linux handles disk partitions, hardware clock and other hardware operations.
+$ fdformat --version
+* module-init-tools
+This package is needed to load kernel modules.
+depmod- V
+* procps
+Process tools, contains commands like ps, top, etc.
+$ ps --version
+
+==== Kernel Release Cycle ====

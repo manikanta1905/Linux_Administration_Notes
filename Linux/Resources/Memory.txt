@@ -16,7 +16,7 @@ Cached memory is good. It is the sign of a healthy system. It speeds up the syst
 Mem:          7864       7734        130          0          0       7385
 -/+ buffers/cache:        347       
 '''
-**7517**
+__7517__
 ''Swap:         4031         29       4002''
 
 
