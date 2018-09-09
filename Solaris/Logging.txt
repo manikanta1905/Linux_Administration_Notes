@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-27T11:42:48-04:00
+
+====== Logging ======
+Created Monday 27 August 2018
+
+==== Show Hardware Faults ====
+fdadm faulty
+showfaults -v

@@ -1,0 +1,84 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-26T10:42:06-04:00
+
+====== Memory ======
+Created Sunday 26 August 2018
+
+https://www.ibm.com/developerworks/aix/library/au-vmm/
+The AIX operating system uses the Virtual Memory Manager (VMM) to control memory and paging space on the system. The VMM maintains a list of free (unallocated) page frames that it uses to satisfy page faults. AIX tries to use all of RAM all of the time, except for a small amount which it maintains on the free list
+
+==== View Total Real Memory ====
+'''
+The host below has 32GB of real (physical) memory.
+
+$ lsattr -El mem0
+ent_mem_cap          I/O memory entitlement in Kbytes           False
+goodsize       31744 Amount of usable physical memory in Mbytes False
+mem_exp_factor       Memory expansion factor                    False
+size           31744 Total amount of physical memory in Mbytes  False
+var_mem_weight       Variable memory capacity weight            False
+'''
+
+
+==== View Virtual and Real Memory Usage ====
+https://unix.stackexchange.com/questions/178093/aix-memory-consumption
+Pretty straight forward stuff. The available column shows how much real memory is available without swapping.
+
+'''
+user@host:/ ] svmon -G -O unit=GB
+Unit: GB
+--------------------------------------------------------------------------------------
+               size       inuse        free         pin     virtual  available   mmode
+memory         31.0        25.2        5.80        8.58        15.6       14.2     Ded
+pg space       6.50        0.12
+
+               work        pers        clnt       other
+pin            7.35           0        0.01        1.22
+in use         15.5           0        9.72
+'''
+
+
+==== Computational vs Non Computational Pages ====
+
+
+The topas command presents real memory in the following format. We are looking for the amount of memory used by computational pages, since that is the only form of **Non-Cache** memory.
+
+$ topas
+....
+'''
+MEMORY
+Real,MB   31744
+% Comp     51
+% Noncomp  39
+% Client   39
+'''
+
+
+From the official AIX manual
+
+	The memory statistics are listed below.
+	Real Shows the actual physical memory of the system in megabytes.
+	* %Comp Reports real memory allocated to computational pages.
+	* %Noncomp Reports real memory allocated to non-computational pages (**cache**).
+	* %Client Reports on the amount of memory that is currently used to cache
+	remotely mounted files.
+
+VMM - is the virtual memory manager, a process that is part of the kernel 
+and is responsible for managing 
+memory. 
+
+Virtual memory is real memory plus disk space (both addresses to data on 
+disks and paging space) 
+
+Non-Computational memory pages are pages of real memory that contain data that has a persistent location on disk (executable code of a command, data from a file, etc. not from data stored in paging space). This would be a form of **Cache**.
+
+Computational memory pages are pages of real memory that do not have a persistent location on disk, they are pages of memory needed by a process when it is started and no longer available when the process terminates. These are pages in memory that contain things like process stack and heap, and malloced space. When memory becomes over committed these pages need to be stored someplace temporarily and that is on paging space. 
+
+Another way to view this is with the vmstat command.
+
+$ vmstat -v
+...
+...
+51.5 percentage of memory used for computational pages
+

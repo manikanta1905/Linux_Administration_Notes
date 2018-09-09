@@ -2,7 +2,7 @@ Content-Type: text/x-zim-wiki
 Wiki-Format: zim 0.4
 Creation-Date: 2017-08-26T13:02:54-04:00
 
-====== Linux Tips ======
+====== misc ======
 Created Saturday 26 August 2017
 
 == Bash Completion ==

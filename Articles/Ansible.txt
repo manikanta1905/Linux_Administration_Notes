@@ -1,0 +1,15 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-05T07:29:51-04:00
+
+====== Ansible ======
+Created Wednesday 05 September 2018
+
+# Overview
+
+Ansible allows you to run scripts (playbooks) against many systems at the same time in an automated fasion. The benefits of this of this are tremendous. Using ansible, you can essesntially clone yourself, multiply your force for administrating your systems. Gone are the days of logging into a system one by one.
+
+You may be thinking this is not new, bash scripts have existed for a long time. This is true, but Ansible offers several benefits over simple BASH scripts. 
+
+* Ansible playbooks are Idempotent. You can run the same playbook on a host multiple times and there will be no adverse effects, the results are the same every time.
+* Ansible playbooks are easy to write and read. They are based on YAML configuration files and the Python programming languauge, both are easy on the eyes even for people 

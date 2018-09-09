@@ -1,0 +1,58 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-08-26T10:23:51-04:00
+
+====== AIX ======
+Created Sunday 26 August 2018
+http://www.unixmantra.com/2014/02/18-top-aix-performance-commands.html 
+
+Useful commands
+nmon - swiss army knife
+fcstat - Displays statistics gathered by the specified Fibre Channel device driver
+filemon - Performance statistics for files, logical/physical volumes and virtual memory segments
+fileplace - Displays the placement of file blocks within logical or physical volumes.
+entstat - Displays the statistics gathered by the specified Ethernet device driver
+iostat - Statistics for ttys, disks and cpu
+ipcs - Status of interprocess communication facilities
+lsps - Statistics about paging space
+netstat - Shows network status
+netpmon - Performance statistics for CPU usage, network device-driver I/O, socket calls & NFS
+nfsstat - Displays information about NFS and RPC calls
+pagesize - Displays system page size
+ps - Display status of current processes
+pstat - Statistics about system attributes
+sar - System Activity Recorder
+svmon - Captures a snapshot of the current contents of both real and virtual memory
+traceroute -  intended for use in network testing, measurement, and management.
+tprof - Detailed profile of CPU usage by an application
+vmstat - Statistics about virtual memory and cpu/hard disk usage
+
+
+
+==== Memory Usage ====
+Pretty straight forward stuff.
+
+'''
+user@host:/ ] svmon -G -O unit=GB
+Unit: GB
+--------------------------------------------------------------------------------------
+               size       inuse        free         pin     virtual  available   mmode
+memory         31.0        25.2        5.80        8.58        15.6       14.2     Ded
+pg space       6.50        0.12
+
+               work        pers        clnt       other
+pin            7.35           0        0.01        1.22
+in use         15.5           0        9.72
+'''
+
+
+
+==== Swapping and Paging ====
+AIX refers to swapping as paging, although the two are technically two distinct terminologies. However to view the used swap space
+
+'''
+user@host:/ ] lsps -a
+Page Space      Physical Volume   Volume Group    Size %Used Active  Auto  Type Chksum
+hd6             hdisk1            rootvg        6656MB     2   yes   yes    lv     0
+'''
+

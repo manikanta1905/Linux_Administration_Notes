@@ -1,0 +1,297 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-04T07:05:58-04:00
+
+====== firewalld ======
+Created Tuesday 04 September 2018
+
+Title: Linux Firewalls With Firewalld
+Date: 2018-09-03 10:20
+Category: Tutorials
+Tags: networking
+Slug: linux-firewalls-with-firewalld
+Authors: Timothy Pulliam
+Summary: Short Introduction to firewalls with firewalld
+
+## Overview
+
+Distributions such as Red Hat, CentOS, Fedora and SUSE use [firewalld][docs] to filter layer 3 (IP address) and layer 4 (TCP/UDP port) traffic. Firewalld is a python frontend for the netfilter framework. Firewalld allows you to place your network interfaces into zones. Each zone can contain a different rule set. Firewalld also allows you to create permanant rules which will survive a reboot, as well as run time rules for testing. These rules will vanish after restarting firewalld. Firewalld comes with a client application, firewall-cmd, which is used to interface with the daemon and provide user facing support. Most firewalld commands are passed through firewall-cmd. Configuration files for firewalld are stored in /etc/firewalld.
+
+Be careful when modifing firewall rules over an SSH session. You have the potential to lock yourself out.
+
+## Basics
+
+You can get firewalld version using firewall-cmd or other methods
+
+```
+[root@tpulliam ~]# firewall-cmd --version
+0.4.4.4
+[root@tpulliam ~]# rpm -qi firewalld
+Name        : firewalld
+Version     : 0.4.4.4
+...
+```
+
+If you have other firewalls already installed on the system, such as iptables, make sure to disable them.
+
+```
+[root@tpulliam ~]# systemctl stop iptables
+[root@tpulliam ~]# systemctl disable iptables
+[root@tpulliam ~]# systemctl mask iptables
+```
+
+Next enable firewalld so that it starts on boot
+
+```
+[root@tpulliam ~]# systemctl start firewalld
+[root@tpulliam ~]# systemctl enable firewalld
+[root@tpulliam ~]# systemctl status firewalld
+● firewalld.service - firewalld - dynamic firewall daemon
+   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled; vendor preset: enabled)
+   Active: active (running) since Mon 2018-09-03 10:14:09 EDT; 5h 18min ago
+	 Docs: man:firewalld(1)
+ Main PID: 710 (firewalld)
+   CGroup: /system.slice/firewalld.service
+		   └─710 /usr/bin/python -Es /usr/sbin/firewalld --nofork --nopid
+
+Sep 03 10:14:03 tpulliam.work systemd[1]: Starting firewalld - dynamic firewall daemon...
+Sep 03 10:14:09 tpulliam.work systemd[1]: Started firewalld - dynamic firewall daemon.
+```
+
+## Firewalld Zones
+
+Firewalld breaks rules up into zones. Consider a network interface with an IP address.
+
+```
+[root@tpulliam ~]# ip a show enp0s3
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+	link/ether 08:00:27:12:52:6c brd ff:ff:ff:ff:ff:ff
+	inet 10.117.124.140/24 brd 10.117.124.255 scope global noprefixroute dynamic enp0s3
+	   valid_lft 14194sec preferred_lft 14194sec
+	inet6 fe80::ffc0:72d5:93ab:d0ad/64 scope link noprefixroute
+	   valid_lft forever preferred_lft forever
+```
+When you place a network interface into a zone, the rules for that zone are applied to that interface. For example, say I placed my enp0s3 interface with an IP of  10.117.124.140 into the drop zone. Then any packets sent to that interface would get silently dropped with no reply to the source who sent the data. If I placed enp0s3 in a trusted zone (!!!) all packets sent to that interface would be accepted, regardless of source or destination address. An interface can only be in one zone at a time.
+
+There are 9 [predefined zones][zones]. Each zone filters traffic differently. You can see all of the zones using the following command.
+
+
+```
+[root@tpulliam ~]# firewall-cmd --get-zones
+block dmz drop external home internal public trusted work
+```
+Unless specified, any rule changes we make will be applied to the default zone. The default zone is initially set to the public zone. The public zone a is a safe default option.
+
+```
+[root@tpulliam ~]# firewall-cmd --get-default-zone
+public
+```
+
+
+## Listing Rules
+
+The first thing we need to do is list the firewall rules for our system. This simple command will tell us the majority of what we need to know. Only zones which contain interfaces will be listed. The ruleset below applies to any network interface belonging to the public zone. This also happens to be  the default zone. From this information, we can see that only SSH and dhcpv6-client traffic will be allowed through the enp0s3 interface. 
+```
+'''
+[root@tpulliam ~]# firewall-cmd --list-all
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s3
+  sources:
+  services: ssh dhcpv6-client
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+ rich rules:
+'''
+
+```
+We can explicitly specify which zone to list rules for using the command below. Note the drop zone contains no interfaces, so its rules are not being applied to any traffic.
+
+```
+'''
+[root@tpulliam ~]# firewall-cmd --list-all --zone=drop
+drop
+  target: DROP
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services:
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+'''
+
+```
+
+## Adding and Removing Services
+When you add a firewall rule to a zone, by default that rule will only persist until firewalld is restarted or reloaded. Reloading forces firewalld to reread its configuration file without stopping (it retains the same PID). For example, if you wanted to allow incoming HTTP traffic to your host in the public zone
+
+'''
+[root@tpulliam ~]# firewall-cmd --add-service=http --zone=public
+success
+[root@tpulliam ~]# firewall-cmd --list-all --zone=public
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s3
+  sources:
+  services: ssh dhcpv6-client http
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+'''
+
+
+After restarting or reloading firewalld, http would no longer exist in the incoming rules.
+
+[root@tpulliam ~]# systemctl reload firewalld
+[root@tpulliam ~]# firewall-cmd --list-all --zone=public
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s3
+  sources:
+  services: ssh dhcpv6-client
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+If you want to make a rule persistent, you must explicitly tell firewalld this by passing the --permanent option, and then force firewalld to reread its configuration file.
+
+[root@tpulliam ~]# firewall-cmd --permanent --zone=public --add-service=http
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-services --zone=public
+ssh dhcpv6-client http
+
+If you want to remove the http service and disable incoming http connections, you can run the commands below. Remember, rules will be temporary unless you use the **--permament** flag. If you use the permanent flag, you must also reload firewalld so it loads the new rules. Also note,that we can ommit the --zone parameter, since we are dealing with the default zone.
+
+[root@tpulliam ~]# firewall-cmd --permanent --remove-service=http
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-services --zone=public
+ssh dhcpv6-client
+
+In this example we allowed the http service to pass through firewalld. There are many predefined services that you can use so you don't need to remember TCP/UDP port numbers. You can list all predifined services using the command below.
+
+[root@tpulliam ~]# firewall-cmd --get-services
+RH-Satellite-6 amanda-client amanda-k5-client bacula bacula-client bitcoin bitcoin-rpc bitcoin-testnet bitcoin-testnet-rpc ceph ceph-mon cfengine condor-collector ctdb dhcp dhcpv6 dhcpv6-client dns docker-registry dropbox-lansync elasticsearch freeipa-ldap freeipa-ldaps freeipa-replication freeipa-trust ftp ganglia-client ganglia-master high-availability http https imap imaps ipp ipp-client ipsec iscsi-target kadmin kerberos kibana klogin kpasswd kshell ldap ldaps libvirt libvirt-tls managesieve mdns mosh mountd ms-wbt mssql mysql nfs nfs3 nrpe ntp openvpn ovirt-imageio ovirt-storageconsole ovirt-vmconsole pmcd pmproxy pmwebapi pmwebapis pop3 pop3s postgresql privoxy proxy-dhcp ptp pulseaudio puppetmaster quassel radius rpc-bind rsh rsyncd samba samba-client sane sip sips smtp smtp-submission smtps snmp snmptrap spideroak-lansync squid ssh synergy syslog syslog-tls telnet tftp tftp-client tinc tor-socks transmission-client vdsm vnc-server wbem-https xmpp-bosh xmpp-client xmpp-local xmpp-server
+
+## Adding and Removing Ports
+
+Often times you will need to add a rule involving ports, not predefined services. This is easy to accomplish. Suppose we want to allow all traffic to our system over UDP port 53 (DNS). We won't use the DNS service for educational purposes.
+
+[root@tpulliam ~]# firewall-cmd --permanent --add-port=53/udp
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-all
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s3
+  sources:
+  services: ssh dhcpv6-client
+  ports: 53/udp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+[root@tpulliam ~]# firewall-cmd --list-ports
+53/udp
+
+We can add multiple ports at a time as well, suppose you have a web server listening on multiple ports (80,443,8080). It is important to remember the whole time we are doing this, all rule changes take effect in the default zone (public).
+
+[root@tpulliam ~]# firewall-cmd --permanent --add-port={80/tcp,443/tcp,8080/tcp}
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-ports
+53/udp 80/tcp 443/tcp 8080/tcp
+
+## Feature Rich Language
+https://firewalld.org/documentation/man-pages/firewalld.richlanguage.html
+https://fedoraproject.org/wiki/Features/FirewalldRichLanguage
+Everything we have done so far has dealt with allowing or disallowing traffic based on either port number or service name. However, firewalls are much more capable than this. What about outbound traffic? What about dropping packets from specific IPs? This is where Firewalld's Feature Rich Language comes in handy.
+
+The feature rich language has a general format that looks like the following
+* firewall-cmd [--zone=<zone>] --add-rich-rule='<rule>' [--timeout=<seconds>]
+* firewall-cmd [--zone=<zone>] --remove-rich-rule='<rule>'
+* firewall-cmd [--zone=<zone>] --query-rich-rule='<rule>'
+
+<rule> takes a general form below
+rule [family="<rule family>"]
+  [ source address="<address>" [invert="True"] ]
+  [ destination address="<address>" [invert="True"] ]
+  [ <element> ]
+  [ log [prefix="<prefix text>"] [level="<log level>"] [limit value="<rate/duration>"] ]
+  [ audit [limit value="<rate/duration>"] ]
+  <action>
+
+* If you don't supply a value for **family**, the rule will apply to both IPv4 and IPv6 traffic.
+
+<action> takes one of the following values
+* accept
+* reject
+* drop
+
+<element> takes a number of values. The most common ones are
+* service
+* port
+* protocol
+
+For example, a simple rule to allow HTTP access to our system would look like
+[root@tpulliam ~]# firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=1.2.3.4 destination address=4.3.2.1 port port="80" protocol="tcp" accept'
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-rich-rules
+rule family="ipv4" source address="1.2.3.4" destination address="4.3.2.1" port port="80" protocol="tcp" accept
+
+We can then remove this rule using the commands below
+[root@tpulliam ~]# firewall-cmd --permanent --remove-rich-rule='rule family=ipv4 source address=1.2.3.4 destination address=4.3.2.1 port port="80" protocol="tcp" accept'
+success
+[root@tpulliam ~]# firewall-cmd --reload
+success
+[root@tpulliam ~]# firewall-cmd --list-rich-rules
+
+
+To only allow incoming SSH traffic from a single IP address, we can simply specify which host we want to allow access from, then using the invert option, block any ip address that is not this ip.
+
+[root@tpulliam ~]# firewall-cmd --permanent --add-rich-rule='rule family="ipv4" source address=10.10.10.10/32 invert=True port port="22" protocol="tcp" drop'
+
+
+To drop HTTP/HTTPS traffic from a range of IPs (DOS?)
+Suppose you start getting an abnormal amount of HTTP traffic from a particular IP range (those damn hackers...). You are getting DOSed, you can block a range of HTTP/HTTPS requests with the following rich rule.
+
+[root@tpulliam ~]# firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='160.155.11.0/24' reject"
+
+## Conclusion
+
+Firewalld makes creating custom firewall rules easy. If you have only every used something like IPtables, firewalld has a much simpler learning curve and offers more options not discussed in this tutorial. Certainly give it a try. You can even define your own custom services uses firewall-cmd.
+
+[docs]: https://firewalld.org
+[[[zones]]]: https://firewalld.org/documentation/zone/prened-zones.html/mon.
+

@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-05T07:02:28-04:00
+
+====== yum tricks ======
+Created Wednesday 05 September 2018
+
+# Overview
+
+If you use Red Hat or [[CentOS]] Linux, you are most likely familar with yum. It is the package manager
