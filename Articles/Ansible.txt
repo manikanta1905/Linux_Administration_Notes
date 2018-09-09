@@ -7,9 +7,92 @@ Created Wednesday 05 September 2018
 
 # Overview
 
-Ansible allows you to run scripts (playbooks) against many systems at the same time in an automated fasion. The benefits of this of this are tremendous. Using ansible, you can essesntially clone yourself, multiply your force for administrating your systems. Gone are the days of logging into a system one by one.
+Ansible allows you to run scripts (ansible playbooks) against many systems at the same time in an automated fasion. The benefits of this of this are tremendous.
 
-You may be thinking this is not new, bash scripts have existed for a long time. This is true, but Ansible offers several benefits over simple BASH scripts. 
+* Ansible playbooks are Idempotent. You can run the same playbook on a host multiple times and there will be no adverse effects, the results are the same every time. This reduces the chance of a script having unintended consequences. Of course, there are ways write code that is NOT Idempotent, however such code is not best practice and is discouraged.
+* Ansible playbooks are easy to write and read. They are based on YAML configuration files and the Python programming languauge, both are easy on the eyes, even for people who do not program often.
+* Ansible is agentless, everything is done over SSH. You only need to install ansible on one "master" system and you are ready to use it. Because you don't need to install an agent on the clients, you save time by using Ansible.
 
-* Ansible playbooks are Idempotent. You can run the same playbook on a host multiple times and there will be no adverse effects, the results are the same every time.
-* Ansible playbooks are easy to write and read. They are based on YAML configuration files and the Python programming languauge, both are easy on the eyes even for people 
+You may be thinking this is not new, bash scripts have existed for a long time. This is true, however, the more time you save by not worrying about the implemenatation writing an automation system from the ground up, frees you up to actually do the automation itself. Ansible also enforces best practices, so you know if what you are doing is difficult, maybe it wasn't meant to be done in the first place.
+
+## Installation
+Ansible is easy to set up. As I have said, you need only install it one "master" server. However you can run Ansible from any system you can SSH from.
+
+$ yum install ansible
+
+
+## Testing the Waters with Ad-Hoc Commands
+
+Before we unleash ansible's true power, we will get warmed up with what ansible calls "Ad-Hoc Commands". Ad-Hoc commands are one off commands. You wouldn't write a script or playbook for them. Maybe you just want to test a feature of ansible real quick. In this example, it won't be apparent why you would want to use ansible for this task, but these are the fundamentals of Ansible which we will build off of later.
+
+$ ansible all --module-name=ping --inventory=$TARGET_HOST, --user=$SSH_USER --ask-pass
+
+Or equivalently,
+
+$ ansible all -m ping -i $TARGET_HOST, -u $SSH_USER -k
+
+### What Is Going On
+
+When we run this command, we are supplying a list of hosts to ansible. The list is just the single host $TARGET_HOST. The "all" argument instructs ansible to run our command on every host in this list. It is also necessary when running Ad-Hoc commands that our host ends with a comma ($TARGET_HOST,)
+
+--module-name=ping
+This argument tells ansible which built in ansible command we want to run against the list of hosts we have supplied. We are using the simplest module, the [[https://docs.ansible.com/ansible/latest/modules/ping_module.html|ping]] module. Note that this is not really a true ICMP ping. When Ansible uses ping, ansible will ssh to $TARGET_HOST to make sure it can access the host. This is ansible's version of ping.
+
+--inventory=$TARGET_HOST, 
+This is our list of hosts to run the command against. As I have said, for Ad-Hoc commands, the list of hosts must end with a comma
+
+--user=$SSH_USER --ask-pass
+The SSH credentials to use when running the Ad-Hoc command.
+
+Output
+
+### Troubleshooting
+
+### Ad-Hoc Commands with Many Hosts
+
+Most of the time, when you run ansible, you will be running a command against many hosts at a time. Instead of having to type the hostnames over and over again, you can place them inside of an inventory file. An inventory file is a list of hosts to run a command against.
+
+[root@tpulliam ~]# vim hosts
+[root@tpulliam ~]# cat hosts
+[prod]
+host1.prod.example.com
+host2.prod.example.com
+host3.prod.example.com
+
+
+[test]
+host[1:3].test.example.com
+
+This host file splits our hosts into two groups, a prod group and a test group. For the test group, we use a short cut for the host file to avoid having to type similar host names for each line. We can now use our previous ad-hoc command with these groups
+
+$ ansible test --module-name=ping --inventory=hosts --user=$SSH_USER --ask-pass
+
+Here is what is happening
+
+We are instructing ansible to look in the file [[./hosts]] for a list of hosts to run the ping command against. "ansible test" instructs ansible to only run this command against hosts that are in the test group. Ansible will SSH using $SSH_USER and the password supplied through a secure terminal. This user must have SSH access from the server you are running this command on in order for this to work.
+
+If you instead wanted to run the command against all hosts (prod and test), we could simply replace test with all.
+
+$ ansible all --module-name=ping --inventory=hosts --user=$SSH_USER --ask-pass
+
+### The Shell Ad-Hoc Command
+Another useful Ad-Hoc command is the shell module. This allows you to run arbitrary shell code on the supplied list of hosts in the inventory file. For example, suppose we want the disk uitilization on all of the production hosts in our inventory file
+
+[root@tpulliam ansible]# ansible prod --module-name=shell --args="df -h" --inventory=hosts --user=$SSH_USER --ask-pass
+
+It's just that simple. Hopefully by now you are already convinced of the potential that Ansible has. Although I assure you, this is just the tip of the iceberg.
+
+## Configuring Ansible - ansible.cfg
+
+At this point, we are ready to start making an ansible project. We will create an ansible.cfg config file. Now our ansible project looks something like this.
+
+ansible/
+├── ansible.cfg
+└── hosts
+
+Instead of having to give ansible --user=$SSH_USER and --ask-pass everytime we run a command, we can just put this information in our ansible.cfg file and ansible will know to use it everytime. An example ansible.cfg can be found [[https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg|here]].
+
+[root@tpulliam ansible]# cat ansible.cfg
+remote_user = $SSH_USER
+ask_pass = True
+

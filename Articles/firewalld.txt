@@ -158,20 +158,8 @@ public (active)
 After restarting or reloading firewalld, http would no longer exist in the incoming rules.
 
 [root@tpulliam ~]# systemctl reload firewalld
-[root@tpulliam ~]# firewall-cmd --list-all --zone=public
-public (active)
-  target: default
-  icmp-block-inversion: no
-  interfaces: enp0s3
-  sources:
-  services: ssh dhcpv6-client
-  ports:
-  protocols:
-  masquerade: no
-  forward-ports:
-  source-ports:
-  icmp-blocks:
-  rich rules:
+[root@tpulliam ~]# firewall-cmd --list-services --zone=public
+''ssh dhcpv6-client''
 
 If you want to make a rule persistent, you must explicitly tell firewalld this by passing the --permanent option, and then force firewalld to reread its configuration file.
 
@@ -182,7 +170,7 @@ success
 [root@tpulliam ~]# firewall-cmd --list-services --zone=public
 ssh dhcpv6-client http
 
-If you want to remove the http service and disable incoming http connections, you can run the commands below. Remember, rules will be temporary unless you use the **--permament** flag. If you use the permanent flag, you must also reload firewalld so it loads the new rules. Also note,that we can ommit the --zone parameter, since we are dealing with the default zone.
+If you want to remove the http service and disable incoming http connections, you can run the commands below. Remember, rules will be temporary unless you use the **--permament** flag. If you use the permanent flag, you must also reload firewalld so it loads the new rules. Also note,that we can omit the --zone parameter, since we are dealing with the default zone.
 
 [root@tpulliam ~]# firewall-cmd --permanent --remove-service=http
 success
@@ -198,27 +186,12 @@ RH-Satellite-6 amanda-client amanda-k5-client bacula bacula-client bitcoin bitco
 
 ## Adding and Removing Ports
 
-Often times you will need to add a rule involving ports, not predefined services. This is easy to accomplish. Suppose we want to allow all traffic to our system over UDP port 53 (DNS). We won't use the DNS service for educational purposes.
+Often times you will need to add a rule involving ports, not predefined services. This is easy to accomplish. Suppose we want to allow all traffic to our system over UDP port 53 (DNS). We won't use the built in DNS service for educational purposes.
 
 [root@tpulliam ~]# firewall-cmd --permanent --add-port=53/udp
 success
 [root@tpulliam ~]# firewall-cmd --reload
 success
-[root@tpulliam ~]# firewall-cmd --list-all
-public (active)
-  target: default
-  icmp-block-inversion: no
-  interfaces: enp0s3
-  sources:
-  services: ssh dhcpv6-client
-  ports: 53/udp
-  protocols:
-  masquerade: no
-  forward-ports:
-  source-ports:
-  icmp-blocks:
-  rich rules:
-
 [root@tpulliam ~]# firewall-cmd --list-ports
 53/udp
 
@@ -231,10 +204,32 @@ success
 [root@tpulliam ~]# firewall-cmd --list-ports
 53/udp 80/tcp 443/tcp 8080/tcp
 
+## Rules for Source IPs
+
+So far, every rule we have created has only used the destination IP address of the enp0s3 interface. We are in essence treating all traffic the same, regardless of where the traffic originates from. However, firewalld allows you to add source IP addresses to zones so that any traffic originating from these IPs will have the zone rule applied to them.
+
+For example, suppose we wanted to block all traffic coming from the ip $BAD_IP
+[root@tpulliam firewalld]# firewall-cmd --list-all --zone=drop
+drop (active)
+  target: DROP
+  icmp-block-inversion: no
+  interfaces:
+  sources: 10.1.1.1
+  services:
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+
+
 ## Feature Rich Language
 https://firewalld.org/documentation/man-pages/firewalld.richlanguage.html
 https://fedoraproject.org/wiki/Features/FirewalldRichLanguage
-Everything we have done so far has dealt with allowing or disallowing traffic based on either port number or service name. However, firewalls are much more capable than this. What about outbound traffic? What about dropping packets from specific IPs? This is where Firewalld's Feature Rich Language comes in handy.
+Everything we have done so far has dealt with allowing or disallowing traffic based on predfined rules. However, firewalls are much more capable than this. What about only allowing a single IP? What about blocking a range of IPs? All this and more can be done through rich rules.
 
 The feature rich language has a general format that looks like the following
 * firewall-cmd [--zone=<zone>] --add-rich-rule='<rule>' [--timeout=<seconds>]
@@ -290,7 +285,7 @@ Suppose you start getting an abnormal amount of HTTP traffic from a particular I
 
 ## Conclusion
 
-Firewalld makes creating custom firewall rules easy. If you have only every used something like IPtables, firewalld has a much simpler learning curve and offers more options not discussed in this tutorial. Certainly give it a try. You can even define your own custom services uses firewall-cmd.
+Firewalld makes creating custom firewall rules easy. If you have only every used something like IPtables, firewalld has a much simpler learning curve and offers more options not discussed in this tutorial. Certainly give it a try, you can even define your own custom services uses firewall-cmd.
 
 [docs]: https://firewalld.org
 [[[zones]]]: https://firewalld.org/documentation/zone/prened-zones.html/mon.
