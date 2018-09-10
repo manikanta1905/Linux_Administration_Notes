@@ -1,0 +1,7 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-10T09:19:35-04:00
+
+====== How To Compile The Linux Kernel ======
+Created Monday 10 September 2018
+

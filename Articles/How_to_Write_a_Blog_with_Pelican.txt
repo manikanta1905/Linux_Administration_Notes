@@ -1,0 +1,7 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-10T12:12:55-04:00
+
+====== How to Write a Blog with Pelican ======
+Created Monday 10 September 2018
+

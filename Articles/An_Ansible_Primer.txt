@@ -2,7 +2,7 @@ Content-Type: text/x-zim-wiki
 Wiki-Format: zim 0.4
 Creation-Date: 2018-09-05T07:29:51-04:00
 
-====== Ansible ======
+====== An Ansible Primer ======
 Created Wednesday 05 September 2018
 
 # Overview
@@ -90,9 +90,72 @@ ansible/
 ├── ansible.cfg
 └── hosts
 
-Instead of having to give ansible --user=$SSH_USER and --ask-pass everytime we run a command, we can just put this information in our ansible.cfg file and ansible will know to use it everytime. An example ansible.cfg can be found [[https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg|here]].
+Instead of having to give ansible --user=$SSH_USER and --ask-pass everytime we run a command, we can just put this information in our ansible.cfg file and ansible will know to use it everytime. An example ansible.cfg can be found [[https://raw.githubusercontent.com/ansible/ansible/devel/examples/ansible.cfg|here]]. You can also see an explanation of what each parameter means [[https://docs.ansible.com/ansible/2.4/intro_configuration.html|here]].
 
 [root@tpulliam ansible]# cat ansible.cfg
 remote_user = $SSH_USER
 ask_pass = True
+
+Now we can run our df command as follows
+
+[root@tpulliam ansible]# ansible prod --module-name=shell --args="df -h" --inventory=hosts
+
+## Scripting with Playbooks
+
+So far we have only been running simple Ad-Hoc commands. Ansible one liners are good for some things, but for most things, you will want an entire script. For example, you may want to write a script to automate the provisioning of a new server, including package installation, setting up mounted filesystems and so forth. You may also want to script the process of creating an NFS server/client pair, or a DNS or HTTP server or any other server you use frequently. These scripts are called playbooks.
+
+Playbooks are written in a language called YAML. The benefits of using YAML is that it is very easy to read, although it can be tricky to write at first. YAML is EXTREMELY sensitive to whitespace. You must have the correct number of spaces in your YAML file or you will get an unhelpful error. Because of this, it is very important when writing ansible playbooks to use a text editor that will auto indent your ansible as well as an ansible linter. At the very least, check out this online [[http://www.yamllint.com/|YAML linter]].
+
+
+
+ A very useful thing to note about YAML is that it is a superset of JSON, meaning any JSON data can be written in YAML (but not necessarily the other way around). Going back to our ping example, a playbook to ping all of our hosts would look like the following.
+
+
+[root@tpulliam ansible]# cat playbook.yml
+'''
+---
+- hosts: all
+  tasks:
+  - name: Check hosts with ping
+    ping:
+      data: PING!
+'''
+
+
+Having our playbook, our project looks now looks like this
+
+ansible/
+├── ansible.cfg
+├── playbook.yml
+└── hosts
+
+### Playbook Line by Line
+Let's break this playbook down, line by line. The first '---' must be present at the top of the file. It signifies a YAML file.
+
+'''
+- hosts: all
+'''
+
+Going back to our inventory file (hosts), this instructs ansible to run this playbook on all hosts. If we only wanted to run the playbook on our test hosts, we could replace "all" with "test"
+
+''tasks:''
+
+This is the start of the commands that the playbook will run
+
+'''
+  - name: Check hosts are up with ping
+'''
+
+A human readable name for the task. This can be anything you want, as long as it clearly conveys what the commands are doing and why to a non technical person.
+
+'''
+    ping:
+      data: PING!
+'''
+
+The ping command. It takes one optional argument, which is the data returned by the host upon a sucessful ping. In this case the data is just a string which says "PING!".
+
+## More Advanced Playbooks
+
+Okay so that was a simple example. Let's look at something practical and useful. Let's use the following playbook instead to configure a system after installation.
 

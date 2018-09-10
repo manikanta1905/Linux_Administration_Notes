@@ -14,6 +14,51 @@ with open('data.txt', 'r') as myfile:
 '''
 
 
+== Writing Text to a file ==
+The following appends a line to an existing file
+
+'''
+with open('data.txt', 'a') as myfile:
+    myfile.write("Appending a line to my file")
+
+'''
+The following deletes the contents of a file and writes to a new blank file
+
+'''
+with open('data.txt', 'w') as myfile:
+    myfile.write("Accidently deleted my whole file!")
+
+'''
+== Create a file if it does not exist ==
+The following creates the file "data.txt" if it does not exist. If it does exist an error is returned. This should be a safe way of creating (touching) files.
+
+'''
+myfile.open("data.txt", "x")
+'''
+
+
+== Regular Expressions with Python ==
+Below is an example, cloning the functionality of grep
+
+'''
+import re
+from sys import argv
+
+
+def grep(pattern, infile):
+
+    p = re.compile(pattern)
+    with open(infile, 'r') as _infile:
+        return p.search(_infile.read().replace('\n','')).group()
+
+if __name__ == '__main__':
+    pattern, infile = argv[1:3]
+    print(grep(pattern, infile))
+'''
+
+
+
+
 == Getting Current Time ==
 '''
 import time
@@ -21,6 +66,14 @@ now = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 print(now)
 '''
 
+
+== Change Directory ==
+import os
+
+# cd
+os.chdir(path)
+# pwd
+os.getcwd()
 
 === Getting User input for Scripts ===
 '''
@@ -56,3 +109,59 @@ if __name__ == '__main__':
 	if '-f' in command or '--file' in command:
 		message = command[3]
 '''
+
+
+== Getting User input for scripts with argparse ==
+I did not write the following script, I forget where it came from. I should update once I find the source.
+
+'''
+#!/usr/bin/env python
+
+import argparse
+import sys
+
+
+class FakeGit(object):
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(
+            description='Pretends to be git',
+            usage='''git <command> [<args>]
+The most commonly used git commands are:
+   commit     Record changes to the repository
+   fetch      Download objects and refs from another repository
+''')
+        parser.add_argument('command', help='Subcommand to run')
+        # parse_args defaults to [1:] for args, but you need to
+        # exclude the rest of the args too, or validation will fail
+        args = parser.parse_args(sys.argv[1:2])
+        if not hasattr(self, args.command):
+            print('Unrecognized command')
+            parser.print_help()
+            exit(1)
+        # use dispatch pattern to invoke method with same name
+        getattr(self, args.command)()
+
+    def commit(self):
+        parser = argparse.ArgumentParser(
+            description='Record changes to the repository')
+        # prefixing the argument with -- means it's optional
+        parser.add_argument('--amend', action='store_true')
+        # now that we're inside a subcommand, ignore the first
+        # TWO argvs, ie the command (git) and the subcommand (commit)
+        args = parser.parse_args(sys.argv[2:])
+        print('Running git commit, amend=%s' % args.amend)
+
+    def fetch(self):
+        parser = argparse.ArgumentParser(
+            description='Download objects and refs from another repository')
+        # NOT prefixing the argument with -- means it's not optional
+        parser.add_argument('repository')
+        args = parser.parse_args(sys.argv[2:])
+        print('Running git fetch, repository=%s' % args.repository)
+'''
+
+
+
+if __name__ == '__main__':
+	FakeGit()
