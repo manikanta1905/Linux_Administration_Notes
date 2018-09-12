@@ -93,6 +93,20 @@ os.rmdir(directory)
 # rm directory and contents recursively
 shutil.rmtree(directory)
 
+== Get User Information ==
+import os
+>>> os.environ
+>>> os.getuid()
+0
+>>> os.getlogin()
+'root'
+>>> os.getgroups()
+[0]
+>>> os.getenv('HOME')
+'/root'
+
+
+
 == Running Shell Commands ==
 '''
 from subprocess import run
@@ -137,6 +151,12 @@ stdout.read()
 # Close Connection
 client.close()
 '''
+
+
+==== Sending Email ====
+import email
+import smtplib
+
 
 
 ==== Security Manipulations ====
