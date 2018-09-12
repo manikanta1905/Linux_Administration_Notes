@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-11T07:20:14-04:00
+
+====== Update x.509 cert ======
+Created Tuesday 11 September 2018
+
+red hat 7 renew cert
+
+sudo su -
+cd /etc/pki/ca-trust/source/anchors
+update-ca-trust enable
+vim DigiCertGlobalRootCA.crt # paste cert into this file
+vim DigiCertSHA2SecureServerCA.crt
+update-ca-trust extract
+openssl verify *

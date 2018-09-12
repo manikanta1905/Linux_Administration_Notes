@@ -5,6 +5,11 @@ Creation-Date: 2017-09-27T20:46:39-04:00
 ====== Idioms ======
 Created Wednesday 27 September 2017
 
+==== References ====
+https://medium.com/the-andela-way/idiomatic-python-coding-the-smart-way-cc560fa5f1d6
+
+==== File Manipulations ====
+
 === Reading Text from a file ===
 The following method explicitly closes the file when done.
 
@@ -32,13 +37,16 @@ with open('data.txt', 'w') as myfile:
 == Create a file if it does not exist ==
 The following creates the file "data.txt" if it does not exist. If it does exist an error is returned. This should be a safe way of creating (touching) files.
 
+''def touch(filename):''
 '''
-myfile.open("data.txt", "x")
+return open(filename, "x")
 '''
 
+
+==== Text Manipulations ====
 
 == Regular Expressions with Python ==
-Below is an example, cloning the functionality of grep
+Below is an example, cloning the functionality of grep (unfinished)
 
 '''
 import re
@@ -67,13 +75,98 @@ print(now)
 '''
 
 
-== Change Directory ==
+==== Operating System / Filesystem Manipulations ====
+
+== Change Directory (ls, pwd, cd, etc.) ==
 import os
 
 # cd
 os.chdir(path)
 # pwd
 os.getcwd()
+# ls
+files = os.listdir(path)
+# rm file
+os.remove(filename)
+# rm empty directory
+os.rmdir(directory)
+# rm directory and contents recursively
+shutil.rmtree(directory)
+
+== Running Shell Commands ==
+'''
+from subprocess import run
+def ls():
+    run(['ls', '-l', '-a'])
+'''
+
+
+Better Yet
+'''
+from subprocess import run
+
+def bash(command):
+    return run(command.split())
+'''
+
+
+==== SSH With Python ====
+
+Q: Why isn't [[~/.ssh/known_hosts]] being updated?
+A:
+https://stackoverflow.com/questions/39523216/paramiko-add-host-key-to-known-hosts-permanently
+
+pip install paramiko
+
+'''
+from paramiko import client
+from paramiko import AutoAddPolicy
+
+client = client.SSHClient()
+client.load_system_host_keys()
+# Suppress "Server 'localhost' not found in known_hosts" errors by auto adding unknown host keys (this is dangerous)
+client.set_missing_host_key_policy(AutoAddPolicy())
+client.connect('localhost', port=22, username=username,password=password, allow_agent=False,look_for_keys=False)
+stdin, stdout, stderr = client.exec_command('ls -l')
+'''
+
+'''
+# Get command output
+stdout.read()
+
+# Close Connection
+client.close()
+'''
+
+
+==== Security Manipulations ====
+
+== Hashing a File ==
+The code below simulates the md5sum command from linux. You can also replace hashlib.md5() with hashlib.sha256(), hashlib.512() etcetera to use other hashing algorithms.
+
+https://www.pythoncentral.io/hashing-files-with-python/
+"The file is opened in rb mode, which means that you are going to read the file in binary mode. This is because the MD5 function needs to read the file as a sequence of bytes. This will make sure that you can hash any type of file, not only text files."
+"It is important to notice the read function. When it is called with no arguments, like in this case, it will read all the contents of the file and load them into memory. This is dangerous if you are not sure of the file's size. A better version will be:"
+
+
+''import hashlib''
+
+''def md5sum(filename):''
+'''
+
+BLOCKSIZE = 65536
+hasher = hashlib.md5()
+with open(filename, 'rb') as afile:
+    buf = afile.read(BLOCKSIZE)
+    while len(buf) > 0:
+        hasher.update(buf)
+        buf = afile.read(BLOCKSIZE)
+print(hasher.hexdigest())
+'''
+	   ''return hasher.hexdigest()''
+
+
+==== Scripting ====
 
 === Getting User input for Scripts ===
 '''

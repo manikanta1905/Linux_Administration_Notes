@@ -6,11 +6,12 @@ Creation-Date: 2018-05-01T19:13:49-04:00
 Created Tuesday 01 May 2018
 
 ==== Overview ====
-Zones are basically virtual machines
+Zones are basically virtual machines. The hypervisor is sometimes referred to as the CDOM (Controller Domain) and the Guest OSes are reffered to as LDOMs.
+
 https://docs.oracle.com/cd/E18440_01/doc.111/e18415/chapter_zones.htm#OPCUG427
 https://docs.oracle.com/cd/E19044-01/sol.containers/817-1592/zones.intro-1/index.html
 
-All zones reside within the default global zone. The global zone is essentially the host OS and all other zones act as the guest OSes.
+All zones reside within the default global zone (CDOM or Controller Domain). The global zone is essentially the host OS and all other zones act as the guest OSes.
 
 * Booting the global zone is equivalent to booting the system hardware.
 * Each zone, including the global zone, is assigned a zone name. The global zone always has the name "global".
@@ -25,7 +26,18 @@ list all LDOMs
 $ ldm list
 
 Stop an LDOM (power it off). Optionally supply the -f flag
-$ sudo ldm stop -f $LDOM
+$ sudo ldm stop [-f] $LDOM
 
 Start an LDOM (power it on)
 $ sudo ldm start $LDOM
+
+You can console into an LDOM by telnetting into the port the LDOM is listening on. When you run 'ldm list' you will get a column which looks like the following
+
+UART
+5002
+5003
+5000
+
+These are TCP ports on the CDOM that the LDOM is listening to. For example, if you want to console into the LDOM on port 5000 from the CDOM, you would run
+
+$ telnet localhost 5000
