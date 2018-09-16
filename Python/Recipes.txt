@@ -2,7 +2,7 @@ Content-Type: text/x-zim-wiki
 Wiki-Format: zim 0.4
 Creation-Date: 2017-09-27T20:46:39-04:00
 
-====== Idioms ======
+====== Recipes ======
 Created Wednesday 27 September 2017
 
 ==== References ====
@@ -44,6 +44,24 @@ return open(filename, "x")
 
 
 ==== Text Manipulations ====
+
+==== Template Strings ====
+https://docs.python.org/3.7/library/string.html#template-strings
+Variables within a text file that can be replaced by variables in your python code.
+
+from string import Template
+
+>>> s = Template('$who likes $what')
+>>> s.substitute(who='tim', what='kung pao')
+'tim likes kung pao'
+>>> foods = ['pizza', 'ice cream']
+>>> names = ['tim', 'nicole']
+>>>
+>>> for name, food in zip(names, foods):
+...     a.substitute(who=name, what=food)
+...
+'tim likes pizza'
+'nicole likes ice cream'
 
 == Regular Expressions with Python ==
 Below is an example, cloning the functionality of grep (unfinished)
@@ -136,12 +154,12 @@ pip install paramiko
 from paramiko import client
 from paramiko import AutoAddPolicy
 
-client = client.SSHClient()
-client.load_system_host_keys()
+ssh_client = client.SSHClient()
+ssh_client.load_system_host_keys()
 # Suppress "Server 'localhost' not found in known_hosts" errors by auto adding unknown host keys (this is dangerous)
-client.set_missing_host_key_policy(AutoAddPolicy())
-client.connect('localhost', port=22, username=username,password=password, allow_agent=False,look_for_keys=False)
-stdin, stdout, stderr = client.exec_command('ls -l')
+ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+ssh_client.connect('localhost', port=22, username=username,password=password, allow_agent=False,look_for_keys=False)
+stdin, stdout, stderr = ssh_client.exec_command('ls -l')
 '''
 
 '''
@@ -152,14 +170,43 @@ stdout.read()
 client.close()
 '''
 
+https://medium.com/@keagileageek/paramiko-how-to-ssh-and-file-transfers-with-python-75766179de73
+
+== Providing Input ==
+Sometimes you need to provide a password or extra input to run a command. This is what stdin is used for. Let’s run the same command above with sudo.
+
+'''
+stdin, stdout, stderr = ssh.exec_command(“sudo ls”)
+stdin.write(‘mypassword\n’)
+print stdout.readlines()
+'''
+
+
+== Downloading Files (SCP) ==
+'''
+ftp_client=ssh_client.open_sftp()
+ftp_client.get(‘remotefilepath’,’localfilepath’)
+ftp_client.close()
+'''
+
+
+== Uploading Files ==
+'''
+ftp_client=ssh_client.open_sftp()
+ftp_client.put(‘localfilepath’,remotefilepath’)
+ftp_client.close()
+'''
+
 
 ==== Sending Email ====
+https://medium.freecodecamp.org/send-emails-using-code-4fcea9df63f
+http://naelshiab.com/tutorial-send-email-python/
 import email
 import smtplib
 
 
 
-==== Security Manipulations ====
+==== Security Recipes ====
 
 == Hashing a File ==
 The code below simulates the md5sum command from linux. You can also replace hashlib.md5() with hashlib.sha256(), hashlib.512() etcetera to use other hashing algorithms.

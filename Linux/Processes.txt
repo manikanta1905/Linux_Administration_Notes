@@ -11,6 +11,15 @@ http://man7.org/linux/man-pages/man5/proc.5.html
 Process information is contained with the directory. From here we can learn a great deal about a running process.
 /proc/$PID
 
+==== List Only Kernel or User Space Processes ====
+https://unix.stackexchange.com/questions/411159/linux-is-it-possible-to-see-only-kernel-space-threads-process
+
+To list only kernel space processes. Such process names will usually be surrounded by square brackets for example [kworker/0:1] or [loop0]
+$ ps -lf --ppid 2 -p 2
+
+To list only user space processes, add the --deselect flag
+$ ps -lf --ppid 2 -p2 --deselect
+
 ==== Processes Control ====
 http://www.comptechdoc.org/os/linux/usersguide/linux_ugprocesses.html
 

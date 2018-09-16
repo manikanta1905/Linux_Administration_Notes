@@ -1,0 +1,53 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-16T08:53:09-04:00
+
+====== sarplot ======
+Created Sunday 16 September 2018
+
+'''
+#!/usr/bin/env  python
+
+from paramiko import client
+from paramiko import AutoAddPolicy
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+def ssh(remote_host='10.117.124.140', username='root', password='root'):
+    ssh_client = client.SSHClient()
+    ssh_client.load_system_host_keys()
+    # Suppress "Server 'localhost' not found in known_hosts" errors by auto adding unknown host keys (this is dangerous)
+    ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+    ssh_client.connect(remote_host, port=22, username=username, password=password, allow_agent=False,look_for_keys=False)
+    # get cpu data
+    stdin, stdout, stderr = ssh_client.exec_command('sar -P ALL > /tmp/.sar_cpu.txt')
+    stdin, stdout, stderr = ssh_client.exec_command('sar -b > /tmp/.sar_disk.txt')
+    # TODO rm remote copy
+    ftp_get(ssh_client, '/tmp/.sar_cpu.txt', r'C:\Users\p2815013\Desktop\code\sarplot\cpu.txt')
+    ftp_get(ssh_client, '/tmp/.sar_disk.txt', r'C:\Users\p2815013\Desktop\code\sarplot\disk.txt')
+    ssh_client.close()
+    
+def ftp_get(ssh_client, remotefile, localfile):
+    ftp_client=ssh_client.open_sftp()
+    ftp_client.get(remotefile, localfile)
+    ftp_client.close()
+
+    
+def plot():
+    cpu_data = pd.read_csv(r'C:\Users\p2815013\Desktop\code\sarplot\cpu.txt', skiprows=[0], delim_whitespace=True, skipfooter=4)
+    cpu_data = cpu_data[cpu_data['%user'] != '%user']
+    cpu_data = cpu_data[['%user', '%nice', '%system', '%iowait', '%steal', '%idle']] = cpu_data[['%user', '%nice', '%system', '%iowait', '%steal', '%idle']].astype(float)    
+    cpu_data.plot(title="CPU Usage on Host")
+    
+    disk_data = pd.read_csv(r'C:\Users\p2815013\Desktop\code\sarplot\disk.txt', skiprows=[0], delim_whitespace=True, skipfooter=1)
+     #disk_data = disk_data[disk_data['wtps'] != 'wtps']
+     #disk_data = disk_data[['tps', 'rtps', 'wtps', 'bread/s', 'bwrtn/s']] = disk_data[['tps', 'rtps', 'wtps', 'bread/s', 'bwrtn/s']].astype(float)    
+    disk_data.plot(title="Disk Usage on Host")
+    
+    plt.show()
+    
+if __name__ == '__main__':
+    ssh()
+    plot()
+'''

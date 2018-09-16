@@ -12,6 +12,12 @@ $ cat [[/proc/cmdline]]
 To permamently change the kernel boot parameters, edit the GRUB_CMDLINE_LINUX="" line in **/etc/default/grub**, then run 
 $ grub2-mkconfig -o /boot/grub2/grub.cfg
 
+==== List only kernel space processes ====
+https://unix.stackexchange.com/questions/411159/linux-is-it-possible-to-see-only-kernel-space-threads-process
+The following will only display processes running in kernel space.
+
+$ ps -lf --ppid 2 -p 2
+
 
 == Tuning kernel paramaters at run time with sysctl ==
 To see a list of kernel parameters that can be tuned at run time, use

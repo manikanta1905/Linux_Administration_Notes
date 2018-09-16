@@ -1,0 +1,183 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-16T08:27:48-04:00
+
+====== Pandas ======
+Created Sunday 16 September 2018
+
+==== Read a CSV File ====
+This recipe skips the first line in the CSV file and uses white space as delimiter.
+'''
+b = pd.read_csv('/tmp/.sar_cpu.txt', skiprows=[0], delim_whitespace=True)
+>>> b.keys()
+Index(['07:20:02', 'AM', 'CPU', '%user', '%nice', '%system', '%iowait',
+       '%steal', '%idle'],
+      dtype='object')
+'''
+
+For example, consider plotting the following SAR data from Sysstat
+
+'''
+Linux 3.10.0-862.3.2.el7.x86_64 (tpulliam.work) 	09/16/2018 	_x86_64_	(2 CPU)
+
+07:20:02 AM     CPU     %user     %nice   %system   %iowait    %steal     %idle
+07:30:01 AM     all      0.04      0.00      0.05      0.03      0.00     99.88
+07:30:01 AM       0      0.03      0.00      0.07      0.01      0.00     99.90
+07:30:01 AM       1      0.06      0.00      0.03      0.05      0.00     99.86
+07:40:01 AM     all      0.96      0.01      0.42      0.43      0.00     98.19
+07:40:01 AM       0      1.49      0.01      0.64      0.39      0.00     97.47
+07:40:01 AM       1      0.43      0.00      0.19      0.46      0.00     98.91
+07:50:01 AM     all      0.08      0.00      0.04      0.01      0.00     99.87
+07:50:01 AM       0      0.06      0.00      0.06      0.00      0.00     99.88
+07:50:01 AM       1      0.09      0.00      0.03      0.02      0.00     99.86
+08:00:01 AM     all      0.05      0.00      0.12      0.01      0.00     99.83
+08:00:01 AM       0      0.04      0.00      0.20      0.00      0.00     99.77
+08:00:01 AM       1      0.06      0.00      0.03      0.02      0.00     99.89
+08:10:01 AM     all      0.01      0.00      0.02      0.01      0.00     99.96
+08:10:01 AM       0      0.00      0.00      0.02      0.00      0.00     99.97
+08:10:01 AM       1      0.01      0.00      0.02      0.02      0.00     99.95
+08:20:01 AM     all      0.01      0.00      0.01      0.01      0.00     99.97
+08:20:01 AM       0      0.01      0.00      0.02      0.00      0.00     99.98
+08:20:01 AM       1      0.01      0.00      0.01      0.02      0.00     99.97
+08:30:01 AM     all      0.10      0.00      0.12      0.02      0.00     99.76
+08:30:01 AM       0      0.09      0.00      0.14      0.01      0.00     99.76
+08:30:01 AM       1      0.12      0.00      0.10      0.03      0.00     99.75
+
+Average:        CPU     %user     %nice   %system   %iowait    %steal     %idle
+Average:        all      0.35      0.00      0.17      0.08      0.00     99.40
+Average:          0      0.41      0.00      0.24      0.07      0.00     99.29
+Average:          1      0.29      0.00      0.10      0.09      0.00     99.52
+'''
+
+
+We can use the following pandas and matplotlib script.
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+''b = pd.read_csv('sar_cpu.txt', skiprows=[0], delim_whitespace=True, skipfooter=4)''
+b.plot(title="CPU Usage for HOST")
+plt.show()
+
+* skiprows=[0] causes the first line in the file (uname output) not to be read into the pandas dataframe object
+* skipfooter=4 skips the last 4 lines of the file (the averages). This makes it easier to manipulate the data later
+
+
+==== Converting Data to Float ====
+To get information about the data object we are plotting run the following command. We can see that the reason the %idle column is the only one being plotted is that it is the only collumn which has 'float' as its data type. All other collumns have a non numeric data type (object).
+
+'''
+>>> b.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 37 entries, 0 to 36
+Data columns (total 9 columns):
+07:20:02    37 non-null object
+AM          37 non-null object
+CPU         37 non-null object
+%user       37 non-null object
+%nice       37 non-null object
+%system     37 non-null object
+%iowait     37 non-null object
+%steal      37 non-null object
+%idle       33 non-null float64
+dtypes: float64(1), object(8)
+memory usage: 1.5+ KB
+'''
+
+
+A kind of ghetto way to convert a column from generic 'object' type to 'float' type, is to iterate over the column. Now we see that the %user column has been converted and should be plottable.
+
+>>> b['%user'] = (b['%user'] != '%nice' ).astype(float)
+
+'''
+>>> b.info('%user')
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 37 entries, 0 to 36
+Data columns (total 9 columns):
+07:20:02    37 non-null object
+AM          37 non-null object
+CPU         37 non-null object
+%user       37 non-null float64
+%nice       37 non-null object
+%system     37 non-null object
+%iowait     37 non-null object
+%steal      37 non-null object
+%idle       33 non-null float64
+dtypes: float64(2), object(7)
+memory usage: 1.6+ KB
+'''
+
+
+However, since we have omitted the last four lines of averages, we can simply convert all columns at once.
+
+'''
+>>> a[['%user', '%nice', '%system', '%iowait', '%steal', '%idle']] = a[['%user', '%nice', '%system', '%iowait', '%steal'
+, '%idle']].astype(float)
+>>> a.info()
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 33 entries, 0 to 32
+Data columns (total 9 columns):
+07:20:02    33 non-null object
+AM          33 non-null object
+CPU         33 non-null object
+%user       33 non-null float64
+%nice       33 non-null float64
+%system     33 non-null float64
+%iowait     33 non-null float64
+%steal      33 non-null float64
+%idle       33 non-null float64
+dtypes: float64(6), object(3)
+memory usage: 2.0+ KB
+'''
+
+
+==== Querying Data from a Dataframe ====
+The following expressions are equivalent
+
+df.query('a > b')
+df[df.a > df.b]
+
+==== Drop a row by index and fill in the gap (clean up index) ====
+Suppose we have created a [[DataFrame]] the usual way
+>>> a = pd.read_csv('test.txt', skiprows=[0], delim_whitespace=True, skipfooter=4)
+
+Drop a row using the following method. For example, if dropping row 67, row 67 will be deleted.
+>>> a = a.drop([67]).reset_index(drop=True)
+
+==== Displaying the Entire Data Frame ====
+https://stackoverflow.com/questions/19124601/is-there-a-way-to-pretty-print-the-entire-pandas-series-dataframe
+You wish to see all columns and rows for you dataframe.
+
+1) First option can be considered the "correct way".
+
+>>> with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+...     print(df)
+
+2) The second option actually converts the data frame into a string, thus you lose the actual data frame object. However, if you only care about visually seeing all of the columns and rows it works.
+
+>>>print(df.to_string())
+
+==== Deleting Row with Specific Value ====
+Go back to our SAR CPU data. Suppose our data looks like this, where every so often the header appears in the row itself to remind us of the data we are reading. We want to get rid of this, since we are only interested in numeric data (float) not strings.
+
+>>> a
+	07:20:02  AM  CPU  %user  %nice  %system  %iowait  %steal  %idle
+0   07:30:01  AM  all   0.04   0.00     0.05     0.03    0.00  99.88
+1   07:30:01  AM    0   0.03   0.00     0.07     0.01    0.00  99.90
+2   07:30:01  AM    1   0.06   0.00     0.03     0.05    0.00  99.86
+3   07:40:01  AM  all   0.96   0.01     0.42     0.43    0.00  98.19
+4   07:40:01  AM    0   1.49   0.01     0.64     0.39    0.00  97.47
+5   07:40:01  AM    1   0.43   0.00     0.19     0.46    0.00  98.91
+6   07:50:01  AM  all   0.08   0.00     0.04     0.01    0.00  99.87
+..       ...  ..  ...    ...    ...      ...      ...     ...    ...
+__67  11:00:01  AM  CPU  %user  %nice  %system  %iowait  %steal  %idle__
+68  11:10:02  AM  all   0.01   0.00     0.02     0.01    0.00  99.97
+69  11:10:02  AM    0   0.01   0.00     0.02     0.00    0.00  99.97
+
+We could hard code to delete row 67, however this line will not always appear on line 67. Instead what we can say only use the lines where "%user" does not appear.
+
+>>> a = a[a['%user'] != '%user']
+>>> print(a.to_string())
+>>> a = a[['%user', '%nice', '%system', '%iowait', '%steal', '%idle']] = a[['%user', '%nice', '%system', '%iowait', '%steal', '%idle']].astype(float)
+>>>a.plot()
+>>>plt.show()
