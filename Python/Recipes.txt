@@ -123,6 +123,13 @@ import os
 >>> os.getenv('HOME')
 '/root'
 
+==== Timing Your Python Code ====
+import time
+start_time = time.time()
+main()
+print("--- %s seconds ---" % (time.time() - start_time))
+
+On windows machines, you may need to use time.clock() to get better accuracy.
 
 
 == Running Shell Commands ==

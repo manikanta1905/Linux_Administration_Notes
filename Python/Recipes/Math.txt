@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-17T08:03:12-04:00
+
+====== Math ======
+Created Monday 17 September 2018
+
+==== Creating Matrices (Without Numpy) ====
+kind of a ghetto way
+
+'''
+def matrix(start, length):
+
+    matrix = [[start + i + j*length for i in range(0, length)] for j in range(0,length)]
+    print(matrix)
+    return matrix
+
+>>> a = matrix(17,4)
+[[17, 18, 19, 20], [21, 22, 23, 24], [25, 26, 27, 28], [29, 30, 31, 32]]
+'''
