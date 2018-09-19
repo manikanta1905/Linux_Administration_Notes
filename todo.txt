@@ -179,8 +179,9 @@ if __name__ == '__main__':
 import time
 
 
+from collections import deque
 def answer(start, length):
-    lst = [x for x in range(start, start+length)]
+    lst = deque([x for x in range(start, start+length)])
     checksum = 0
     
     for i in range(0, length):
@@ -195,33 +196,33 @@ def answer(start, length):
             # even length q, if first element is odd, checksum can be _ or _        
             else:
                 if ((length - i) // 2) % 2 == 0:
-                    checksum ^= lst[0]^1^lst[-1]
+                    checksum ^= (lst[0]+length*i)^1^(lst[-(i+1)]+length*i)
                 else:
-                    checksum ^= lst[0]^lst[-1]
+                    checksum ^= (lst[0]+length*i)^(lst[-(i+1)]+length*i)
         # q is odd length            
         else:
             # q is odd length, first element is even, checksum can be _ or _
             if lst[0] % 2 == 0:
                 if ((length - i - 1) // 2) % 2 == 0:
-                    checksum ^= 1^lst[0]
+                    checksum ^= 1^(lst[0]+length*i)
                 else:
-                    checksum ^= lst[-1]
+                    checksum ^= (lst[-(i+1)]+length*i)
             # q is odd length, first element is odd, checksum can be _ or _
             else:
                 if ((length - i - 1) // 2) % 2 == 0:
-                    checksum ^= lst[0]^1
+                    checksum ^= (lst[0]+length*i)^1
                 else:
-                    checksum ^= lst[0]
-        lst.pop()
-        lst = [x+length for x in lst]
+                    checksum ^= (lst[0]+length*i)
+        #lst.pop()
+        #lst = deque([x+length for x in lst])
     print(checksum)
     return checksum
         
     
 if __name__ == '__main__':
-    start_time = time.clock()
+    #start_time = time.clock()
     answer(17,4)
     answer(0,3)
     answer(0,2000)
-    print("--- %s seconds ---" % (time.clock() - start_time))
+    #print("--- %s seconds ---" % (time.clock() - start_time))
 '''
