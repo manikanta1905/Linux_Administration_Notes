@@ -159,3 +159,69 @@ if __name__ == '__main__':
     answer(0,2000)
     #print("--- %s seconds ---" % (time.clock() - start_time))
 '''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+====== Winner ======
+'''
+import time
+
+
+def answer(start, length):
+    lst = [x for x in range(start, start+length)]
+    checksum = 0
+    
+    for i in range(0, length):
+        # q is even length
+        if (length - i) % 2 == 0:
+            # even length q, if first element is even, checksum can be 1 or 0
+            if lst[0] % 2 == 0:
+                if ((length - i) // 2) % 2 == 0:
+                    pass
+                else:
+                    checksum ^= 1
+            # even length q, if first element is odd, checksum can be _ or _        
+            else:
+                if ((length - i) // 2) % 2 == 0:
+                    checksum ^= lst[0]^1^lst[-1]
+                else:
+                    checksum ^= lst[0]^lst[-1]
+        # q is odd length            
+        else:
+            # q is odd length, first element is even, checksum can be _ or _
+            if lst[0] % 2 == 0:
+                if ((length - i - 1) // 2) % 2 == 0:
+                    checksum ^= 1^lst[0]
+                else:
+                    checksum ^= lst[-1]
+            # q is odd length, first element is odd, checksum can be _ or _
+            else:
+                if ((length - i - 1) // 2) % 2 == 0:
+                    checksum ^= lst[0]^1
+                else:
+                    checksum ^= lst[0]
+        lst.pop()
+        lst = [x+length for x in lst]
+    print(checksum)
+    return checksum
+        
+    
+if __name__ == '__main__':
+    start_time = time.clock()
+    answer(17,4)
+    answer(0,3)
+    answer(0,2000)
+    print("--- %s seconds ---" % (time.clock() - start_time))
+'''
