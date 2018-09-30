@@ -35,7 +35,7 @@ with open('data.txt', 'w') as myfile:
 
 '''
 == Create a file if it does not exist ==
-The following creates the file "data.txt" if it does not exist. If it does exist an error is returned. This should be a safe way of creating (touching) files.
+The following creates the file "data.txt" if it does not exist. If it does exist an error is returned. This is a safe way of creating files.
 
 ''def touch(filename):''
 '''
@@ -215,6 +215,18 @@ import smtplib
 
 ==== Security Recipes ====
 
+==== Getting Password Input with getpass ====
+https://docs.python.org/3.1/library/getpass.html
+Prompt the user for a password without echoing. The user is prompted using the string prompt, which defaults to 'Password: '. Be careful though, because the password can still be echoed if printed.
+
+'''
+>>> password = getpass.getpass('enter your password: ')
+enter your password:
+>>> password
+'No Peeking!'
+'''
+
+
 == Hashing a File ==
 The code below simulates the md5sum command from linux. You can also replace hashlib.md5() with hashlib.sha256(), hashlib.512() etcetera to use other hashing algorithms.
 
@@ -332,3 +344,24 @@ The most commonly used git commands are:
 
 if __name__ == '__main__':
 	FakeGit()
+
+
+==== Try / Except ====
+Python runs code within a try block until it hits an error. It then jumps to the except block and runs the appropriate code. For this reason it is best to put more specific errors (ones least likely to trip) before more general ones (ones more likely to trigger).
+
+
+'''
+>>> a = 1
+>>> b = 0
+>>> c = 2
+>>>
+>>> try:
+...     1/a
+...     1/b
+...     1/c
+... except:
+...     print("you created a black hole")
+...
+1.0
+you created a black hole
+'''
