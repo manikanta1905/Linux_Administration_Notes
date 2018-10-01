@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-01T08:24:36-04:00
+
+====== Options ======
+Created Monday 01 October 2018
+
+Here are some common options while using a bash shell or when scripting with bash. Some of these options are a must. Others are mere recommendations.
+https://www.tldp.org/LDP/abs/html/options.html
+
+These options can either be set in the beginning of a script, or set in your environment by using .bashrc, .bash_profile, [[/etc/profile]] or any other usual methods.
+
+==== Enable / Disable Options ====
+Enable option
+set -o OPTION
+set -option-abbreviation
+
+Disable option
+set +o OPTION
+set +option-abbreviation
+
+==== Verbose ====
+#!/bin/bash
+# Either option echoes all commands before executing
+set -o verbose
+set -v
+
+$ set -o verbose
+$ echo hello
+echo hello
+hello

@@ -36,6 +36,132 @@ $ my_script.sh
 '''
 
 
+==== If Statements ====
+A general if statement. For example, to test if one number is greater than another. Note the placement of the semicolons is very important. A semicolon is placed after every if/elif 
+'''
+
+#!/bin/bash
+
+echo -e "Enter two numbers to compare"
+read num1
+read num2
+
+if [ $num1 -qt $num2 ];
+then
+  echo -e "$num1 > $num2"
+elif [ $num1 -lt $num2 ];
+then
+  echo -e "$num1 < $num2"
+else
+  echo -e "$num1 == $num2"
+fi
+'''
+
+
+==== Comparisons / Test Conditions ====
+http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
+
+
+== Difference Between [ ], [[ ]], ( ), (( )) ==
+https://unix.stackexchange.com/questions/306111/what-is-the-difference-between-the-bash-operators-vs-vs-vs
+if [ condition ]
+
+This is the traditional shell test command. It is available on all POSIX shells. The test command sets an exit code and the if statement acts accordingly. Typical tests are whether a file exists or one number is equal to another.
+
+if [[ condition ]]
+
+This is a new upgraded variation on test from ksh that bash and zsh also support. This test command also sets an exit code and the if statement acts accordingly. Among its extended features, it can test whether a string matches a regular expression.
+
+if ((condition))
+
+Another ksh extension that bash and zsh also support. This performs arithmetic. As the result of the arithmetic, an exit code is set and the if statement acts accordingly. It returns an exit code of zero (true) if the result of the arithmetic calculation is nonzero. Like [[...]], this form is not POSIX and therefore not portable.
+
+if (command)
+
+This runs command in a subshell. When command completes, it sets an exit code and the if statement acts accordingly.
+
+A typical reason for using a subshell like this is to limit side-effects of command if command required variable assignments or other changes to the shell's environment. Such changes do not remain after the subshell completes.
+
+if command
+
+command is executed and the if statement acts according to its exit code.
+
+== Integer Comparisons ==
+* -eq (==)
+* -ne (!=)
+* -lt (<)
+* -gt (>)
+* -le (<=)
+* -ge (>=)
+
+== String Comparisons ==
+[ -z $string ] true if length of string is zero
+[ -n STRING ] or [ STRING ] true if length of string is NOT zero
+[ STRING1 == STRING2 ] True if the strings are equal. "=" may be used instead of "==" for strict POSIX compliance.
+[ STRING1 != STRING2 ] True if the strings are not equal.
+[ STRING1 < STRING2 ] True if "STRING1" sorts before "STRING2" lexicographically in the current locale.
+[ STRING1 > STRING2 ] True if "STRING1" sorts after "STRING2" lexicographically in the current locale.
+
+== File Tests ==
+[ -e $file ] true if file exists
+[ -d $file ] true if file exists and is directory
+[ -f $file ] true if file exists and is regular file
+[ -r $file ] true if file exists and is readable
+[ -s $file ] true if file exists and its size is greater than zero
+[ -w $file ] '' and is writable
+[ -x $file ] '' and is executable
+[ -N $file ] '' and has been modified since it was last read
+[ FILE1 -nt FILE2 ] True if FILE1 has been changed more recently than FILE2, or if FILE1 exists and FILE2 does not.
+[ FILE1 -ot FILE2 ] True if FILE1 is older than FILE2, or is FILE2 exists and FILE1 does not.
+[ FILE1 -ef FILE2 ] 	True if FILE1 and FILE2 refer to the same device and inode numbers. (They are hard linked to the same inode)
+
+==== Boolean Operations (Combining Operations) ====
+[ ! EXPR ] True if EXPR is false.
+[ ( EXPR ) ] 	Returns the value of EXPR. This may be used to override the normal precedence of operators.
+[ EXPR1 -a EXPR2 ]  True if both EXPR1 and EXPR2 are true.
+[ EXPR1 -o EXPR2 ]  True if either EXPR1 or EXPR2 is true.
+
+==== Shell Tests ====
+[ -o [[OptionName]] ]     True if shell option "OPTIONNAME" is enabled.
+
+==== For Loops ====
+There are a few ways to do a for loop, below are the most common ways
+
+'''
+#!/bin/bash
+echo "printing multiples of 2"
+for i in {0..10..2}
+  do 
+     echo "$i"
+ done
+'''
+
+
+This method of a for loop is a bit ugly, but still works
+'''
+#!/bin/bash
+echo "counting from 1 to 5"
+for (( c=1; c<=5; c++ ))
+do  
+   echo "$c"
+done
+'''
+
+
+For loops can also iterate over the output of a command
+'''
+#!/bin/bash
+echo "iterate over the contents of a file"
+for host in $(cat hosts)
+do
+  ping $host
+done
+'''
+
+
+==== While Loops ====
+
+
 ==== Getting User Input ====
 Standard method is the following
 '''
@@ -62,6 +188,36 @@ echo -e "Your name is $name\n"
 $ name.sh 
 Enter your name: tim
 Your name is tim
+'''
+
+
+==== Brace Expansion ====
+https://www.tldp.org/LDP/abs/html/special-chars.html#BRACEEXPREF
+Brace expansion must be enabled
+$ set -B
+
+'''
+$ echo {a..z}
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+$ echo {A..Z}
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+
+$ echo {A..z}
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [  ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+$ echo {0..10}
+0 1 2 3 4 5 6 7 8 9 10
+
+$ echo {0..10..2}
+0 2 4 6 8 10
+
+Array of base64 characters
+$ base64_charset_array=( {A..Z} {a..z} {0..9} + / = )
+$ echo ${base64_charset_array[0]}
+A
+$ echo ${base64_charset_array[1]}
+B
 '''
 
 
@@ -126,37 +282,6 @@ The PID of this script is 9449
 0 R vagrant   9451  9449  0  80   0 - 28165 -      19:11 pts/0    00:00:00 grep 9449
 '''
 
-
-==== Comparisons / Test Conditions ====
-http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_07_01.html
-
-== Integer Tests ==
-* -eq (==)
-* -ne (!=)
-* -lt (<)
-* -gt (>)
-* -le (<=)
-* -ge (>=)
-
-For example, to test if one number is greater than another
-
-'''
-#!/bin/bash
-
-echo -e "Enter two numbers to compare"
-read num1
-read num2
-if [ $num1 -qt $num2 ]
-'''
-__;__
-''then''
-''  echo -e "$num1 > $num2"''
-''elif [ $num1 -lt $num2 ]''__;__
-''then''
-''  echo -e "$num1 < $num2"''
-''else''
-''  echo -e "$num1 == $num2"''
-''fi''
 
 
 ==== A Simple Backup Script Using rsync ====
