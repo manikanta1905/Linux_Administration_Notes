@@ -69,22 +69,37 @@ if __name__ == '__main__':
 == config.py ==
 '''
 DEBUG = True
+# Set the secret key to some random bytes. Keep this really secret!
+SECRET_KEY = 'a8251ffb76f32d3e97937a92ed554c72'
+
 
 '''
+== app.secret_key ==
+http://flask.pocoo.org/docs/1.0/quickstart/#sessions
+https://stackoverflow.com/questions/34902378/where-do-i-get-a-secret-key-for-flask/34903502
+https://en.wikipedia.org/wiki/Cross-site_request_forgery
+
+app.secret_key should be a randomly generated string. It is used for securing sessions on the client side to protect against Cross-site request forgery attacks. This is handled through a **Flask.session** object which allows you to store information specific to a user from one request to the next in a secure way. This is implemented on top of cookies for you and signs the cookies cryptographically. What this means is that a user could look at the contents of your cookie but not modify it, unless they know the secret key used for signing. In order to use sessions you have to set a secret key.
+
+You can generate a secret key using 
+'''
+$ python -c 'import os; print(os.urandom(16).hex())'
+'''
+	 ''adadb355cf0063a5eee6fb4e63b23737''
+	
+
 == Running the App ==
 Run **myapp.py** using [[./myapp.py]] and then visit http://localhost:8080 in your web browser. You should be greeted with "Hello, World!"
 
 ==== Separating Views from myapp.py ====
-Okay, this works and it is great, but in reality we are going to have many more views that just the root '/' and 'index'. Because of this, it would be easier for us to maintain if we gave the views their own separate file. Our codebase will end up looking as follows
+Okay, this works and it is great, but in reality we are going to have many more views that just the root '/' and 'index'. Because of this, it would be easier for us to maintain if we gave the views their own separate file.
+Our codebase will end up looking as follows
 
 '''
 .
 ├── config.py
 ├── myapp.py*
 ├── requirements.txt
-├── templates/
-│   ├── base.html
-│   └── index.html
 ├── venv/
 └── views.py
 '''
@@ -104,7 +119,7 @@ def index():
 
 
 == myapp.py ==
-In order to use the views located in another file, we need to tell the main **app** object where they are located (I.E. we need to import them).
+In order to use the views located in the ''views.py'' file, we need to tell the main **app** object where they are located (I.E. we need to import them). This is known as a circular import. The circular import import views from views.py, but views.py imports app from myapp.py. Thus these two files depend on each other for the program to work correctly.
 
 '''
 #!/usr/bin/env python
@@ -119,26 +134,43 @@ app.config.from_pyfile('config.py')
 ''if __name__ == '__main__':''
 ''    app.run(host='0.0.0.0', port=8080)''
 
-==== Creating A Base Template ====
+
+==== HTML - Creating A Base Template ====
 Now we are finally ready to start creating some HTML. We could start by creating a Navbar that will show up on every page. We can do this by creating a Base template. By default, Flask looks for HTML templates in a directory called **templates**. So we must create this directory. In the end, our codebase should look something like this:
+
+'''
+.
+├── config.py
+├── myapp.py*
+├── requirements.txt
+├── templates/
+│   ├── base.html
+│   └── index.html
+├── venv/
+└── views.py
+'''
 
 
 $ mkdir templates
 $ touch templates/{base.html,index.html}
 
 == index.html ==
+index.html extends our base.html file, which is to say it adds to it. This is nice because instead of having to put the code for our navbar in every HTML file, we can put it into one file (base.html) and every HTML file will extend that file. This drastically reduces the amount of files we must maintain.
+
+We must inform the index.html template where it will place content from base.html.
+
 '''
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Index.html</h1>
+<h1>Welcome</h1>
 
 {% endblock %}
 '''
 
 
 == base.html ==
-We must inform the base template where to place content from our index.html template. This is acheived by using ''{% block content %}{% endblock %}''. This will cause everything in  block content of the index.html to be placed into the base.html template.
+We must inform the base.html template where to place HTML from index.html. This is acheived by using ''{% block content %}{% endblock %} Jinja2 tags''. This will cause everything in  {% block content %} of the index.html to be placed into the {% block content %} of base.html template (in this case a simple <h1> element).
 
 The following HTML makes use of a bootstrap navbar from https://www.w3schools.com/bootstrap/bootstrap_navbar.asp . In order for us to be able to use bootstrap, we need to load bootstrap from a CDN. This is done using a **<link>** element. For more information on using bootstrap see https://getbootstrap.com/docs/3.3/getting-started/ .
 
@@ -190,175 +222,42 @@ def index():
     return flask.render_template('index.html')
 '''
 
+You should see something like the following image
 
-==== Creating A Login Page ====
-If we are going to use HTML forms with Flask, it will be easier if we use the python module **Flask-WTF**. More information can be found at https://flask-wtf.readthedocs.io/en/stable/ . After installing the Flask add-on, it would be a good idea to update our requirements.txt file.
-$ pip install Flask-WTF
-$ pip freeze > requirements.txt
+{{.\pasted_image.png}}
 
-At the end we will have a codebase that looks like the following
+==== Adding A Favicon ====
+http://flask.pocoo.org/docs/1.0/patterns/favicon/
+Create a new directory named static. This is where static content will be placed (Javascript, Images, CSS, non-templated HTML).
+
+$ mkdir static 
+
+Go to below website, select image you want to faviconize. Generate 16x16 only. Uncheck Maintain Image Dimensions (We want it to be square). You will be given an image to download. Place this image into your static directory.
+https://www.favicon-generator.org/
+
+Our codebase will now look like this
+
+'''
 .
 ├── config.py
-├── forms.py
-├── myapp.py
+├── myapp.py*
 ├── requirements.txt
 ├── static/
-│   └── css/
-│       └── login.css
+|   ├── favicon.ico
 ├── templates/
 │   ├── base.html
-│   ├── index.html
-│   └── login.html
+│   └── index.html
 ├── venv/
 └── views.py
-
-
-
-== forms.py ==
-Add the following to the forms.py module.
-
-'''
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField
-from wtforms.validators import DataRequired, InputRequired, Email, Length
 '''
 
+Next, add the following line in [[/templates/base.html]] in the <head></head> section
+''<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">''
 
-'''
-class LoginForm(FlaskForm):
-    email = StringField('email', validators=[InputRequired(), Email(), Length(max=40)])
-    password = PasswordField('password', validators=[InputRequired()])
-    remember = BooleanField('remember me')
-    submit = SubmitField('submit')
-'''
-
-
-== views.py ==
-We need to import our new form as well as create a view for the login page.
-
-	  ''from forms import InventoryForm, LoginForm''
-
-'''
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        return flask.redirect('/index')
-    return flask.render_template('login.html', form=form)
-'''
-
-
-== templates/login.html ==
-
-$ touch templates/login.html
-
-For the login.html page, we are simply going to use a modified predefined bootstrap signup widget. This can be found here http://getbootstrap.com/docs/4.0/examples/ . If you click on the example, and view source in your browser, you wil be able to extract the following code for the widget. Note the highlighted section of the HTML. This is because the Bootstrap Signup page requires a custom CSS style sheet which we must also include. By default Flask requires static files (CSS, JavaScript, Images) go into a special directory called **static**. This allows Flask to find them. We will need to copy the CSS from the view source link and include it in a file located at **static/css/login.css**.
-
-Also note that we have left out the **base.html** template, because at this point we do not want to include the navbar if the user has not authenticated yet.
-
-__NOTE: It is imperative that your <form> element use the method POST. Otherwise it will default to an HTTP GET request. This will make your password, username and other sensitive data sent via the form visible in the URL of your broswer! You do not want this! Make sure you ALWAYS USE POST METHOD WHEN SENDING SENSITIVE DATA!!!__
-
-
-'''
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Ansible UI</title>
-
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <!-- Custom styles for this template -->
-  <link href=
-'''
-__"/static/css/login.css"__'' rel="stylesheet">''
-''</head>''
-
-''<body>''
-
-''<div class="container">''
-
-''   <form class="form-signin"'' __method="POST"__''>''
-''     <h2 class="form-signin-heading">Please sign in</h2>''
-''     <label for="inputEmail" class="sr-only">Email address</label>''
-''     <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>''
-''     <label for="inputPassword" class="sr-only">Password</label>''
-''     <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>''
-''     <div class="checkbox">''
-''       <label>''
-''         <input type="checkbox" value="remember-me"> Remember me''
-''       </label>''
-''     </div>''
-''     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>''
-''   </form>''
-
-'' </div> <!-- /container -->''
-''</body>''
-''</html>''
-
-Okay, this is great. Just one problem. This template does not use our newly created **LoginForm** at all! We need to include the relevant form fields using Jinja2 templating. This is actually very easy. All we need to do is replace the existing **<input>**, **<label>** and **<button>** elements and pass their attributes to our form objects like so.
-
-   '' <form class="form-signin" method="POST">''
-	 __{{ form.hidden_tag() }}__
-''     <h2 class="form-signin-heading">Please sign in</h2>''
-	 __{{ form.email.label(class_="sr-only", for="inputEmail") }}__ __{{ form.email(class_="form-control", id="inputEmail", placeholder="Email address")}}__
-''   </br>''
-	 __{{ form.password.label(class_="sr-only", for="inputPassword") }}__ __{{ form.password(class_="form-control", id="inputPassword", placeholder="Password") }}__
-''     <div class="checkbox">''
-''       <label>''
-		 __{{ form.remember(type="checkbox", value="remember-me") }}__'' Remember me''
-''       </label>''
-''     </div>''
-			 __{{ form.submit(class_="btn btn-lg btn-primary btn-block", value="Sign in") }}__
-''   </form>''
-
-== static/css/login.css ==
-$ mkdir -p static/css/
-$ touch static/css/login.css
-
-Place the contents of this URL http://getbootstrap.com/docs/4.0/examples/signin/signin.css into this file. That is it. You can change these values if you want to get a different style.
-
-'''
-body {
-  padding-top: 40px;
-  padding-bottom: 40px;
-  background-color: #eee;
-}
-
-.form-signin {
-  max-width: 330px;
-  padding: 15px;
-  margin: 0 auto;
-}
-.form-signin .form-signin-heading,
-.form-signin .checkbox {
-  margin-bottom: 10px;
-}
-.form-signin .checkbox {
-  font-weight: normal;
-}
-.form-signin .form-control {
-  position: relative;
-  height: auto;
-  -webkit-box-sizing: border-box;
-          box-sizing: border-box;
-  padding: 10px;
-  font-size: 16px;
-}
-.form-signin .form-control:focus {
-  z-index: 2;
-}
-.form-signin input[type="email"] {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.form-signin input[type="password"] {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-'''
-
+== Troubleshooting ==
+1) Try clearing your browser's cache
+2) Close ALL of your browser windows
+3) Try another browser (IE, Firefox, Chrome, etc.)
 
 ==== Custom 404 Page ====
 
@@ -379,6 +278,130 @@ $ touch templates/404.html
     <h3>Page Not Found</h3>
 </div>
 '''
+
+
+==== Creating A Login Page ====
+https://www.owasp.org/index.php/Password_Storage_Cheat_Sheet
+
+Next we are going to create a login page so that users must log in to view the rest of the website. Users without an existing account can register one. Existing users can simply log in with their username and passwords. To do this we are going to install a few more Flask extensions
+
+== Flask-Login ==
+$ pip install Flask-Login
+
+**Flask-Login** allows you to control whether users are "logged in" or "logged out", as well as control what pages (views) users can see when they are logged in or out. For example, if a user is not logged in, they should not be able to view a profile page. But once they log in, they should be able to view their own profile page only (not anybody else's). Flask login also
+
+will:
+
+* Store the active user’s ID in the session, and let you log them in and out easily.
+* Let you restrict views to logged-in (or logged-out) users.
+* Handle the normally-tricky “remember me” functionality.
+* Help protect your users’ sessions from being stolen by cookie thieves.
+* Possibly integrate with Flask-Principal or other authorization extensions later on.
+
+will not:
+
+* Impose a particular database or other storage method on you. You are entirely in charge of how the user is loaded.
+* Restrict you to using usernames and passwords, OpenIDs, or any other method of authenticating.
+* Handle permissions beyond “logged in or not.”
+* Handle user registration or account recovery.
+
+== Flask-WTF ==
+$ pip install Flask-WTF
+
+If we are going to use HTML forms with Flask, it will be easier if we use the python module **Flask-WTF**. More information can be found at https://flask-wtf.readthedocs.io/en/stable/ . After installing the Flask add-on, it would be a good idea to update our requirements.txt file.
+
+$ pip freeze > requirements.txt
+
+Any time a user enters data into our website, they will use a web form. Because our website will have many forms, it is a good idea to keep forms in their own file named forms.py. This will help cut down on clutter from putting too much code in one single file. 
+
+Next, we are going to create a login page so that we can display (render) our forms to the user. Users can sign up when they first visit the website or login if they already have a user account. For this, we will need a login.html template.
+
+At the end we will have a codebase that looks like the following
+'''
+.
+├── config.py
+├── forms.py
+├── myapp.py
+├── requirements.txt
+├── static/
+|   └── favicon.ico
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   └── login.html
+├── venv/
+└── views.py
+'''
+
+
+== forms.py ==
+$ touch forms.py
+
+Add the following to the forms.py module. Right now the form does not do anything.
+
+'''
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField
+from wtforms.validators import DataRequired, InputRequired, Email, Length
+'''
+
+
+'''
+class LoginForm(FlaskForm):
+    email = StringField('email', validators=[InputRequired(), Email(), Length(max=40)])
+    password = PasswordField('password', validators=[InputRequired()])
+    remember = BooleanField('remember me')
+    submit = SubmitField('submit')
+'''
+
+
+== views.py ==
+We need a view to display our new form. The following view redirects any login as long as any username and password are supplied to the [[/index.html]] page.
+
+	  ''from forms import LoginForm''
+
+'''
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        return flask.redirect('/index')
+    return flask.render_template('login.html', form=form)
+'''
+
+
+== templates/login.html ==
+Using Jinja2 tags for labels, makes it so that if a user clicks on the label instead of the text box, the text box is still selected.
+
+$ touch templates/login.html
+
+'''
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Sign In</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username(size=32) }}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
+'''
+
+
+== Restricting Access ==
+At this point, we can see the login scree if we visit http://localhost:8080/login. But we can still see other webpages as well. We want to restrict access to these routes until a user has successfully authenticated.
+
+
+
 
 
 ==== Creating User Database with Flask-SqlAlchemy ====

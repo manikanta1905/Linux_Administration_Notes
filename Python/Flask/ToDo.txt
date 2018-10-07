@@ -1,0 +1,41 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-07T12:31:30-04:00
+
+====== ToDo ======
+Created Sunday 07 October 2018
+
+==== config.py from object ====
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms
+
+== config.py ==
+'''
+import os
+
+class Config(object):
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'a8251ffb76f32d3e97937a92ed554c72'
+'''
+
+
+== myapp.py ==
+'''
+from config import Config
+...
+...
+app.config.from_object(Config)
+'''
+
+
+
+
+You can then get the contents of a Config value using dictionary syntax
+
+>>> from myapp import app
+>>> app.config['SECRET_KEY']
+'''a8251ffb76f32d3e97937a92ed554c72'''
+
+Benefits:
+
+* You can subclass the Config object (Dev, Test, QA, Prod Configs)
+* Interact with the config using dictionary syntax
+* os.environ.get('''SECRET_KEY') ''checks to see if the variable is set on the OS before assigning it a value.

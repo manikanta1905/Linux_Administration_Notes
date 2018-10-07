@@ -8,6 +8,9 @@ Created Tuesday 01 May 2018
 ==== Terminology ====
 * disk slice = partition
 
+== du --max-depth ==
+/usr/gnu/bin/du -x -h --max-depth=1 ./
+
 ==== Block Storage ====
 https://docs.oracle.com/cd/E23824_01/html/E24456/device-2.html#scrolltoc
 Device Naming

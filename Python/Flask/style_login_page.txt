@@ -1,0 +1,117 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-07T12:56:58-04:00
+
+====== style login page ======
+Created Sunday 07 October 2018
+
+== templates/login.html ==
+
+$ touch templates/login.html
+
+For the login.html page, we are simply going to use a modified predefined bootstrap signup widget. This can be found here http://getbootstrap.com/docs/4.0/examples/ . If you click on the example, and view source in your browser, you wil be able to extract the following code for the widget. Note the highlighted section of the HTML. This is because the Bootstrap Signup page requires a custom CSS style sheet which we must also include. By default Flask requires static files (CSS, JavaScript, Images) go into a special directory called **static**. This allows Flask to find them. We will need to copy the CSS from the view source link and include it in a file located at **static/css/login.css**.
+
+Also note that we have left out the **base.html** template, because at this point we do not want to include the navbar if the user has not authenticated yet.
+
+__NOTE: It is imperative that your <form> element use the method POST. Otherwise it will default to an HTTP GET request. This will make your password, username and other sensitive data sent via the form visible in the URL of your broswer! You do not want this! Make sure you ALWAYS USE POST METHOD WHEN SENDING SENSITIVE DATA!!!__
+
+
+'''
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ansible UI</title>
+
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- Custom styles for this template -->
+  <link href=
+'''
+__"/static/css/login.css"__'' rel="stylesheet">''
+''</head>''
+
+''<body>''
+
+''<div class="container">''
+
+''   <form class="form-signin"'' __method="POST"__''>''
+''     <h2 class="form-signin-heading">Please sign in</h2>''
+''     <label for="inputEmail" class="sr-only">Email address</label>''
+''     <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>''
+''     <label for="inputPassword" class="sr-only">Password</label>''
+''     <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>''
+''     <div class="checkbox">''
+''       <label>''
+''         <input type="checkbox" value="remember-me"> Remember me''
+''       </label>''
+''     </div>''
+''     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>''
+''   </form>''
+
+'' </div> <!-- /container -->''
+''</body>''
+''</html>''
+
+Okay, this is great. Just one problem. This template does not use our newly created **LoginForm** at all! We need to include the relevant form fields using Jinja2 templating. This is actually very easy. All we need to do is replace the existing **<input>**, **<label>** and **<button>** elements and pass their attributes to our form objects like so.
+
+   '' <form class="form-signin" method="POST">''
+	 __{{ form.hidden_tag() }}__
+''     <h2 class="form-signin-heading">Please sign in</h2>''
+	 __{{ form.email.label(class_="sr-only", for="inputEmail") }}__ __{{ form.email(class_="form-control", id="inputEmail", placeholder="Email address")}}__
+''   </br>''
+	 __{{ form.password.label(class_="sr-only", for="inputPassword") }}__ __{{ form.password(class_="form-control", id="inputPassword", placeholder="Password") }}__
+''     <div class="checkbox">''
+''       <label>''
+		 __{{ form.remember(type="checkbox", value="remember-me") }}__'' Remember me''
+''       </label>''
+''     </div>''
+			 __{{ form.submit(class_="btn btn-lg btn-primary btn-block", value="Sign in") }}__
+''   </form>''
+
+== static/css/login.css ==
+$ mkdir -p static/css/
+$ touch static/css/login.css
+
+Place the contents of this URL http://getbootstrap.com/docs/4.0/examples/signin/signin.css into this file. That is it. You can change these values if you want to get a different style.
+
+'''
+body {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #eee;
+}
+
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+'''
