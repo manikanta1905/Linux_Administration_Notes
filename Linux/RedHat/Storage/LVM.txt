@@ -15,6 +15,7 @@ A logical volume is allocated into logical extents of the same size as the physi
 
 ==== Extend a logical Volume By Adding a Disk ====
 https://www.rootusers.com/how-to-increase-the-size-of-a-linux-lvm-by-adding-a-new-disk/
+This works with a live root filesystem.
 
 Add disk to system, make disk a physical volume, add disk to volume group, extend existing volume, resize filesystem.
 

@@ -8,8 +8,16 @@ Created Tuesday 01 May 2018
 ==== Terminology ====
 * disk slice = partition
 
-== du --max-depth ==
-/usr/gnu/bin/du -x -h --max-depth=1 ./
+== gnu style commands (du --max-depth=1) ==
+sometimes gnu style commands are located under /usr/gnu/bin/
+
+/usr/gnu/bin/du -x -h --max-depth=1 [[./]]
+
+otherwise you must use "du -sh *" recursively
+
+ 1) $ du -sh * ./
+2) cd to largest directory
+3) repeat till you find largest file
 
 ==== Block Storage ====
 https://docs.oracle.com/cd/E23824_01/html/E24456/device-2.html#scrolltoc

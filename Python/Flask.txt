@@ -127,8 +127,8 @@ from flask import Flask
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
-'''
 
+'''
 	  ''from views import *''
 
 ''if __name__ == '__main__':''
@@ -371,7 +371,11 @@ def login():
 
 
 == templates/login.html ==
-Using Jinja2 tags for labels, makes it so that if a user clicks on the label instead of the text box, the text box is still selected.
+
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms
+"The HTML <form> element is used as a container for the web form. The action attribute of the form is used to tell the browser the URL that should be used when submitting the information the user entered in the form. When the action is set to an empty string the form is submitted to the URL that is currently in the address bar, which is the URL that rendered the form on the page. The method attribute specifies the HTTP request method that should be used when submitting the form to the server. The default is to send it with a GET request, but in almost all cases, using a POST request makes for a better user experience because requests of this type can submit the form data in the body of the request, while GET requests add the form fields to the URL, cluttering the browser address bar. The novalidate attribute is used to tell the web browser to not apply validation to the fields in this form, which effectively leaves this task to the Flask application running in the server. Using novalidate is entirely optional, but for this first form it is important that you set it because this will allow you to test server-side validation later in this chapter."
+
+Using Jinja2 tags for labels, makes it so that if a user clicks on the label instead of the text box, the text box is still selected. Notice that this login template also displays any errors the form may have queued up. In this case we are checking for validation errors.
 
 $ touch templates/login.html
 
@@ -379,16 +383,23 @@ $ touch templates/login.html
 {% extends "base.html" %}
 
 {% block content %}
+
     <h1>Sign In</h1>
     <form action="" method="post" novalidate>
         {{ form.hidden_tag() }}
         <p>
-            {{ form.username.label }}<br>
-            {{ form.username(size=32) }}
+            {{ form.username.label }}<br />
+            {{ form.username(size=32) }}<br />
+            {% for error in form.username.errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
         </p>
         <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}
+            {{ form.password.label }}<br />
+            {{ form.password(size=32) }}<br />
+            {% for error in form.password.errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
         </p>
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
         <p>{{ form.submit() }}</p>
@@ -397,17 +408,126 @@ $ touch templates/login.html
 '''
 
 
+You can center the form and give it a nice border as well
+'''
+<div style="justify-content: center; display: flex; align-items: center;">
+  <div style="text-align: center; border: solid; padding: 10px; display: inline-block;">
+    <form action="" method="post" novalidate>
+'''
+...
+...
+'''
+    </form>
+  </div>
+</div>
+'''
+
+{{.\pasted_image001.png}}
+
+==== Best Practice - Replacing URLs with View Function Names ====
+Throughout this example, we have been hardcoding URLs into our views and templates. This is a bad idea because our links (/login, [[/logout,]] [[/app/thingy/foobar,]] etc) could all change in the future as we redesign our code base and move files and directories around. A much better idea is to reference our view functions in views.py (index, login) as these should not change. For example here we replace "/index" with url_for('index')
+
+== views.py ==
+	  ''from forms import LoginForm''
+	  __from flask import url_for__
+
+'''
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        return flask.redirect(
+'''
+__url_for('index')__'')''
+''    return flask.render_template('login.html', form=form)''
+
+
+These will now now reference the index and login functions in our views.py file, which each load their respective templates using the **@app.route() **decorator. This makes it so that if the link changes in the future, we need only update it one time in the views.py file in the decorator for our view function. We will eventually do this same thing for all the links in our base.html template as well.
+
+''<a class="navbar-brand" href="{{ url_for('dashboard') }}">Dashboard</a>''
+
 == Restricting Access ==
-At this point, we can see the login scree if we visit http://localhost:8080/login. But we can still see other webpages as well. We want to restrict access to these routes until a user has successfully authenticated.
+At this point, we can see the login screen if we visit http://localhost:8080/login. But we can still see other webpages as well. We want to restrict access to these routes until a user has successfully authenticated.
 
 
 
 
 
 ==== Creating User Database with Flask-SqlAlchemy ====
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database
 Now that we have a log in page, we will need to have a database to store usernames, password hashes and email addresses so users can be created and log in. We will also need a database to store ansible related information, such as number of hosts, number of hostgroups, inventory files, playbooks, errors that get logged, etcetera. For the database we will be using Flask-SqlAlchemy. Documentation can be found at http://flask-sqlalchemy.pocoo.org/2.3/ . Flask-SqlAlchemy adds SqlAlchemy support into our Flask project. SqlAlchemy is a python package that allows us to interact with MySQL and SQLite databases using Python code instead of worrying about the actual SQL language itself.
 
 $ pip install Flask-sqlalchemy
 $ pip freeze > requirements.txt
+
+
+== Visualizing Databases - Designing SQL Tables ==
+You can create database tables an visualize relationships by using the following website
+
+http://ondras.zarovi.cz/sql/demo/
+https://github.com/ondras/wwwsqldesigner/wiki
+
+==== Database Migrations ====
+Any time you change the schema of your database, you must migrate it. This is dangerous however, because you can't just simply delete the database and recreate a new one as there is a huge potential for loss of data. Instead, what happens is you must take a "snapshot" or "backup" of the current state of your database so that you can migrate to a newer schema. That way if the new schema breaks something in your application, you can always revert back to a previous version. Think of it like git for databases.
+
+$ pip install flask-migrate
+$ pip freeze > requirements.txt
+
+== config.py ==
+The following configuration assumes you are using an sqlite database. Adjust accordingly for other database engines. We set SQLALCHEMY_TRACK_MODIFICATIONS to False to supress a harmless warning message.
+http://flask-sqlalchemy.pocoo.org/2.3/config/
+
+
+'''
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Database Settings
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+'''
+== myapp.py ==
+'''
+#!/usr/bin/env python
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+app = Flask(__name__)
+app.config.from_pyfile('config.py')
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+from views import *
+from models import *
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
+'''
+
+
+== models.py ==
+'''
+from myapp import db
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
+'''
+
+
+We can instantiate a sample user in the python shell for testing (from the root of our project directory)
+
+	>>> from models import User
+	>>> user = User(username='Timothy Pulliam', email='timothy.pulliam@email.com')
+	>>> user
+	<User Timothy Pulliam>
+
 
 ==== Completing the Login Process with Flask-Login ====

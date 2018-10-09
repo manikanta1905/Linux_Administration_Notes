@@ -1,0 +1,11 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-09T15:02:29-04:00
+
+====== questions ======
+Created Tuesday 09 October 2018
+
+Why do you start flask like this? What is the point of the environment variable?
+
+$ env FLASK_APP=hello.py flask run
+

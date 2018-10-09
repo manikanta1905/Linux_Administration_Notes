@@ -6,6 +6,8 @@ Creation-Date: 2017-10-27T18:56:10-04:00
 Created Friday 27 October 2017
 
 ==== Linux Client Installation ====
+You must install cifs-utils in order to mount a samba share.
+
 $ yum install cifs-utils samba-client
 
 You should now be able to see the SMB/CIFS shares the samba server is exporting

@@ -24,3 +24,111 @@ Once in the debugger, here are some useful commands
 * n - execute next line in script
 * p - print the value of a python variable
 
+==== Python Packages ====
+https://stackoverflow.com/questions/7948494/whats-the-difference-between-a-python-module-and-a-python-package
+Any Python file is a module, its name being the file's base name without the .py extension. A package is a collection of Python modules: while a module is a single Python file, a package is a directory of Python modules containing an additional __init__.py file, to distinguish a package from a directory that just happens to contain a bunch of Python scripts. Packages can be nested to any depth, provided that the corresponding directories contain their own __init__.py file.
+
+The distinction between module and package seems to hold just at the file system level. When you import a module or a package, the corresponding object created by Python is always of type module. Note, however, when you import a package, only variables/functions/classes in the __init__.py file of that package are directly visible, not sub-packages or modules. As an example, consider the xml package in the Python standard library: its xml directory contains an __init__.py file and four sub-directories; the sub-directory etree contains an __init__.py file and, among others, an ElementTree.py file. See what happens when you try to interactively import package/modules:
+
+'''
+>>> import xml
+>>> type(xml)
+<type 'module'>
+>>> xml.etree.ElementTree
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'module' object has no attribute 'etree'
+>>> import xml.etree
+>>> type(xml.etree)
+<type 'module'>
+>>> xml.etree.ElementTree
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'module' object has no attribute 'ElementTree'
+>>> import xml.etree.ElementTree
+>>> type(xml.etree.ElementTree)
+<type 'module'>
+>>> xml.etree.ElementTree.parse
+<function parse at 0x00B135B0>
+'''
+
+
+==== __init__.py file (How to create a python package) ====
+http://effbot.org/pyfaq/what-is-init-py-used-for.htm
+https://docs.python.org/3/tutorial/modules.html#packages
+
+Files named __init__.py are used to mark directories on disk as a Python package directories. If you have the files
+
+'''
+mydir/spam/__init__.py
+mydir/spam/module.py
+'''
+
+and mydir is on your path, you can import the code in module.py as:
+
+	''import spam.module''
+or
+	''from spam import module''
+If you remove the __init__.py file, Python will no longer look for submodules inside that directory, so attempts to import the module will fail.
+
+The __init__.py file is usually empty, but can be used to export selected portions of the package under more convenient names, hold convenience functions, etc. Given the example above, the contents of the __init__ module can be accessed as
+
+	''import spam''
+
+https://www.pythoncentral.io/how-to-create-a-python-package/
+
+== __main__.py (or how to run packages using "python -m package") ==
+
+'__main__' is the name of the scope in which top-level code executes. A module’s __name__ is set equal to '__main__' when read from standard input, a script, or from an interactive prompt.
+
+A module can discover whether or not it is running in the main scope by checking its own __name__, which allows a common idiom for conditionally executing code in a module when it is run as a script or with python -m but not when it is imported:
+
+if __name__ == "__main__":
+	# execute only if run as a script
+	main()
+For a package, the same effect can be achieved by including a __main__.py module, the contents of which will be executed when the module is run with -m.
+
+simply place any code you want to be executed into __main__.py like below, and it will be executed when you run "python -m mypackage"
+
+[[./mypackage/__main__.py]]
+'''
+if __name__ == '__main__':
+    print('hello')
+'''
+
+
+$ python -m mypackage
+hello
+
+==== __future__ statements ====
+https://docs.python.org/3/reference/simple_stmts.html#future-statements
+https://www.python.org/dev/peps/pep-0236/
+Future statements are used to ease the transition of code going from one incompatible version of python to the next. For example, say you have some code written in python2.7 and you are in the process of rewritting it for python3. What you can do is rewrite the 2.7 code in sections, using a future statement for each section that you rewrite, until your code is finally fully rewritten in python3. This is the easiest way.
+
+A future statement is a directive to the compiler that a particular module should be compiled using syntax or semantics that will be available in a specified future release of Python where the feature becomes standard. A future statement must appear near the top of the module (before any other import statements).
+
+For example, if you are using python 2.7, but you want to use the print function from python3, you would do
+
+''from __future__ import print_function''
+
+**Note** that there is nothing special about the statement:
+
+''import __future__ [as name]''
+
+That is NOT a future statement; it’s an ordinary import statement with no special semantics or syntax restrictions.
+
+
+==== Python Source Encoding ====
+https://www.python.org/dev/peps/pep-0263/
+
+You may see python modules that start with the following lines
+
+'''
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import os, sys
+...
+'''
+
+
+The second line informs python what type of encoding it should use to parse the source code. This coding line must appear on either line 1 or 2. If this line does not appear python will default to ascii encodings.
