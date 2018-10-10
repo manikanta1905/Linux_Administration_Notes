@@ -1,0 +1,85 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-10T09:32:07-04:00
+
+====== Python Packaging ======
+Created Wednesday 10 October 2018
+
+==== Overview ====
+https://stackoverflow.com/questions/6344076/differences-between-distribute-distutils-setuptools-and-distutils2
+https://packaging.python.org/
+
+
+===== pip =====
+https://packaging.python.org/tutorials/installing-packages/
+pip is the recommended installer of python packages.
+
+== Installing from PyPi ==
+To install the latest version of “SomeProject”:
+''pip install "SomeProject"''
+
+To install a specific version:
+''pip install "SomeProject==1.4"''
+
+To install greater than or equal to one version and less than another:
+''pip install "SomeProject>=1,<2"''
+
+To install a version that’s “compatible” with a certain version:
+''pip install "SomeProject~=1.4.2"''
+
+In this case, this means to install any version “==1.4.*” version that’s also “>=1.4.2”.
+
+== Installing packages to local user home directory (no sudo needed) ==
+To install packages that are isolated to the current user, use the --user flag. This should be the default installation type (unless using a virtualenv). You never should install packages using sudo unless you have good reason to.
+''pip install --user SomeProject''
+
+
+== Installing from git repo (repo must contain setup.py file) ==
+https://pip.pypa.io/en/latest/reference/pip_install/#vcs-support
+
+pip install -e git+https://git.repo/some_pkg.git#egg=SomeProject          # from git over https protocol
+
+[-e] git://git.example.com/MyProject#egg=MyProject
+[-e] git+http://git.example.com/MyProject#egg=MyProject
+[-e] git+https://git.example.com/MyProject#egg=MyProject
+[-e] git+ssh://git.example.com/MyProject#egg=MyProject
+[-e] git+git://git.example.com/MyProject#egg=MyProject
+[-e] git+file:///home/user/projects/MyProject#egg=MyProject
+-e git+git@git.example.com:[[MyProject#egg=MyProject]]
+
+You can also use git to install a specific branch (dev, master, etc), tag, or commit by passing a hash
+
+[-e] git://git.example.com/MyProject.git@master#egg=MyProject
+[-e] git://git.example.com/MyProject.git@v1.0#egg=MyProject
+[-e] git://git.example.com/MyProject.git@da39a3ee5e6b4b0d3255bfef95601890afd80709#egg=MyProject
+
+
+===== Source Distributions vs Wheels =====
+pip can install from either Source Distributions (sdist) or Wheels, but if both are present on PyPI, pip will prefer a compatible wheel.
+
+Wheels are a pre-built distribution format that provides faster installation compared to Source Distributions (sdist), especially when a project contains compiled extensions.
+
+If pip does not find a wheel to install, it will locally build a wheel and cache it for future installs, instead of rebuilding the source distribution in the future.
+
+==== Glossary (Terminology) ====
+https://packaging.python.org/glossary/#term-module
+
+Built Distribution - Binary Package
+Egg - Specific Binary Package Format (deprecated, replaced by Wheel format)
+Wheel - Current Binary Package Format
+
+
+==== Download Wheel Files ====
+https://pythonwheels.com/
+
+== pip vs easy_install ==
+
+easy_install was released in 2004, as part of setuptools. It was notable at the time for installing packages from PyPI using requirement specifiers, and automatically installing dependencies.
+
+pip came later in 2008, as alternative to easy_install, although still largely built on top of setuptools components. It was notable at the time for not installing packages as Eggs or from Eggs (but rather simply as ‘flat’ packages from sdists), and introducing the idea of Requirements Files, which gave users the power to easily replicate environments.
+
+Here’s a breakdown of the important differences between pip and easy_install now:
+
+https://packaging.python.org/discussions/pip-vs-easy-install/
+
+{{.\pasted_image.png}}

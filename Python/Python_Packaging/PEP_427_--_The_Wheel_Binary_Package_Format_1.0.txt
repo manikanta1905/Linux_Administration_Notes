@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-10T12:18:43-04:00
+
+====== PEP 427 -- The Wheel Binary Package Format 1.0 ======
+Created Wednesday 10 October 2018
+https://www.python.org/dev/peps/pep-0427/
+
+
+
+==== Abstract ====
+A wheel is a ZIP-format archive with a specially formatted file name and the .whl extension.
+
+''pip-18.1-py2.py3-none-any.whl''
+
+It contains a single distribution nearly as it would be installed according to PEP 376 with a particular installation scheme. Although a specialized installer is recommended
+
+$ pip install ''pip-18.1-py2.py3-none-any.whl''
+
+a wheel file may be installed by simply unpacking into site-packages with the standard 'unzip' tool while preserving enough information to spread its contents out onto their final paths at any later time.
+
+==== Rationale ====
+Python needs a package format that is easier to install than sdist. Python's sdist packages are defined by and require the distutils and setuptools build systems, running arbitrary code to build-and-install, and re-compile, code just so it can be installed into a new virtualenv.
+
+sdist = distutils and setuptools 
+
