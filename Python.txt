@@ -132,3 +132,62 @@ import os, sys
 
 
 The second line informs python what type of encoding it should use to parse the source code. This coding line must appear on either line 1 or 2. If this line does not appear python will default to ascii encodings.
+
+
+==== Functional Programming, Function Wrappers, Decorators (And "Syntactic Sugar") ====
+https://realpython.com/primer-on-python-decorators/
+
+Basically, a decorator takes a function as input and modifies it in some way.
+
+Assume we have the following function (and inner functions) defined.
+
+'''
+def my_decorator(func):
+    def wrapper():
+        print("Something is happening before the function is called.")
+        func()
+        print("Something is happening after the function is called.")
+    return wrapper
+
+'''
+The following decorator 
+
+''@my_decorator''
+''def say_whee():''
+''    print("Whee!")''
+
+Is the equivalent of saying
+
+'''
+def say_whee():
+    print("Whee!")
+
+say_whee = my_decorator(say_whee)
+'''
+
+
+When called, produces the following output
+
+'''
+>>> say_whee()
+Something is happening before the function is called.
+Whee!
+Something is happening after the function is called.
+'''
+
+
+
+* Decorators can be nested
+
+
+==== Extending Python with C or C++ ====
+https://docs.python.org/3.6/extending/extending.html
+
+https://www.reddit.com/r/learnpython/comments/9ny6df/how_can_python_use_things_written_in_other/
+As a practical matter, I think the scenario you have in mind is: you want to write a top-level program but at some point in it you want to take advantage of or call upon code written in some other language, typically C[++]. There are various options.
+
+One, avoid the need entirely by finding comparable functionality somewhere in the Python ecosphere, starting with the standard library. Everything there is implemented in C and carefully optimized. Next is the vast array of 3rd-party software found via PyPi such as numpy, highly optimized math routines.
+
+Two, if the external code is already packaged as a stand-alone app, you can invoke it as if from the command line and collect its output using subprocess.
+
+Finally if the external C/C++ code is a module and you want to call into it you (or somebody) has to write a "wrapper" for it, a thin layer of code that mediates between Python's parameter-passing conventions and those of C, this is documented here.

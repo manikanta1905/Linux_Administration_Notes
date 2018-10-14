@@ -1,0 +1,55 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-14T07:32:37-04:00
+
+====== GUI ======
+Created Sunday 14 October 2018
+
+==== Basic TkInter App (Sarplot Example) ====
+
+''import tkinter as tk''
+
+'''
+class Application(tk.Frame):
+    '''This is the main GUI application for SarPlot. It is not necessary that
+    you use the tkinter GUI to interact with SarPlot, it is just the most
+    "user friendly" way'''
+    def __init__(self, master=None):
+        super().__init__(master)
+        master.title("SarPlot")
+        self.pack()
+        self.create_widgets()
+
+    def create_widgets(self):
+        
+        self.master.bind('<Return>', self.submit)
+        self.master.bind('<Button-1>', self.submit)
+        
+        self.hostname_label = tk.Label(self, text="Hostname/IP")
+        self.hostname_label.grid(row=0)
+        self.hostname = tk.Entry(self)
+        self.hostname.grid(row=0, column=1)
+        self.username_label = tk.Label(self, text="username")
+        self.username_label.grid(row=1)
+        self.username = tk.Entry(self)
+        self.username.grid(row=1, column=1)
+        self.password_label = tk.Label(self, text="password")
+        self.password_label.grid(row=2)
+        self.password = tk.Entry(self, show="*", width=15)
+        self.password.grid(row=2, column=1)
+        self.submit = tk.Button(self, text="Submit", command=self.submit)
+        self.submit.grid(row=4)
+
+    def submit(self, event):
+        hostname = self.hostname.get()
+        username = self.username.get()
+        password = self.password.get()
+        ssh(hostname, username, password)
+        plot(hostname)
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    app = Application(master=root)
+    app.mainloop()
+'''

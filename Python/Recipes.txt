@@ -83,6 +83,9 @@ if __name__ == '__main__':
 '''
 
 
+== String Formatting ==
+https://realpython.com/python-f-strings/
+New and Improved!
 
 
 == Getting Current Time ==
