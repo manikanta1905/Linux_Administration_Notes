@@ -13,3 +13,11 @@ $PSVersionTable.PSVersion
 
 Get FQDN of localhost:
 "$env:computername.$env:userdnsdomain"
+
+==== Active Directory ====
+get user info 
+get-aduser 'name'
+
+get aduser by last name and specify which AD server to query
+get-aduser -surname 'lastname' -server dc.domain.work
+

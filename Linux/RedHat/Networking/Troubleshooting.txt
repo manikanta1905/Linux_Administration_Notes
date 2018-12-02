@@ -27,3 +27,152 @@ Load the kernel module
 $ modprobe kmod-forcedeth
 
 and you should see your nVidia NIC come up. More information here https://liquidat.wordpress.com/2007/03/04/the-forcedeth-story/
+
+
+==== Guide / Walkthrough ====
+
+Issue
+This article tries to provide basic troubleshooting steps to apply if a host no longer appears to have any network connectivity.
+Resolution
+In this text we assume the interface name is eth0. Please adjust the commands used as necessary for the environment.
+
+First, it is important to confirm exactly what is wrong:
+
+If the host cannot ping or be pinged from another host within the same subnet (network), proceed below.
+If the host can be reached from the local network, but not from another network, then this is likely a routing issue and this article does not apply.
+If the host cannot be reached by using its domain name but can be reached by using its IP address, then this is likely a DNS issue and this article does not apply.
+Verify the network devices (NIC interfaces) have been created with the ip link command. In the output below, two interfaces are available: eth0 with MAC address 52:54:00:25:a1:36 and eth1 with MAC address 52:54:00:7d:6b:44. The lo interface should always be present:
+
+Raw
+# ip link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN 
+	link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+	link/ether 52:54:00:25:a1:36 brd ff:ff:ff:ff:ff:ff
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+	link/ether 52:54:00:7d:6b:44 brd ff:ff:ff:ff:ff:ff
+If only the lo interface is present or no interfaces are listed at all, then it is likely the required NIC module (driver) is missing or failed to properly load:
+- If this is a VMware VM running RHEL5 and the kernel was recently updated, the vmxnet3 NIC module is likely missing. Please see: What is the process for re-installing VMware tools? Do we have to do it every time the kernel is updated?
+- If the kernel was recently updated, booting using the previous kernel may be a workaround: How do I boot using an alternate / previous / older kernel?
+- If you know the name of the NIC module (driver) needed, try loading it manually with the modprobe command:
+
+Raw
+# modprobe <module name>
+Raw
+- Check the output of the **dmesg** command or the */var/log/dmesg* file for module errors.
+If the ip link command output does not report LOWER_UP for the interface then either there has simply been no attempt to bring the interface online or the NIC hardware has failed to detect or negotiate a link on the interface:
+Raw
+# ip link
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN
+	link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc pfifo_fast state DOWN qlen 1000
+	link/ether 00:21:97:2e:ee:7c brd ff:ff:ff:ff:ff:ff
+Make sure there is a valid interface configuration file for the interface. They are held in the /etc/sysconfig/network-scripts/ directory and are named ifcfg- where is the interface name seen in the ip link output. Most importantly, the HWADDR parameter value in the interface configuration file must match the MAC address reported for that interface with the ip link command. One exception to this rule is if bonding is in use.
+
+After verifying the interface configuration file, try to bring the interface online with the ifup command:
+
+Raw
+# ifup eth0
+If the ifup command fails, check the status of the link as reported by the hardware with the ethtool command. Verify Link detected reports yes and Speed & Duplex do not report Unknown. In most cases, Duplex should report Full:
+Raw
+$ ethtool eth0
+Settings for eth0:
+	Supported ports: [ TP ]
+	Supported link modes:   10baseT/Half 10baseT/Full 
+							100baseT/Half 100baseT/Full 
+							1000baseT/Full 
+	Supported pause frame use: No
+	Supports auto-negotiation: Yes
+	Advertised link modes:  10baseT/Half 10baseT/Full 
+							100baseT/Half 100baseT/Full 
+							1000baseT/Full 
+	Advertised pause frame use: No
+	Advertised auto-negotiation: Yes
+	Speed: 1000Mb/s
+	Duplex: Full
+	Port: Twisted Pair
+	PHYAD: 2
+	Transceiver: internal
+	Auto-negotiation: on
+	MDI-X: off (auto)
+	Current message level: 0x00000007 (7)
+				   drv probe link
+	Link detected: yes
+If the ethtool output reports the link is not detected, please verify the network cable is physically connected and then see: Why does ethtool show 'no link' for ethernet interface even though cable is physically connected?
+
+Assuming the network devices are present and they report LOWER_UP with the ip link command, use the ip addr command to verify IP addressing has been assigned and is correct. In the output below, eth0 has the IP address 192.168.122.14 and eth1 has the IP address 192.168.101.15:
+Raw
+# ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 16436 qdisc noqueue state UNKNOWN 
+	link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+	inet 127.0.0.1/8 scope host lo
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+	link/ether 52:54:00:25:a1:36 brd ff:ff:ff:ff:ff:ff
+	inet 192.168.122.14/24 brd 192.168.122.255 scope global eth0
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+	link/ether 52:54:00:7d:6b:44 brd ff:ff:ff:ff:ff:ff
+	inet 192.168.101.15/24 brd 192.168.101.255 scope global eth1
+If the interface reports LOWER_UP but no IP address is assigned, verify the contents of the interface's interface configuration file in the /etc/sysconfig/network-scripts/ directory and then use the ifup command to apply addressing:
+
+Raw
+# ifup eth0
+Assuming addressing is properly assigned, the host should be able to ping and be pingable from other hosts within the same subnet (network). Otherwise,
+
+Check NIC (Network Interface Card) current configuration and status:
+
+Raw
+[root@el5 ~]# ip a show eth0;ip -s link show eth0
+4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN 
+	link/ether 3c:97:0e:85:4e:86 brd ff:ff:ff:ff:ff:ff
+	inet 10.64.1.221/23 brd 10.64.1.255 scope global br0
+	inet6 fe80::3e97:eff:fe85:4e86/64 scope link 
+	   valid_lft forever preferred_lft forever
+4: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN 
+	link/ether 3c:97:0e:85:4e:86 brd ff:ff:ff:ff:ff:ff
+	RX: bytes  packets  errors  dropped overrun mcast   
+	1789704340 2850546  0       0       0       436730 
+	TX: bytes  packets  errors  dropped carrier collsns 
+	162059391  1302856  0       0       0       0  
+[root@el5 ~]#
+If no interface is displayed, then check if kernel module for NIC is loaded.
+Check if IP is configured (2nd line from top of output).
+Verify network mask configuration. Wrong netmask configuration could cause "destination unreachable" message for hosts in the same Local Area Network.
+Check 4rd line for packet counter 'RX packets:262239' (RX = received), in this example system received 262239 network packets.
+Check 5th line for packet counter 'TX packets:41128' (TX = transmitted), in this example system sent out 41128 packets to network.
+check 4rd and 5th line for "errors, dropper and overruns", if any of the counter is other than zero you may need to see interface statistics with ethtool.
+Check link status:
+Raw
+[root@el5 ~]# ip link show dev eth0
+2: eth0: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+	link/ether 52:54:00:75:e0:c5 brd ff:ff:ff:ff:ff:ff
+[root@el5 ~]#
+In some cases ifconfig output is not reliable, however ip tool will always provide real status of interface, in case "NO-CARRIER" is observed then physical link is not present (e.g. cable unplugged, switch port down, or switch malfunction).
+
+Find your default gateway:
+Raw
+[root@el5 ~]#  ip route show|grep default
+default via 192.168.122.1 dev eth0 
+[root@el5 ~]# 
+Check ARP table:
+Raw
+[root@el5 ~]# arp -an
+? (192.168.122.1) at 52:54:00:FD:4A:17 [ether] on eth0
+[root@el5 ~]#
+You should be able to see MAC address of at least your default gateway (if any).
+
+Ping your default gateway:
+Raw
+[root@el5 ~]# ping -c 4 192.168.122.1
+PING 192.168.122.1 (192.168.122.1) 56(84) bytes of data.
+64 bytes from 192.168.122.1: icmp_seq=1 ttl=64 time=0.159 ms
+64 bytes from 192.168.122.1: icmp_seq=2 ttl=64 time=0.154 ms
+64 bytes from 192.168.122.1: icmp_seq=3 ttl=64 time=0.177 ms
+64 bytes from 192.168.122.1: icmp_seq=4 ttl=64 time=0.155 ms
+
+--- 192.168.122.1 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3001ms
+rtt min/avg/max/mdev = 0.154/0.161/0.177/0.012 ms
+[root@el5 ~]# 
+In case no ping reply is received, yet link is up one should contact your networking team.
+
+If none of the above points will help establish the problem, then more advanced troubleshooting is required.

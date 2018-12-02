@@ -8,3 +8,7 @@ Created Tuesday 03 July 2018
 https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/set-up-ami-tools.html?icmpid=docs_iam_console#ami-tools-managing-certs
 $ openssl genrsa 2048 > private-key.pem
 $ openssl req -new -x509 -nodes -sha256 -days 365 -key private-key.pem -outform PEM -out certificate.pem
+
+
+==== Verify cert ====
+for i in *.pem; do echo $i && openssl x509 -in $i -text|grep -A 2 Validity;done

@@ -8,6 +8,29 @@ Created Tuesday 03 October 2017
 ==== Overview ====
 **Link Aggregation** is the process of combining two or more NICs into one logical NIC. The networking benefits of this are increased bandwidth, ability to load balance across the NICs, and fault tolerence for the network. The NICs can be physical or virtual. There are two types of Link Aggregation, **Bonding **and** Teaming**. Teaming is new to RHEL 7 and offers more features than Bonding.
 
+
+== RHEL7 ==
+man 7 nmcli-examples is a good way for us. Here are the detailed steps:
+
+Add a bond device:
+# nmcli con add type bond ifname <bond-name> mode active-backup    
+(There are 6 types of bonding mode 802.3ad/balance-alb/balance-tlb/broadcast/active-backup/balance-rr/balance-xor.)   
+Set up ip-address for bond device.
+# nmcli connection modify <bond-name> ipv4.addresses <ip-address>
+Set a static IP for bond device.
+# nmcli connection modify <bond-name> ipv4.method manual
+Add bond-slave to bond device.
+# nmcli con add type bond-slave ifname <ethx> master <bond-name>
+Add another slave to bond device.
+# nmcli con add type bond-slave ifname <ethx> master <bond-name>
+Show configuration.
+# nmcli connection show
+
+== RHEL6 ==
+In RHEL 6.5 and below, NetworkManager is unable to control a bonded interface. Due to this, the NetworkManager service needs to be instructed to not manage bonding and related interfaces. Therefore, all ifcfg files, for bondX and ethY must contain this line:
+
+NM_CONTROLLED=no
+
 ==== Bonding ====
 * Make sure the **bonding** kernel module is loading
 	 ''$ modprobe bonding''
@@ -125,4 +148,3 @@ enp0s9  ethernet  connected  bond-slave-enp0s9
     inet6 fe80::94bd:bb8d:3098:6fd1/64 scope link 
        valid_lft forever preferred_lft forever
 '''
-

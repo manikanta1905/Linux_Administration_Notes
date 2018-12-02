@@ -368,3 +368,15 @@ Python runs code within a try block until it hits an error. It then jumps to the
 1.0
 you created a black hole
 '''
+
+
+==== Dictionaries ====
+Merge two dictionaries in python 3.5+
+
+'''
+>>> x= {'a': 1, 'b': 2}
+>>> y= {'b': 3, 'c': 4}
+>>> z= {**x, **y}
+>>> z
+{'a': 1, 'b': 3, 'c': 4}
+'''

@@ -7,6 +7,25 @@ Created Saturday 09 June 2018
 http://sebastien.godard.pagesperso-orange.fr/man_sar.html
 https://unix.stackexchange.com/questions/449857/cpu-usage-user-system-idle-always-add-up-to-100
 
+==== Load Average vs CPU Utilization ====
+https://serverfault.com/questions/667078/high-cpu-utilization-but-low-load-average
+
+"On Linux at least, the load average and CPU utilization are actually two different things. Load average is a measurement of how many tasks are waiting in a kernel run queue (not just CPU time but also disk activity) over a period of time. CPU utilization is a measure of how busy the CPU is right now. The most load that a single CPU thread pegged at 100% for one minute can "contribute" to the 1 minute load average is 1. A 4 core CPU with hyperthreading (8 virtual cores) all at 100% for 1 minute would contribute 8 to the 1 minute load average
+
+Often times these two numbers have patterns that correlate to each other, but you can't think of them as the same. You can have a high load with nearly 0% CPU utilization (such as when you have a lot of IO data stuck in a wait state) and you can have a load of 1 and 100% CPU, when you have a single threaded process running full tilt. Also for short periods of time you can see the CPU at close to 100% but the load is still below 1 because the average metrics haven't "caught up" yet.
+
+I've seen a server have a load of over 15,000 (yes really that's not a typo) and a CPU % of close to 0%. It happened because a Samba share was having issues and lots and lots of clients started getting stuck in an IO wait state. Chances are if you are seeing a regular high load number with no corresponding CPU activity, you are having a storage problem of some kind. On virtual machines this can also mean that there are other VMs heavily competing for storage resources on the same VM host."
+
+In short:
+
+* Load Average is a measure of how many processes are in a RUNNING or RUNNABLE state on the system (in run queue/on cpu).
+* CPU Utilization is how much of the cpu is being used RIGHT NOW (possibly a more useful metric). %CPU in top.
+* If the 
+
+Comparison of 1, 5, 15 minute load averages after starting and stopping two cpu intensive processes. Notice it takes the 5 and 15 minute load averages a while to catch up to the 1 minute average. This is because of the way the average is defined. load values are taken in 5 second increments.
+http://www.brendangregg.com/blog/2017-08-08/linux-load-averages.html
+{{.\pasted_image.png}}
+
 ==== top CPU Percentages ====
 https://web.archive.org/web/20090302080238/http://www.teamquest.com/resources/gunther/display/5/index.htm
 http://blog.scoutapp.com/articles/2009/07/31/understanding-load-averages

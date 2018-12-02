@@ -83,7 +83,22 @@ Finally, mount the file systems using either of the following commands
 
 Any files created on the NFS client should also appear on the NFS server.
 
-== Troubleshooting NFS mounts that will not unmount ==
+== Troubleshooting ==
+
+==== NFS shares will not mount ====
+
+Could be a firewall issue, make sure you can connect to the NFS server on the following ports
+* 111
+* 2049
+* 300
+* 302
+* 304
+
+$ telnet nfs.server.com 111
+or netcat
+$ nc nfs.server.com 111
+
+== NFS mounts that will not unmount ==
 If the NFS client can no longer connect to the NFS server, the connection will become stale and you may experience some of the following symptoms:
 * df hangs
 * any attempts to interact with the NFS share on the client (cd, ls, touch, etc.) cause bash to hang

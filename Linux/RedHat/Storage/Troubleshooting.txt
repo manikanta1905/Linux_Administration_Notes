@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-11-07T13:54:17-05:00
+
+====== Troubleshooting ======
+Created Wednesday 07 November 2018
+
+
+==== Adding / Extending vmware disks ====
+Sorry for posting on a thread that's so old, but this is the destination for many a google search, I suspect. And you've asked a valid question that deserves an explanation.
+
+There's a difference between rescanning for new disks at the adapter level and rescanning for update size information at the disk level.
+
+Sending "- - -" to /sys/class/scsi_host/host[012]/scan is telling the SCSI host adapter to look for new disks on every channel "(-)", every target "(-)", and every lun "(-)". - this is the right thing to do if you add a new disk to the system while it's powered on.
+
+Sending a "1" to /sys/class/block/sdc/device/rescan is telling the SCSI block device to refresh it's information about where it's ending boundary is (among other things) to give the kernel information about it's updated size. - this is the right thing to do if you change the size of an existing disk while it's powered on.

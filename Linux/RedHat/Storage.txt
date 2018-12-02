@@ -7,6 +7,14 @@ Created Tuesday 28 November 2017
 
 ==== Overview ====
 
+==== du and df don't match ====
+https://unix.stackexchange.com/questions/68523/find-and-remove-large-files-that-are-open-but-have-been-deleted
+run either of the following commands to find and remove files taking up space that aren't actually being used
+
+# lsof +L1
+
+# ''find /proc/*/fd -type f -links 0 -exec ls -lrt {} \;''
+
 ==== Full / filesystem ====
 Find out where the disk space is being used
 

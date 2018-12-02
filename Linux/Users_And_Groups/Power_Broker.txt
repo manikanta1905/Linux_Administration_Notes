@@ -1,0 +1,37 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-12-02T06:55:09-05:00
+
+====== Power Broker ======
+Created Sunday 02 December 2018
+
+Power Broker (Power Broken, Power Borker) is a replacement for sudo that integrates with Active Directory via Kerberos.
+
+# List commands user may run
+pbrun pblist commands
+
+# user groups that are permitted to run commands
+[[/etc/opt/quest/vas/users.allow]]
+
+# users that are permitted to log in
+/opt/pbis/bin/config --show req
+
+#Listing a User using Username: 
+[[/opt/pbis/bin/find-user-by-name]] <username>
+
+#DC information:
+[[/opt/pbis/bin/get-dc-list]] <domain>
+
+#Flush PB cache
+/opt/pbis/bin/ad-cache --delete-all
+
+#Get status and restart.
+/opt/pbis/bin/get-status
+/opt/pbis/bin/lwsm shutdown 
+/opt/pbis/sbin/lwsmd --start-as-daemon
+
+== Troubleshooting ==
+
+As with all kerberos based auth systems, make sure the target system has both forward and reverse DNS records.
+
+Case matters, make sure text is correct upper or lower case.
