@@ -24,3 +24,7 @@ To view the results
 $ smartctl -H [[/dev/sda]]
 $ smartctl -a /dev/sda
 
+==== Identifying a failed Drive ====
+Below is a comparison of a failed and good drive. The bad drive is listed as DOWN.
+
+{{.\pasted_image.png}}

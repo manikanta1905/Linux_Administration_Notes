@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-02T09:51:09-05:00
+
+====== Krypton ======
+Created Wednesday 02 January 2019
+
+==== Level 0 ====
+
+Decode the following string from base64 to ascii
+
+S1JZUFRPTklTR1JFQVQ=
+
+echo S1JZUFRPTklTR1JFQVQ= | base64 --decode
+
+KRYPTONISGREAT
+
+==== Level 1 ====
+
+We are told the password is in a file named krypton2, but there is no krypton2 file in the home directory.
+
+krypton1@krypton:~$ ls -a
+.  ..  .bash_logout  .bashrc  .cache  .profile
+
+A quick search command yields some 
+
+krypton1@krypton:~$ find / -name krypton2 -type f 2> /dev/null
+/etc/krypton_pass/krypton2
+/krypton/krypton1/krypton2
+
+krypton1@krypton:~$ cat /krypton/krypton1/krypton2
+YRIRY GJB CNFFJBEQ EBGGRA
+
+We are also told the file is encrypted using some form of rot13 nonsense.
+
+krypton1@krypton:~$ cat /krypton/krypton1/krypton2 | tr 'A-Z' 'N-ZA-M'
+LEVEL TWO PASSWORD ROTTEN
+
+the password is "ROTTEN"
+
+==== Level 3 ====
+
+krypton2@krypton:~$ find / -name krypton3 -type f 2> /dev/null
+/etc/krypton_pass/krypton3
+/krypton/krypton2/krypton3
+
+krypton2@krypton:~$ cat /krypton/krypton2/krypton3
+OMQEMDUEQMEK
+
+This text is encrypted with a ceaser cipher. We can obviously brute force it.

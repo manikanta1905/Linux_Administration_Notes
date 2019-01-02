@@ -25,4 +25,7 @@ Enter new passphrase for key slot: (enter the extra password)
 To delete an existing password (but don't delete the last one, your data will be lost forever, you will be warned if you try this), you need to know which slot the password is in. The first password goes in slot 0, any additional passwords go in slot 1, 2 etc. You can do this with the encrypted partition mounted, if you wish. So to delete the very first password you used, use:
 #cryptsetup luksKillSlot /dev/sdc1 0
 
+==== Random Passwords with /dev/urandom ====
 
+# head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64 ; echo ''
+QyMX8iqXtrUvKWElznjQdDHsdACRfexEX2SpdiAVYq52WtXWtiXMBa8nx9Ef7K8n

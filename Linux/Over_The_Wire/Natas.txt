@@ -1,0 +1,54 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-02T08:23:11-05:00
+
+====== Natas ======
+Created Wednesday 02 January 2019
+
+==== Level 0 ====
+The first few passwords can be obtained by exploiting Information Leaks on the web server.
+
+View page source. Password is in comment.
+
+<!--The password for natas1 is gtVrDuiDfck831PqWsLEZy5gyDz1clto →
+
+==== Level 1 ====
+
+right click has been disabled. Use chrome short cut to view page source (CTRL + U).
+
+<!--The password for natas2 is ZluruAthQk7Q2MqmDeTiUij2ZvWy2mBi →
+
+==== Level 2 ====
+
+Viewing the source file we see there is an image that is 1x1 pixel in size. The image is located at files/pixel.png.
+
+<img src="files/pixel.png">
+
+The [[/files]] directory is browsable and contains a file, users.txt. The password is in this file.
+
+natas3:sJIJNW6ucpu6HPZ1ZAchaDtwd7oGrD14
+
+==== Level 3 ====
+
+Viewing page source
+
+<!-- No more information leaks!! Not even Google will find it this time... →
+
+Leads us to google "natas3". Which results in the following URL containing users.txt file.
+
+http://natas3.natas.labs.overthewire.org/s3cr3t/
+
+[[natas4:Z9tkRkWmpt9Qr7XrR5jWRkgOU901swEZ]]
+
+==== Level 4 ====
+
+A new request to the website greets us with the following message.
+
+Access disallowed. You are visiting from "" while authorized users should come only from "http://natas5.natas.labs.overthewire.org/" 
+
+If we click on the "Refresh page" button, we instead get the following message.
+
+Access disallowed. You are visiting from "http://natas4.natas.labs.overthewire.org/index.php" while authorized users should come only from "http://natas5.natas.labs.overthewire.org/" 
+
+The "Refresh page" button simply takes whatever value is in the search bar and uses it in the message. So using natas5.natas.labs.overthewire.org/index.php.
+
