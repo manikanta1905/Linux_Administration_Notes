@@ -1,0 +1,113 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-13T18:13:33-04:00
+
+====== VIM ======
+Created Thursday 13 September 2018
+
+## Moving In VIM
+
+### Directional Commands (navigation)
+Get into this mode by pressing ESC
+
+h,j,k,l move you around
+<number> + directional command = moves you <number> spaces in that direction
+
+b = go back a word
+w = go forward a word
+
+o = start a new line (below current line)
+
+u = undo last change
+r = redo last change
+
+
+<number> + <command> = do that command <number> times
+
+dd = cut entire line
+p = pastes clip board
+
+gg = moves you to top of the screen (Beginning of File)
+G = moves you to bottom of the screen (End Of File)
+^ = Go to start of line
+$ = Go to end of line
+
+Visual Mode. Pressing "v" takes you into visual mode. Any text highlighted will be effected by the next command.
+
+Searching documents with forward slash "/". You can cycle to the next word by pressing "n", you can cycle back to the previous word by pressing (SHIFT + "n")
+
+Indent lines with ">>". Undent with "<<". Indents use tabs.
+	This line is indented
+
+## Command Mode
+Get into this mode by pressing ESC then ":". Tab Completion works in this mode, so you can list commands using TAB at any time.
+
+
+Search and replace 
+:% s/bhal/blah/g
+
+Show line numbers
+:set number
+
+Turn off line numbers
+:set nonumber
+
+Show help page (tutorial/walkthrough)
+:help
+
+Highlight all word search results
+:set hlsearch
+
+Turn off hlsearch with
+:nohlsearch
+
+Open a split window (editing two files at once)
+:sp another_file
+
+Split related commands:
+Command			Action
+:sp filename		Open filename in horizontal split
+:vsp filename		Open filename in vertical split
+Ctrl-w h Ctrl-w ←	Shift focus to split on left of current
+Ctrl-w l Ctrl-w →	Shift focus to split on right of current
+Ctrl-w j Ctrl-w ↓	Shift focus to split below the current
+Ctrl-w k Ctrl-w ↑	Shift focus to split above the current
+Ctrl-w n+		Increase size of current split by n lines
+Ctrl-w n-		Decrease size of current split by n lines
+
+
+
+Place a horizontal line on the current line
+:set cursorline
+
+Set colorscheme
+:colorscheme <press tab to scroll through complete list>
+
+Turn syntax highlighting on
+:syntax on
+
+Use spaces instead of tabs
+:set expandtab
+
+You will also want to set the width of a tab character (in spaces)
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+
+Place a "$" at the end of every line (replace \n with "$")
+:set list
+
+Turn of lines
+:set nolist
+
+## .vimrc
+
+Any of the above commands that are run in command mode can be placed into your ~/.vimrc file.
+
+
+## References
+top 50 vim configuration options
+https://www.shortcutfoo.com/blog/top-50-vim-configuration-options/
+
+vimtutor - The interactive vim tutorial
+In the terminal, simply run "vimtutor"

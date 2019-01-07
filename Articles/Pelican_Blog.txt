@@ -1,0 +1,23 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-06T07:42:13-05:00
+
+====== Pelican Blog ======
+Created Sunday 06 January 2019
+
+==== Overview ====
+
+Build static HTML pages from Markdown
+$ make html
+
+Start the web server
+$ make serve
+
+Alternatively, you can cd into output directory and start the python webserver
+http://docs.getpelican.com/en/3.6.3/quickstart.html
+
+$ cd ~/projects/yoursite/output
+$ python -m pelican.server
+
+Preview your site by navigating to http://localhost:8000/ in your browser.
+

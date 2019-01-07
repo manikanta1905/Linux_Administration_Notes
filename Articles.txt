@@ -5,3 +5,14 @@ Creation-Date: 2018-09-04T07:05:51-04:00
 ====== Articles ======
 Created Tuesday 04 September 2018
 
+ideas
+
+* Getting USB information
+usb-devices
+lsusb
+dmesg
+* Installing snes9x
+https://launchpad.net/~samoilov-lex/+archive/ubuntu/retrogames/+packages
+sudo add-apt-repository ppa:samoilov-lex/retrogames
+apt-get update
+apt-get install snes9x

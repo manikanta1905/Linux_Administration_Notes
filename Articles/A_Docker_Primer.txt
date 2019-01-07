@@ -5,3 +5,87 @@ Creation-Date: 2018-09-10T09:19:12-04:00
 ====== A Docker Primer ======
 Created Monday 10 September 2018
 
+==== Terminology ====
+
+image vs container
+https://stackoverflow.com/questions/23735149/what-is-the-difference-between-a-docker-image-and-a-container
+"An instance of an image is called a container. You can see all your images with docker images whereas you can see your running containers with docker ps (and you can see all containers with docker ps -a)"
+
+==== Pull new images ====
+
+'''
+tpulliam@lappy:~$ docker search kali
+NAME                           DESCRIPTION                                     STARS               OFFICIAL            AUTOMATED
+kalilinux/kali-linux-docker    Kali Linux Rolling Distribution Base Image      555                                     [OK]
+linuxkonsult/kali-metasploit   Kali base image with metasploit                 68
+'''
+                   
+
+pull the one with the most stars, or the official one. Whichever.
+
+'''
+tpulliam@lappy:~$ docker pull kalilinux/kali-linux-docker
+
+Using default tag: latest
+latest: Pulling from kalilinux/kali-linux-docker
+014a6d74f96c: Pull complete 
+9febb14563a0: Pull complete 
+c38f04972c6b: Pull complete 
+9d39d049d5d0: Pull complete 
+4e80058918bf: Pull complete 
+ccd85f0810ad: Pull complete 
+6ab25bddb799: Pull complete 
+789ba1ebcb41: Pull complete 
+524584107b55: Pull complete 
+40a1af1b9680: Pull complete 
+fb6edc730b9f: Pull complete 
+270f87c17cf3: Pull complete 
+8159e4fffac9: Pull complete 
+01d3dc4e9fe9: Pull complete 
+a386beee6e20: Pull complete 
+46fa80bd0f33: Pull complete 
+2d3ff71a091d: Pull complete 
+6f41a333af7c: Pull complete 
+Digest: sha256:7f1253cba663662d78c121369e23d6c0b58b7b95de268886ecfdb73b003a3bd8
+Status: Downloaded newer image for kalilinux/kali-linux-docker:latest
+'''
+
+
+tpulliam@lappy:~$ docker images
+REPOSITORY                    TAG                 IMAGE ID            CREATED             SIZE
+kalilinux/kali-linux-docker   latest              f26f3ae90aee        2 months ago        1.57GB
+
+We can run a container interactively.
+
+'''
+tpulliam@lappy:~$ docker run -t -i kalilinux/kali-linux-docker /bin/bash
+root@f157bf90bca9:/#
+'''
+ 
+
+'''
+tpulliam@lappy:~$ docker ps -a
+CONTAINER ID        IMAGE                         COMMAND             CREATED              STATUS              PORTS               NAMES
+f157bf90bca9        kalilinux/kali-linux-docker   "/bin/bash"         About a minute ago   Up About a minute                       objective_golick
+'''
+
+
+If we need to reattach to the container, we can do so by specifying the container name
+
+'''
+tpulliam@lappy:~$ docker attach objective_golick 
+root@f157bf90bca9:/# hostname
+'''
+
+
+Stop and remove an instance (you can interchange container name and id).
+
+'''
+tpulliam@lappy:~$ docker stop objective_golick 
+objective_golick
+tpulliam@lappy:~$ docker rm f157bf90bca9
+f157bf90bca9
+'''
+
+
+

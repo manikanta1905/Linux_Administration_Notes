@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-10T20:30:54-04:00
+
+====== questions ======
+Created Wednesday 10 October 2018
+
+What is this syntax? I thought eggs were deprecated?
+
+[-e] git://git.example.com/MyProject#egg=MyProject

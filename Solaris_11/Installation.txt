@@ -1,0 +1,42 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-10-11T11:19:08-04:00
+
+====== Installation ======
+Created Thursday 11 October 2018
+
+==== System Requirements ====
+
+Minimum (ideally more is better)
+Disk Space - 13GB
+RAM - 1GB
+
+== Hardware Requirements ==
+x86 CPU with 64 bit support (x86_64)
+SPARC CPU (T and M Series only)
+
+== Architecture and Device Drivers (SPARC vs x86) ==
+Solaris 11 runs natively on SPARC CPUs (T series and M series only). Any hardware compatible with SPARC based CPUs should run Solaris fine. However, Solaris is still being ported to x86_64 based CPUs, as this is its "second home". When you install Solaris on any x86_64 based CPU or using any x86_64 based compatible hardware (HBA, memory, etc) you must check for device drivers after installation (kind of like windows).
+
+You can use the Live CD on the target system to see if device drivers are available for your target hardware.
+
+
+==== Solaris Version of GRUB ====
+Solaris uses its own custom version of GRUB for booting. Because of this, you can't simply use GNU's version of GRUB, you must use the one that comes with the Solaris installation, especially if you want to have a multiboot setup (why would you?)
+
+==== Documentation ====
+* What's New
+* Release Notes
+* End of Feature for Solaris 11 Release
+
+==== Installation Types ====
+* Live Media - x86_64 only (Graphical, used for Desktop systems)
+username/passwords for live installation are
+
+jack/jack
+root/solaris
+
+* Text Install - x86_64/SPARC (text based, for servers)
+The text installer will automatically install solaris
+
+* Automated Installer - x86_64/SPARC (automated server installs)

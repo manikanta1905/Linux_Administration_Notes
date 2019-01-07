@@ -1,0 +1,63 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-06T08:03:49-05:00
+
+====== Themes ======
+Created Sunday 06 January 2019
+
+====== Pelican Blog ======
+Created Sunday 06 January 2019
+
+==== Themes ====
+
+Pelican themes are managed using the pelican-themes command.
+
+get help with command
+pelican-themes -h
+
+List installed themes (optionally increase verbosity)
+pelican-themes -l -v
+
+In a virtual environment, themes will be located at the following path
+$ pelican-themes -p
+~/project/venv/lib/python3.6/site-packages/pelican/themes
+
+
+
+==== Using Themes from the Pelican Themes Github ====
+https://github.com/getpelican/pelican-themes
+
+This is probably the easiest way to use alternative themes for pelican. The only problem is that you will be limited to the themes available to the github repo.
+
+Clone pelican themes repo into [[~/project/output/]] then tell pelican which theme to use by setting pelicanconf.py
+
+THEME = "./output/pelican-themes/theme-name"
+
+== Installing New Themes ==
+
+Sometimes you want to try out a theme that is not in the repository.
+
+Visit http://www.pelicanthemes.com/ and find a theme that you want to use. Once you have found one, down load it.
+
+{{./pasted_image.png}}
+
+You will be taken to the github page of the theme where you can clone the theme.
+
+(venv) tpulliam@lappy:~/code/linuxandchill-src$ git clone git@github.com:nairobilug/pelican-alchemy.git
+Cloning into 'pelican-alchemy'...
+remote: Enumerating objects: 1383, done.
+remote: Total 1383 (delta 0), reused 0 (delta 0), pack-reused 1383
+Receiving objects: 100% (1383/1383), 4.10 MiB | 4.28 MiB/s, done.
+Resolving deltas: 100% (653/653), done.
+(venv) tpulliam@lappy:~/code/linuxandchill-src$ ls -d pelican-alchemy/
+pelican-alchemy/
+(venv) tpulliam@lappy:~/code/linuxandchill-src$ pelican-themes --install pelican-alchemy
+(venv) tpulliam@lappy:~/code/linuxandchill-src$ pelican-themes --list
+notmyidea
+simple
+pelican-alchemy
+
+The theme is now ready to use. To instruct pelican to use the new theme, edit the pelicanconf.py file
+
+(venv) tpulliam@lappy:~/code/linuxandchill-src$ pelican-themes -l -v | grep alchemy
+/home/tpulliam/code/linuxandchill-src/venv/lib/python3.6/site-packages/pelican/themes/pelican-alchemy

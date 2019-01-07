@@ -1,0 +1,76 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-14T18:03:58-04:00
+
+====== Setting Up Development Environment ======
+Created Friday 14 September 2018
+
+==== Choosing An IDE ====
+
+== Atom ==
+Installing Atom
+https://flight-manual.atom.io/getting-started/sections/installing-atom/
+
+Installing Packages
+
+{{./pasted_image.png}}
+
+{{./pasted_image001.png}}
+
+
+{{./pasted_image002.png}}
+
+
+
+
+
+Installing Autocomplete-Ansible
+
+If you get the following error, you don't have ansible installed. You must install ansible using the recommended method, or activating you virtual environment.
+{{./pasted_image003.png}}
+
+
+==== Environment With Vim ====
+Install Vim-Plug plugin manager, or equivalent
+https://github.com/junegunn/vim-plug
+
+Run the following command
+'''
+$ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+'''
+
+If you want to install vim-plug automatically using a .vimrc file, include the following in you .vimrc
+'''
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+'''
+
+
+Next install the ansible-vim plug from vimawesome. This will give you syntax highlighting for YAML files as well as autoindent. You can install the ansible-vim plugin by placing the following in you .vimrc file
+https://vimawesome.com/plugin/ansible-vim
+
+'''
+" Specify a directory for plugins
+" - For Neovim: ~/.local/share/nvim/plugged
+" - Avoid using standard Vim directory names like 'plugin'
+call plug#begin('~/.vim/plugged')
+
+" Shorthand notation; fetches https://github.com/pearofducks/ansible-vim
+Plug 'pearofducks/ansible-vim'
+
+" Initialize plugin system
+call plug#end()
+'''
+
+
+Then run the following commands. You should see the following output.
+[[:w]]
+[[:source]] %
+[[:PlugInstall]]
+
+{{./pasted_image004.png}}
+

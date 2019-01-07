@@ -39,6 +39,9 @@ https://pip.pypa.io/en/latest/reference/pip_install/#vcs-support
 
 pip install -e git+https://git.repo/some_pkg.git#egg=SomeProject          # from git over https protocol
 
+Here I install the latest version of pip from it's github repository
+$ pip install git+https://github.com/pypa/pip.git
+
 [-e] git://git.example.com/MyProject#egg=MyProject
 [-e] git+http://git.example.com/MyProject#egg=MyProject
 [-e] git+https://git.example.com/MyProject#egg=MyProject
@@ -53,6 +56,13 @@ You can also use git to install a specific branch (dev, master, etc), tag, or co
 [-e] git://git.example.com/MyProject.git@v1.0#egg=MyProject
 [-e] git://git.example.com/MyProject.git@da39a3ee5e6b4b0d3255bfef95601890afd80709#egg=MyProject
 
+==== Bash Completion with Pip ====
+$ pip completion --bash >> [[~/.bashrc]]
+$ source [[~/.bashrc]]
+
+pip inst.... TAB TAB TAB
+
+alternatively, place the output in /etc/bash_completion.d/pip_completion
 
 ===== Source Distributions vs Wheels =====
 pip can install from either Source Distributions (sdist) or Wheels, but if both are present on PyPI, pip will prefer a compatible wheel.

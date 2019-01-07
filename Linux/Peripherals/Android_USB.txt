@@ -1,0 +1,53 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-09-24T21:04:53-04:00
+
+====== Android USB ======
+Created Monday 24 September 2018
+
+To Attach an Android USB phone to linux
+https://askubuntu.com/questions/518479/ubuntu-doesnt-recognize-android-devices-anymore/845905#845905
+
+== On the phone ==
+First, you will need to enable USB debugging by clicking on the release version of your phone repeatedly until you get the "You are a developer!" message. Then enable USB debugging and MTP (Media Transfer Protocol) over USB.
+
+== On the laptop ==
+To set up device detection on Ubuntu Linux:
+
+Log in as root and create this file: /etc/udev/rules.d/51-android.rules.
+
+Use this format to add each vendor to the file:
+
+SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", MODE="0666", GROUP="plugdev"
+In this example, the vendor ID is for HTC. The MODE assignment specifies read/write permissions, and GROUP defines which Unix group owns the device node. You can get the information you need by tailing dmesg while plugging in your phone. In other words,
+
+$ dmesg --follow
+
+Plug the phone in and get the relevant information for the udev rules. It should look like the following.
+
+'''
+[ 5390.297238] usb 1-1: new high-speed USB device number 59 using xhci_hcd
+[ 5390.447173] usb 1-1: New USB device found, idVendor=18d1, idProduct=4ee7
+[ 5390.447178] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 5390.447183] usb 1-1: Product: Nexus 6P
+[ 5390.447187] usb 1-1: Manufacturer: Huawei
+[ 5390.447190] usb 1-1: SerialNumber: 84B7N16709001731
+'''
+
+
+Now execute:
+ sudo chmod a+r [[/etc/udev/rules.d/51-android.rules]]
+
+==== Troubleshooting ====
+If you get errors in dmesg like the following
+
+''[ 5263.036046] usb 1-1: device not accepting address 57, error -71''
+
+You have a bad cable, try another one. You can see what your particular error message means by inspecting the following includes file
+
+''tpulliam@lappy:~$ find /usr/include/ -iname *errno* -print -exec grep 71 {} +''
+...
+...
+''/usr/include/asm-generic/errno.h:#define	EPROTO		71	/* Protocol error */''
+
+
