@@ -16,3 +16,8 @@ https://launchpad.net/~samoilov-lex/+archive/ubuntu/retrogames/+packages
 sudo add-apt-repository ppa:samoilov-lex/retrogames
 apt-get update
 apt-get install snes9x
+
+* Packaging new software
+http://packaging.ubuntu.com/html/packaging-new-software.html
+https://askubuntu.com/questions/240027/how-to-create-a-deb-package-from-compiled-source-files
+https://wiki.debian.org/HowToPackageForDebian#Initial_compilation

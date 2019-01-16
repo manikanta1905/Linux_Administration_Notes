@@ -20,7 +20,7 @@ All zones reside within the default global zone (CDOM or Controller Domain). The
 * The global zone is the only zone from which a non-global zone can be configured and installed.
 
 ==== Basic Commands ====
-SSH into the CDOM (controller)
+SSH into the CDOM (controller domain)
 
 list all LDOMs
 $ ldm list

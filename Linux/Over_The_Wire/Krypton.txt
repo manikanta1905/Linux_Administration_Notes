@@ -38,7 +38,7 @@ LEVEL TWO PASSWORD ROTTEN
 
 the password is "ROTTEN"
 
-==== Level 3 ====
+==== Level 2 ====
 
 krypton2@krypton:~$ find / -name krypton3 -type f 2> /dev/null
 /etc/krypton_pass/krypton3
