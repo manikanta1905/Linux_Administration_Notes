@@ -1,0 +1,134 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-20T08:42:02-05:00
+
+====== Multipath ======
+Created Sunday 20 January 2019
+
+== Terminology ==
+* Host Bus Adaptor (HBA) 
+	The term host bus adapter (HBA) is most often used to refer to a Fibre Channel interface card. Each HBA has a unique World Wide Name (WWN), which is similar to an Ethernet MAC address. However, WWNs are longer (8 bytes). There are two types of WWNs on a HBA; a node WWN (WWNN), which is shared by all ports on a host bus adapter, and a port WWN (WWPN), which is unique to each port. There are HBA models of different speeds: 1Gbit/s, 2Gbit/s, 4Gbit/s, 8Gbit/s, 10Gbit/s, 16Gbit/s, 20Gbit/s and 32Gbit/s.
+
+	The major Fibre Channel HBA manufacturers are QLogic and Broadcom. Fibre Channel is mainly used in storage area networks (SAN) in commercial data centers. Fibre Channel networks form a switched fabric because they operate in unison as one big switch. Fibre Channel typically runs on optical fiber cables within and between data centers, but can also run on copper cabling.
+
+* WWNN (World Wide Node Number), WWPN (World Wide Port Number)
+	There are two types of WWNs on a HBA; a node WWN (WWNN), which is shared by all ports on a host bus adapter, and a port WWN (WWPN), which is unique to each port.
+
+* Fibre Channel
+	Fibre Channel, or FC, is a high-speed data transfer protocol (commonly running at 1, 2, 4, 8, 16, 32, and 128 gigabit per second rates) providing in-order, lossless delivery of raw block data, primarily used to connect computer data storage to servers. Fibre Channel is mainly used in storage area networks (SAN) in commercial data centers. Fibre Channel networks form a switched fabric because they operate in unison as one big switch. Fibre Channel typically runs on optical fiber cables within and between data centers, but can also run on copper cabling.
+
+* Fabric
+	A storage area network built with two separate switched fabrics (red and blue) to increase reliability.
+	{{.\pasted_image001.png}}
+	
+	
+
+
+==== Overview ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/dm_multipath/mpio_overview
+
+Device mapper multipathing (DM Multipath) allows you to configure multiple I/O paths between server nodes and storage arrays into a single device. These I/O paths are physical SAN connections that can include separate cables, switches, and controllers. Multipathing aggregates the I/O paths, creating a new device that consists of the aggregated paths.
+
+DM Multipath can be used to provide:
+
+* Redundancy
+	DM Multipath can provide failover in an active/passive configuration. In an active/passive configuration, only half the paths are used at any time for I/O. If any element of an I/O path (the cable, switch, or controller) fails, DM Multipath switches to an alternate path.
+
+* Improved Performance
+	DM Multipath can be configured in active/active mode, where I/O is spread over the paths in a round-robin fashion. In some configurations, DM Multipath can detect loading on the I/O paths and dynamically rebalance the load.
+
+
+==== Topolgy 1 - “Active/Passive Multipath Configuration with One RAID Device” ====
+“Active/Passive Multipath Configuration with One RAID Device” shows an active/passive configuration with two I/O paths from the server to a RAID device. There are 2 HBAs on the server, 2 SAN switches, and 2 RAID controllers.
+{{.\pasted_image.png}}
+
+In this configuration, there is one I/O path that goes through hba1, SAN1, and controller 1 and a second I/O path that goes through hba2, SAN2, and controller2. There are many points of possible failure in this configuration:
+* HBA failure
+* FC cable failure
+* SAN switch failure
+* Array controller port failure
+
+There are a total of two possible paths the server may take to get the RAID device.
+
+==== Topology 2 - “Active/Passive Multipath Configuration with Two RAID Devices” ====
+“Active/Passive Multipath Configuration with Two RAID Devices” shows a more complex active/passive configuration with 2 HBAs on the server, 2 SAN switches, and 2 RAID devices with 2 RAID controllers each. 
+
+There are **two I/O paths to each RAID device** (just as there are in the example one).
+{{.\pasted_image002.png}}
+
+==== Topology 3 - “Active/Active Multipath Configuration with One RAID Device” ====
+“Active/Active Multipath Configuration with One RAID Device” shows an active/active configuration with 2 HBAs on the server, 1 SAN switch, and 2 RAID controllers. There are four I/O paths from the server to a storage device, and I/O can be spread across the 4 paths.
+
+1) hba1 to controller1
+2) hba1 to controller2
+3) hba2 to controller1
+4) hba2 to controller2
+
+{{.\pasted_image003.png}}
+
+
+==== Multipath Components ====
+{{.\pasted_image004.png}}
+
+==== Installation ====
+
+1)
+	# yum install device-mapper-multipath
+2)
+	Create initial configuration file
+	# mpathconf
+3)
+	If necessary, edit [[/etc/multipath.conf]] to modify default values
+4)
+	Start multipathd
+	# systemctl start multipathd
+	# systemctl enable multipathd
+
+
+==== /etc/multipath.conf ====
+
+View multipathd configuration. Multipath will by default be configured to work on most storage array devices that support multipathing.
+# multipathd show config
+# multipath -t
+
+Configuration file is located at [[/etc/multipath.conf.]] If your storage array supports DM Multipath and is not configured by default, you may need to add it to the DM Multipath configuration file, multipath.conf. 
+
+
+==== Multipath Output ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/dm_multipath/mpio_output
+__Multipath device names can be thought of as a symbolic link to /dev/sd* on the storage array. Most places you would use the /dev/sd* name you can instead use the WWN for the path.__
+
+	[[/dev/mapper/mpatha]]
+	
+The multipath device appears to the OS as just another disk
+	# lsblk [[/dev/mapper/mpatha]]
+	[root@client ~]# lsblk /dev/mapper/mpatha
+	NAME      MAJ:MIN RM SIZE RO TYPE  MOUNTPOINT
+	mpatha    253:4    0  15G  0 mpath
+	└─mpatha1 253:25   0  15G  0 part
+	
+* The devices in /dev/mapper are created early in the boot process. Use these devices to access the multipathed devices, for example when creating logical volumes.
+* Any devices of the form /dev/dm-n are for internal use only should never be used by the administrator directly.
+	
+	[root@client ~]# multipath -ll mpatha
+	mpatha (3600d0230000000000e13955cc3757800) dm-1 WINSYS,SF2372
+	size=269G features='0' hwhandler='0' wp=rw
+	|-+- policy='round-robin 0' prio=1 status=active
+	| `- 6:0:0:0 sdb 8:16  active ready  running
+	`-+- policy='round-robin 0' prio=1 status=enabled
+	  `- 7:0:0:0 sdf 8:80  active ready  running
+
+__The output shows a multipathed LUN, mpatha. The number following it is the LUN’s WWID. The status active/ready indicates that the path is ready for I/O. If the path is showing faulty/failed then it needs to be repaired before using it for I/O.__
+
+
+For each multipath device:
+	action_if_any: alias (wwid_if_different_from_alias) dm_device_name_if_known, vendor,product size=size features='features' hwhandler='hardware_handler' wp=write_permission_if_known 
+
+For each path group:
+	-+- policy='scheduling_policy' prio=prio_if_known status=path_group_status_if_known
+
+For each path:
+	 `- host:channel:id:lun devnode major:minor dm_status_if_known path_status online_status
+
+If the path is up and ready for I/O, the status of the path is ready or ghost. If the path is down, the status is faulty or shaky. The path status is updated periodically by the multipathd daemon based on the polling interval defined in the /etc/multipath.conf file.
+

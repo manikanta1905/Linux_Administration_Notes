@@ -1,0 +1,102 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-20T11:46:35-05:00
+
+====== SCP runs slowly compared to another identical server ======
+Created Sunday 20 January 2019
+
+==== Problem ====
+
+When running scp transfer tests, three servers are showing slower performance than one particular server.
+All servers are identical in:
+
+* hardware
+* bios
+* kernel
+* drivers
+
+The first example: is showing on 9.3Mb/s when transferring from one server to another.
+
+root@serverA:/ $ scp -pr filaneme1 root@serverB:/var/tmp
+filename-1         100%  139MB   9.3MB/s   00:15
+
+==== SCP Is not a Benchmarking Tool ====
+The important factor to consider is that scp is not a good platform to perform networking benchmarking.
+
+The reason for this is:
+
+* SSH/SCP use single-threaded encryption which is taxing on the CPU. Assuming the network and storage are fast enough, the CPU will become the bottleneck in this transfer.
+
+* SSH/SCP performance is also limited by the hard-coded 64k buffer inside OpenSSH.
+
+* The default aes128-ctr cipher likely will transfer somewhere in the 50-200MB/s range.
+
+* The fastest and least secure cipher arcfour will likely only transfer in the 100-250MB/s range.
+
+In other cases, the hardware could be the cause and could be limited to the speed of the disks involved.
+
+==== Resolution ====
+
+STEP 1 -Isolate the issue is to see if scp is also slow in transferring locally.
+As can be seen, scp transfers are not only slow transferring to remote servers but also locally.
+This moves the attention away from the outside network infrastructure(switches/routers) but to the internal network.
+
+	scp filename2 serverA@127.0.0.1:/dev/null
+	filename2               1023MB   9.6MB/s   01:47
+
+STEP 2 - ISOLATE FROM STORAGE, we will use the direct option which will bypass the cache.
+
+Run this step on the servers you are comparing.
+	# dd if=/dev/zero of=/tmp/test bs=512M count=5 conv=fdatasync oflag=direct
+
+STEP 3 - ISOLATE FROM NETWORK AND STORAGE, the next test will be run without any storage or network impact.
+If the test results are still slow, then it narrows down the issue.
+
+	dd if=/dev/zero of=/dev/null count=10000000
+	around 172 MB/s
+	
+	Compared with:
+	1.8 GB/s
+	
+STEP 4 - ISOLATE THE ISSUE TO MEMORY AND CPU
+
+Download, Extract and execute bandwidth64
+This program is a memory and CPU cache bandwidth testing program. This program is a binary compiled
+from the source code written and copyright by Zack Smith 1@zsmith.co, and is GPL licensed.
+
+Then execute with:
+./bandwidth64 --fastest | grep 'Main register to main register'
+After running this program, we can see that ServerA,C and D all showing 10% performance compared with other servers.
+
+	'''
+	+-------------+----------------+--------------------+
+	|   Servers   |     kernel     | Memory Performance | 
+	+-------------+----------------+--------------------+
+	| ServerA     | 2.6.32-642.4.2 | 10000 MB/s         | 
+	| ServerB     | 2.6.32-642.4.2 | 106655.6 MB/s      | 
+	| ServerC     | 2.6.32-642.4.2 | 10000 MB/s         |
+	| ServerD     | 2.6.32-642.4.2 | 10000 MB/s         |  
+	+-------------+----------------+--------------------|
+	'''
+
+STEP 5 - Run Hardware Diagnostics
+After running hardware diagnostics, we could see that from the failed server, one of the servers was being throttled.
+When a server is bring throttled it will affect the performance of a server from scp to dd tests.
+
+ Processor 1 (Processor - CPU 1): Assertion: Processor Automatically Throttled.
+ Processor 2 (Processor - CPU 2): Assertion: Processor Automatically Throttled.
+
+STEP 6 - Contact Hardware Vendor
+The next step is to get in contact with the hardware vendor, to check on cpu temperature, power, updates, UEFI, IMM updates.
+
+==== nc throughput test ====
+Useful if iperf is not available on the system. Note that netcat uses a smaller buffer than other tools and this buffer size cannot be changed, this introduces a bottleneck in netcat, so throughput will be significantly lower with netcat than with purpose-built tools like iperf or TTCP.
+
+On target server
+server # nc -l -n 12345 > /dev/null
+
+From client
+# dd if=/dev/zero bs=1M count=10240 | nc -n <server hostname or ip address> 12345
+10240+0 records in
+10240+0 records out
+10737418240 bytes (11 GB) copied, 42.1336 s, 255 MB/s

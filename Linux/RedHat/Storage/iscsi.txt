@@ -5,6 +5,10 @@ Creation-Date: 2018-03-12T15:46:29-04:00
 ====== iscsi ======
 Created Monday 12 March 2018
 
+==== Terminology ====
+http://tldp.org/HOWTO/SCSI-2.4-HOWTO/scsiaddr.html
+
+
 ==== Target Install ====
 '''
 [root@wiki ~]# modprobe iscsi_target_mod
