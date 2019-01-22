@@ -1,0 +1,147 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2018-07-13T08:56:00-04:00
+
+====== tcpdump  Wireshark ======
+Created Friday 13 July 2018
+
+https://packetpushers.net/masterclass-tcpdump-interpreting-output/
+
+==== Basic Example ====
+
+The below command listens for all traffic on all interfaces and only captures the first <count> packets
+# tcpdump -i any -c <count> -nn
+
+==== Interpreting tcpdump output ====
+https://packetpushers.net/masterclass-tcpdump-interpreting-output/
+
+16:41:46.876428 IP server1.48548 > server2.dc: Flags [.], ack 1075968574, win 32044, options [nop,nop,TS val 1998846172 ecr 4245804229], length 0
+...
+...
+16:41:46.877148 IP server1.dc > server2.48548: Flags [P.], seq 1:67, ack 222, win 1432, options [nop,nop,TS val 4245804249 ecr 1998846173], length 66
+
+| Time Stamp    |       IP Headers                        | tcp flags | seq. # |  
+
+
+==== TCP Header ====
+https://en.wikipedia.org/wiki/Transmission_Control_Protocol
+{{.\pasted_image004.png}}
+
+Source port (16 bits)
+	Identifies the sending port.
+Destination port (16 bits)
+	Identifies the receiving port.
+Sequence number (32 bits)
+	Has a dual role:
+	* If the SYN flag is set (1), then this is the initial sequence number. The sequence number of the actual first data byte and the acknowledged number in the corresponding ACK are then this sequence number plus 1.	
+	* If the SYN flag is clear (0), then this is the accumulated sequence number of the first data byte of this segment for the current session.
+Acknowledgment number (32 bits)
+	If the ACK flag is set then the value of this field is the next sequence number that the sender of the ACK is expecting. This acknowledges receipt of all prior bytes (if any). The first ACK sent by each end acknowledges the other end's initial sequence number itself, but no data.
+Data offset (4 bits)
+	Specifies the size of the TCP header in 32-bit words. The minimum size header is 5 words and the maximum is 15 words thus giving the minimum size of 20 bytes and maximum of 60 bytes, allowing for up to 40 bytes of options in the header. This field gets its name from the fact that it is also the offset from the start of the TCP segment to the actual data.
+Reserved (3 bits)
+	For future use and should be set to zero.
+Flags (9 bits) (aka Control bits)
+	* NS (1 bit): ECN-nonce - concealment protection (experimental: see RFC 3540).
+	* CWR (1 bit): Congestion Window Reduced (CWR) flag is set by the sending host to indicate that it received a TCP segment with the ECE flag set and had responded in congestion control mechanism (added to header by RFC 3168).
+	* ECE (1 bit): ECN-Echo has a dual role, depending on the value of the SYN flag. It indicates:
+		* If the SYN flag is set (1), that the TCP peer is ECN capable.
+		* If the SYN flag is clear (0), that a packet with Congestion Experienced flag set (ECN=11) in the IP header was received during normal transmission (added to header by RFC 3168). This serves as an indication of network congestion (or impending congestion) to the TCP sender.
+	* URG (1 bit): indicates that the Urgent pointer field is significant
+	* ACK (1 bit): indicates that the Acknowledgment field is significant. All packets after the initial SYN packet sent by the client should have this flag set.
+	* PSH (1 bit): Push function. Asks to push the buffered data to the receiving application.
+	* RST (1 bit): Reset the connection
+	* SYN (1 bit): Synchronize sequence numbers. Only the first packet sent from each end should have this flag set. Some other flags and fields change meaning based on this flag, and some are only valid when it is set, and others when it is clear.
+	* FIN (1 bit): Last packet from sender.
+Window size (16 bits)
+	The size of the receive window, which specifies the number of window size units (by default, bytes) (beyond the segment identified by the sequence number in the acknowledgment field) that the sender of this segment is currently willing to receive (see Flow control and Window Scaling).
+Checksum (16 bits)
+	The 16-bit checksum field is used for error-checking of the header, the Payload and a Pseudo-Header. The Pseudo-Header consists of the Source IP Address, the Destination IP Address, the protocol number for the TCP-Protocol (0x0006) and the length of the TCP-Headers including Payload (in Bytes).
+Padding
+	The TCP header padding is used to ensure that the TCP header ends, and data begins, on a 32 bit boundary. The padding is composed of zeros.
+	
+==== Relative vs Absolute Sequence Numbers ====
+https://serverfault.com/questions/590470/tcpdump-filter-sequence-number
+
+
+== TCP Flags ==
+http://packetlife.net/blog/2011/mar/2/tcp-flags-psh-and-urg/
+
+Flags are some combination of 
+* S (SYN) Initiates a connection
+* F (FIN) Cleanly terminates a connection
+* P (PUSH)
+* R (RST)
+* U (URG)
+* W (ECN CWR)
+* E (ECN-Echo)
+* `.' (ACK) Acknowledges received data
+* `none' if no flags are set.
+
+These flags are numerically represented by the 13th octet of a TCP Header
+
+						''|C|E|U|A|P|R|S|F|''
+'''
+                       |---------------|
+                       |0 0 0 0 0 0 1 0|
+                       |---------------|
+                       |7 6 5 4 3 2 1 0|
+'''
+
+
+For example, to see packets with only the SYN flag set
+
+			   ''7     6     5     4     3     2     1     0''
+'''
+       0*2 + 0*2 + 0*2 + 0*2 + 0*2 + 0*2 + 1*2 + 0*2  =  2
+'''
+
+
+# tcpdump -i eth0 tcp[13] == 2
+
+Or equivalently using built in names
+
+# tcpdump -i eth0 tcp[tcpflags] == 2
+
+To see packets where the SYN flag is set, and we allow other flags to be set as well (SYN-ACK)
+# tcpdump -i xl0 'tcp[tcpflags] & 2 == 2'
+
+== Max Packet Size ==
+TCP Dump by default captures the first 262144 bytes of a packet before throwing the rest away.
+
+==== Capturing output in Wireshark Format ====
+It’s often more useful to capture packets using tcpdump rather than wireshark. For example, you might want to do a remote capture and either don’t have GUI access or don’t have Wireshark installed on the remote machine.
+
+Older versions of tcpdump truncate packets to 68 or 96 bytes. If this is the case, use -s to capture full-sized packets:
+
+$ tcpdump -i <interface> -s 65535 -w <some-file> -C <file_size>
+
+== Broadcast Packets ==
+tcpdump -i em1 ether broadcast and ether multicast
+
+
+== Wireshark Packet Error Analyzer ==
+The following filter shows bad events in TCP. These things could be slowing down the network.
+filter: tcp.analysis.flags
+
+* TCP Retransmissions
+* TCP Out-of-Orders
+* Duplicate Acks
+* Zero Windows
+
+You can even add a shortcut button for this filter
+{{.\pasted_image003.png}}
+
+
+== Tips ==
+
+* Always capture 2 way traffic and Dual Side Captures. Capture on the client and on the server simultaneously. Make sure the capture is also bidirectional.
+
+
+== Add Delta Time to Wirshark Analysis ==
+
+{{.\pasted_image001.png}}
+
+Edit > Preferences. Then Drag Delta Column next to Time Column
+
+{{.\pasted_image.png}}

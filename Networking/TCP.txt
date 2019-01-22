@@ -7,3 +7,6 @@ Created Friday 13 July 2018
 
 TCP
 https://networkengineering.stackexchange.com/questions/24068/why-do-we-need-a-3-way-handshake-why-not-just-2-way
+
+==== Three Way Hand Shake ====
+http://packetlife.net/blog/2010/jun/7/understanding-tcp-sequence-acknowledgment-numbers/
