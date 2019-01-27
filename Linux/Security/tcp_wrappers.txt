@@ -1,0 +1,56 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-27T09:26:50-05:00
+
+====== tcp wrappers ======
+Created Sunday 27 January 2019
+
+==== Overview ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/6/html/security_guide/sect-security_guide-tcp_wrappers_and_xinetd-tcp_wrappers_configuration_files
+
+{{.\pasted_image.png}}
+
+TCP Wrappers allow a host to allow or deny access for services (http, ftp, telnet, ssh) to specific users, groups of users or specific hosts/IPs or groups of hosts or entire subnets. 
+
+tcpd examines all incoming TCP client requests and then consults the following files the following order
+1) [[/etc/hosts.allow]]
+2) [[/etc/hosts.deny]]
+
+tcpd stops at the first match. If there is a matching entry in [[/etc/hosts.allow,]] [[/etc/hosts.deny]] is not read. If no match is found in either files the traffic is allowed (implicit allow).
+
+You can check your configuration with the following command
+
+# tcpdchk -v 
+
+If tcp wrappers is not already installed, you can install it with 
+
+# yum install tcp_wrappers
+
+==== Patterns ====
+
+Entries are of the format
+
+<name of service or process> : <user@source>
+
+The following wildcards are available:
+
+* ALL — Matches everything. It can be used for both the daemon list and the client list.
+* LOCAL — Matches any host that does not contain a period (.), such as localhost.
+* KNOWN — Matches any host where the hostname and host address are known or where the user is known.
+* UNKNOWN — Matches any host where the hostname or host address are unknown or where the user is unknown.
+* PARANOID — A reverse DNS lookup is done on the source IP address to obtain the host name. Then a DNS lookup is performed to resolve the IP address. If the two IP addresses do not match the connection is dropped and 			 the logs are updated
+
+== Examples ==
+
+{{.\pasted_image002.png}}
+
+
+== Logs ==
+
+Messages for tcp wrappers are logged to [[/var/log/secure]]
+
+==== Does this Daemon Support tcp_wrappers? ====
+Check to see if the daemon uses the tcp_wrapper library
+
+$ ldd /usr/sbin/sshd | grep libwrap.so
+libwrap.so.0 => /lib64/libwrap.so.0 (0x00002b759b381000)

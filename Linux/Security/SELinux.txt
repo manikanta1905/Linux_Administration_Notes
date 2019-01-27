@@ -54,3 +54,12 @@ mount_anyfile                  (on   ,   on)  Allow mount to anyfile
 
 
 === Config File ===
+
+
+==== Over NFS ====
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/storage_administration_guide/ch-disklesssystems
+
+SELinux is only supported over NFSv4.2. To use SELinux, NFS must be explicitly enabled in /etc/sysconfig/nfs by adding the line:
+RPCNFSDARGS="-V 4.2"
+Then, in /var/lib/tftpboot/pxelinux.cfg/default, change root=nfs:server-ip:/exported/root/directory to root=nfs:server-ip:/exported/root/directory,vers=4.2.
+Finally, reboot the NFS server.

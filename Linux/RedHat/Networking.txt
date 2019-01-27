@@ -5,6 +5,8 @@ Creation-Date: 2017-08-25T15:23:28-04:00
 ====== Networking ======
 Created Friday 25 August 2017
 
+http://linux-ip.net/html/index.html
+
 ==== Setting Static Routes ====
 https://www.centos.org/docs/5/html/5.2/Deployment_Guide/s1-networkscripts-static-routes.html
 The default route can be set in the network script using the **GATEWAY=** setting. Simply edit this setting accordingly and then run
@@ -13,6 +15,68 @@ $ ifdown $interface && ifup $interface
 You can temporarily add static routes using
 $ ip route add dst-network via gateway dev device_name
 $ ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0
+
+
+==== ip a output ====
+
+The interface name may have another name or NONE appended after the @ sign. This means that this device is bound to some other device, i.e. packets send through it are encapsulated and sent via the ``master'' device. If the name is NONE, the master is unknown.
+
+http://linux-ip.net/gl/ip-cref/ip-cref-node17.html
+
+https://github.com/spotify/linux/blob/master/include/linux/if.h
+man netdevice
+
+									  ''Device flags''
+''              IFF_UP            Interface is running.''
+''              IFF_BROADCAST     Valid broadcast address set.''
+''              IFF_DEBUG         Internal debugging flag.''
+
+''              IFF_LOOPBACK      Interface is a loopback interface.''
+''              IFF_POINTOPOINT   Interface is a point-to-point link.''
+''              IFF_RUNNING       Resources allocated.''
+''              IFF_NOARP         No arp protocol, L2 destination address not set.''
+''              IFF_PROMISC       Interface is in promiscuous mode.''
+''              IFF_NOTRAILERS    Avoid use of trailers.''
+''              IFF_ALLMULTI      Receive all multicast packets.''
+''              IFF_MASTER        Master of a load balancing bundle.''
+''              IFF_SLAVE         Slave of a load balancing bundle.''
+''              IFF_MULTICAST     Supports multicast''
+''              IFF_PORTSEL       Is able to select media type via ifmap.''
+''              IFF_AUTOMEDIA     Auto media selection active.''
+''              IFF_DYNAMIC       The addresses are lost when the interface goes down.''
+''              IFF_LOWER_UP      Driver signals L1 up (since Linux 2.6.17)''
+''              IFF_DORMANT       Driver signals dormant (since Linux 2.6.17)''
+''              IFF_ECHO          Echo sent packets (since Linux 2.6.25)''
+
+The interface flags are summarized in the angle brackets.
+
+* UP -- the device is turned on. It is ready to accept packets for transmission and it may inject into the kernel packets received from other nodes on the network.
+* LOOPBACK -- the interface does not communicate with other hosts. All packets sent through it will be returned and nothing but bounced packets can be received.
+* BROADCAST -- the device has the facility to send packets to all hosts sharing the same link. A typical example is an Ethernet link.
+* POINTOPOINT -- the link has only two ends with one node attached to each end. All packets sent to this link will reach the peer and all packets received by us came from this single peer.
+				 If neither LOOPBACK nor BROADCAST nor POINTOPOINT are set, the interface is assumed to be NMBA (Non-Broadcast Multi-Access). This is the most generic type of device and the most complicated one, because the host attached to a NBMA link has no means to send to anyone without additionally configured information.
+
+* MULTICAST -- is an advisory flag indicating that the interface is aware of multicasting i.e. sending packets to some subset of neighbouring nodes. Broadcasting is a particular case of multicasting, where the multicast group 			consists of all nodes on the link. It is important to emphasize that software must not interpret the absence of this flag as the inability to use multicasting on this interface. Any POINTOPOINT and BROADCAST 				link is multicasting by definition, because we have direct access to all the neighbours and, hence, to any part of them. Certainly, the use of high bandwidth multicast transfers is not recommended on 				broadcast-only links because of high expense, but it is not strictly prohibited.
+* PROMISC -- the device listens to and feeds to the kernel all traffic on the link even if it is not destined for us, not broadcasted and not destined for a multicast group of which we are member. Usually this mode exists only on 				broadcast links and is used by bridges and for network monitoring.
+* ALLMULTI -- the device receives all multicast packets wandering on the link. This mode is used by multicast routers.
+* NOARP -- this flag is different from the other ones. It has no invariant value and its interpretation depends on the network protocols involved. As a rule, it indicates that the device needs no address resolution and that the 			software or hardware knows how to deliver packets without any help from the protocol stacks.
+* DYNAMIC -- is an advisory flag indicating that the interface is dynamically created and destroyed.
+* SLAVE -- this interface is bonded to some other interfaces to share link capacities.
+
+Additional Flags (Not Documented?)
+https://unix.stackexchange.com/questions/335077/ip-link-and-ip-addr-output-meaning
+
+NO-CARRIER		Driver Signals L1 down
+
+mtu 1500
+	``maximal transfer unit''). This determines the maximal size of data which can be sent as a single packet over this interface.
+
+qdisc, noqueue, qlen 1000
+	qdisc (``queuing discipline'') shows the queuing algorithm used on the interface. Particularly, noqueue means that this interface does not queue anything and noop means that the interface is in blackhole mode i.e. all packets sent to it are immediately discarded. qlen is the default transmit queue length of the device measured in packets.
+
+
+state	
+
 
 
 ==== Layer 1/2 ====

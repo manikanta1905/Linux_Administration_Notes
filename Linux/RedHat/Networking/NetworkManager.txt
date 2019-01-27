@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-27T08:06:55-05:00
+
+====== NetworkManager ======
+Created Sunday 27 January 2019
+
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Networking_Guide/sec-Network_Configuration_Using_sysconfig_Files.html
+
+In Red Hat Enterprise Linux 7 when you edit an ifcfg file, NetworkManager is not automatically aware of the change and has to be prompted to notice the change. If you use one of the tools to update NetworkManager profile settings, then NetworkManager does not implement those changes until you reconnect using that profile. For example, if configuration files have been changed using an editor, NetworkManager must be told to read the configuration files again. To do that, issue the following command as root
+
+# nmcli connection reload
+
+The above command reads all connection profiles. Alternatively, to reload only one changed file, ifcfg-ifname, issue a command as follows:
+
+# nmcli con load /etc/sysconfig/network-scripts/ifcfg-ifname

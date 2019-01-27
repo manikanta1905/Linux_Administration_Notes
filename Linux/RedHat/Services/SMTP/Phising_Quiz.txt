@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-23T08:08:26-05:00
+
+====== Phising Quiz ======
+Created Wednesday 23 January 2019
+
+https://phishingquiz.withgoogle.com/
+
+1) Check links by hovering over links, check for fake domains (google.fake.com, go0gle.com)
+2) Compare domain in header to links in email
+3) Google search any domains you are unsure about
