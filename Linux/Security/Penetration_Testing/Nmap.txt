@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-28T09:06:40-05:00
+
+====== Nmap ======
+Created Monday 28 January 2019
+
+==== Finding Vulnerabilities with Nmap ====
+
+cd ${$NMAPDIR:-~/.nmap/scripts/}
+git clone https://github.com/vulnersCom/nmap-vulners.git
+nmap --script vulscan,nmap-vulners -sV <targetIP>

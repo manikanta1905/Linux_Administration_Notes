@@ -5,6 +5,8 @@ Creation-Date: 2017-09-27T20:38:20-04:00
 ====== Scripting ======
 Created Wednesday 27 September 2017
 
+https://wiki.bash-hackers.org/start
+
 ==== Google Shell Style Guide ====
 https://google.github.io/styleguide/shell.xml?utm_source=DigitalOcean_Newsletter
 When possible, try to adhere to Google's Shell scripting Style guide.
