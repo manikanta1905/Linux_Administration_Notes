@@ -1,0 +1,58 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-05T15:15:25-05:00
+
+====== Metasploit ======
+Created Tuesday 05 February 2019
+
+== Basic Commands ==
+https://www.tutorialspoint.com/metasploit/index.htm
+
+$ msfconsole
+
+Display list of available commands
+msf > help
+
+Update the CVE database
+msf > msfupdate
+
+Search for available exploits
+msf >search name:Microsoft [[type:exploit]]
+
+Info about module or vulnerability
+msf > info <vulnerability>
+
+== Metasploitable ==
+ www.information.rapid7.com/
+
+The intentionally vulnerable target machine for evaluating Metasploit
+
+== Discovery Scans With nmap ==
+Discovery scan is the first step in the pentesting suite. We must gain info about hosts on the network. We are looking for open ports.
+
+get a list of IPs and MAC addresses for hosts on the network
+msf >nmap -sn 192.168.1.0/24
+
+Get open ports, OS info, and more for specific host
+msf > nmap -sV -O -T4 192.168.1.140
+
+To keep a list of hosts in a database, we can use the db_nmap command, which saves all of this information for later use
+db_nmap -v sV -O -T4 192.168.1.140
+
+== Vulnerability Scan / Vulnerability Databases ==
+https://www.offensive-security.com/metasploit-unleashed/wmap-web-scanner/
+
+In general, performing a Vulnerability Scan is obvious. It is much better to take the information we have from the Discovery Scan and manually search the database ourselves.
+
+msf > search [[name:httpd]]
+
+set the current exploit to be executed
+msf > use <exploit>
+
+While exploit is set, show available options that can be configured
+msf exploit(<exploit>) > show options
+msf exploit(<exploit>) > set <option> <value>
+
+Trigger the exploit
+msf exploit(<exploit>) > exploit
+

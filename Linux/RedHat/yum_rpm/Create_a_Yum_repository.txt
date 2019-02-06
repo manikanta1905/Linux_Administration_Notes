@@ -16,7 +16,8 @@ $ yum repolist disabled --verbose
 or you can list both enabled and disabled repose
 	 ''$ yum repolist all --verbose''
 
-You can change a repo from enabled to disabled in its corresponding **/etc/yum.repos.d/*.repo** file.
+You can change a repo from enabled to disabled in its corresponding **/etc/yum.repos.d/*.repo** file. Or you can use the following command to specify which repos to enable/disable
+$ yum --disablerepo=* --enablerepo=dvd install tree
 
 === Creating a local FTP repository ===
 Suppose you wanted to create a local copy of the CentOS 7 base repository. You also plan on sharing this repository via the FTP protocol. You would do the following on the server hosting the repo
@@ -51,4 +52,24 @@ $ yum repolist centos-base-local -v
 '''
 
 
+== Mounting DVD for Repo ==
 
+mkdir /mnt/dvd
+mount -o loop [[/dev/sr0]] /mnt/dvd
+
+Add following entry to /etc/yum.repos.d/dvd.repo
+'''
+[dvd]
+name=CentOS-DVD
+enabled=1
+gpgcheck=0
+baseurl=file:///mnt/dvd/
+'''
+
+
+yum clean all
+
+# And for some reason
+cp -r [[/mnt/dvd/repodata]] [[/mnt/]]
+cp -r [[/mnt/dvd/Packages]] /mnt/
+yum --disablerepo=* --enablerepo=dvd install tree

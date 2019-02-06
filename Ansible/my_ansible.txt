@@ -103,6 +103,47 @@ Make sure to source your **.bash_profile**.
 
 And we are ready to try out a few things.
 
+== Using an Expect Script ==
+https://gist.github.com/Fluidbyte/6294378
+https://stackoverflow.com/questions/46780372/expect-script-reading-empty-line
+
+'''
+#!/usr/bin/expect
+
+# Pass arguments to expect script
+set command [lindex $argv 0];
+
+# Get lists of host one by one. Make sure there are no trailing spaces at the end of the hostnames.
+set f [open "./hosts"]
+set hosts [split [read -nonewline $f] "\n"]
+close $f
+
+# Iterate over hosts
+foreach host $hosts {
+
+    spawn ssh -o StrictHostKeyChecking=no "$user\@server"
+    #expect "(yes/no)"
+    #send "yes\r"
+    expect "password"
+    send "YourPasswordHere\r"
+    expect "$ "
+    send "$command\r"
+
+    # Close off each connection
+    expect "$ "
+    send "exit\r"
+    #expect eof
+    #close
+}
+
+interact
+'''
+
+
+You can call this expect script from a bash script like so
+
+''expect /path/to/expect_script.exp arg1 arg2''
+
 ==== Parsing the .ini file with python3 ====
 Using the previous hosts example:
 

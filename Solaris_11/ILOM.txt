@@ -5,7 +5,87 @@ Creation-Date: 2019-01-15T14:45:24-05:00
 ====== ILOM ======
 Created Tuesday 15 January 2019
 
-* From Oracle ILOM, access the host.
+If you really cannot get into the host (at this point you really are screwed usually), you may still be able to get a serial console connection through the Integrated Lights Out Manager (Out Of Band).
+
 ssh to ILOM IP/Hostname
 -> start /HOST/console
 Are you sure you want to start /HOST/console (y/n)? y
+
+Serial console started.  To stop, type ESC (
+
+To exit the serial console press SHIFT + 9 + ESC.
+
+To exit the OOB, type "exit".
+
+==== Viewing System / Hardware Information ====
+
+-> cd SYS
+/SYS
+
+-> ls
+
+ /SYS
+	Targets:
+		SERVICE
+		LOCATE
+		ACT
+		PS_FAULT
+		TEMP_FAULT
+		FAN_FAULT
+		MB
+		HDD0
+		HDD1
+		HDD2
+		HDD3
+		HDD4
+		HDD5
+		HDD6
+		HDD7
+		PDB
+		SASBP
+		DVD
+		TTYA
+		USBBD
+		FANBD0
+		FANBD1
+		PS0
+		PS1
+		VPS
+
+	Properties:
+		type = Host System
+		ipmi_name = /SYS
+		keyswitch_state = Normal
+		product_name = T5240
+		product_part_number = ###-####-##
+		product_serial_number = *************
+		product_manufacturer = Oracle Corporation
+		fault_state = OK
+		power_state = On
+
+	Commands:
+		cd
+		reset
+		set
+		show
+		start
+		stop
+
+
+-> show HDD0
+
+ /SYS/HDD0
+	Targets:
+		SERVICE
+		OK2RM
+		PRSNT
+
+	Properties:
+		type = Hard Disk
+		fault_state = OK
+		clear_fault_action = (none)
+
+	Commands:
+		cd
+		set
+		show

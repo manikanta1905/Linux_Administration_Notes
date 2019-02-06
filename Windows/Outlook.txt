@@ -1,0 +1,171 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-30T07:36:44-05:00
+
+====== Outlook ======
+Created Wednesday 30 January 2019
+
+https://support.office.com/en-us/article/learn-to-narrow-your-search-criteria-for-better-searches-in-outlook-d824d1e9-a255-4c8a-8553-276fb895a8da
+https://www.msoutlook.info/question/66
+
+== Search reference tables ==
+The following table shows you some examples of searches you might find useful. In addition to these examples, you can use AND, NOT, OR, <, >, =, and other operators to refine your search. Operators should be typed in uppercase letters.
+
+
+Type this
+
+To find this
+
+bob
+
+Items containing bob, bobbinbobby, BOBBY, BoBby, or any other combination of uppercase and lowercase letters. Instant Search is not case sensitive.
+
+bob moore
+
+Items containing bob, along with all of the variations listed in the previous row, ormoore, along with any other words that contain moore, but not necessarily in that order.
+
+bobby AND moore
+
+Items containing both bobby and moore, but not necessarily in that order. Note that logical operators such as AND, NOT, and OR must be in uppercase letters.
+
+bobby NOT moore
+
+Items containing bobby, along with all variations listed in the first row of the table, but not moore.
+
+bobby OR moore
+
+Items containing bobby, along with all variations listed in the first row of the table, moore, or both.
+
+"bob"
+
+Items containing the exact phrase bob and not the variations such as bobby or bobbin. To search for an exact string, you must use quotation marks.
+
+from:"bobby moore"
+
+Items sent from bobby moore. Note the use of double quotes so that the search results match the exact phrase within the quotes.
+
+You can also type from: and then the first few letters of a contact's name and Outlook will suggest a list of contacts for you to select.
+
+from:"bobby moore" about:”status report”
+
+Items sent from bobby moore where status report appears in the subject line, body, or attachment contents. Note the use of double quotes so that the search results match the exact phrase within the quotes.
+
+hasattachment:yes
+
+Items that have attachments. You can also use hasattachment:true to get the same results.
+
+attachments:presentation.pptx
+
+Items that have attachments named presentation.pptx or an attachment that contains presentation.pptx within its contents.
+
+subject:"bobby moore"
+
+Items whose subject contains the phrase bobby moore.
+
+cc:"bobby moore"
+
+Items in which the display name bobby moore is on the Cc line.
+
+cc:bobbymoore@contoso.com
+
+Items in which the e-mail address bobbymoore@contoso.com is on the Cc line.
+
+bcc:bobby
+
+Items in which bobbyy is on the Bcc line.
+
+category:red
+
+Items that contain a category name that includes the word red. For example "Red category" or "Redo" or "Redundant."
+
+messagesize:<10 KB
+
+Items whose size is less than 10 kilobytes. Note the use of the "less than" comparison operator (<).
+
+messagesize:>5 MB
+
+Items whose size is larger than 5 megabytes. Note the use of the "greater than" comparison operator (>).
+
+received:=1/1/2016
+
+Items that arrived on 1/1/2016. Note the use of the "equals" comparison operator (=).
+
+received:yesterday
+
+Items that arrived yesterday. Instant Search also recognizes the follow date values:
+
+Relative dates:    For example, today, tomorrow, yesterday
+
+Multi-word relative dates:    For example, this week, next month, last week, past month, coming year
+
+Days:     Sunday, Monday ... Saturday
+
+Months:     January, February ... December
+
+received:last week
+
+Items that arrived last week. Note that if you run this query again a month from now you will obtain different results because it is a time relative query.
+
+due:last week
+
+Items that are flagged for follow up a due date.
+
+messagesize:tiny
+
+Items whose size is less than 10 kilobytes
+
+messagesize:small
+
+Items whose size is between 10 and 25 kilobytes
+
+messagesize:medium
+
+Items whose size is between 25 and 100 kilobytes
+
+messagesize:large
+
+Items whose size is between 100 and 500 kilobytes
+
+messagesize:verylarge
+
+Items whose size is between 500 kilobytes and 1 megabyte
+
+followupflag:follow up
+
+Items that are flagged using the Follow Up flag.
+
+messagesize:enormous
+
+Items whose size is larger than 5 megabytes
+
+hasflag:true
+
+Items that are flagged for follow up.
+
+from:bobby (received:1/7/17 OR received:1/8/17)
+
+Items from bobby that arrived on either 1/7/17 or 1/8/17. Note the use of parentheses to group the dates.
+
+received:>=10/1/16 AND received:<=10/5/16
+
+Items that arrived between 10/1/16 and 10/5/16.
+
+received:>10/1/16 AND received:<10/5/16
+
+Items that arrived after 10/1/16 but before 10/5/16.
+
+sent: yesterday
+
+Returns all items sent yesterday (by anyone). This search will return items you sent to others and items others sent to you.
+
+to:bobby
+
+Items that you sent to bobby when you are searching in the Sent Items folder.
+
+read:no
+
+Items that have not been read. You can also use read:false to get the same results.
+
+subject:status received:May
+
+Items received from anyone during the month of May (any year) where the subject contains status.

@@ -230,6 +230,16 @@ enter your password:
 '''
 
 
+== Generating Pseudo Random Strings ==
+
+	import random
+	import string
+	
+	# N = length of string
+	N=10
+	''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))
+	'U513ORA7Q1'
+
 == Hashing a File ==
 The code below simulates the md5sum command from linux. You can also replace hashlib.md5() with hashlib.sha256(), hashlib.512() etcetera to use other hashing algorithms.
 
@@ -295,6 +305,7 @@ if __name__ == '__main__':
 
 == Getting User input for scripts with argparse ==
 I did not write the following script, I forget where it came from. I should update once I find the source.
+https://chase-seibert.github.io/blog/2014/03/21/python-multilevel-argparse.html
 
 '''
 #!/usr/bin/env python
