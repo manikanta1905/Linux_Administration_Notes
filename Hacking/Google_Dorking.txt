@@ -1,0 +1,56 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-12T09:40:53-05:00
+
+====== Google Dorking ======
+Created Tuesday 12 February 2019
+
+https://www.searchenginejournal.com/google-search-operators-commands/215331/#close
+https://sites.google.com/site/resourcesandsearchstrategies/google/advanced-searching-in-google
+
+== Cache ==
+Using the cache operator, you can find out what the most recent cache of a specified webpage is. This is useful for identifying when a page was last crawled.
+
+Example use:
+
+[[cache:websitename.com]]
+
+== info ==
+The query [info:] will present some information that Google has about that web page. For instance, [info:www.google.com] will show information about the Google homepage. Note there can be no space between the "info:" and the web page url.
+
+This functionality is also accessible by typing the web page url directly into a Google search box.
+
+== define ==
+	
+The query [define:] will provide a definition of the words you enter after it, gathered from various online sources. The definition will be for the entire phrase entered (i.e., it will include all the words in the exact order you typed them). 
+
+== Allintext ==
+This operator will help you find whether all the terms that you are looking for shows up in the text of that page. This operator, however, isn’t pin-accurate because it won’t look for text on the page that appears close together.
+
+Example use:
+
+allintext:content social links
+
+
+== Inposttitle ==
+If you are performing blog research, this operator is useful for finding blogs with certain search terms in the blog title.
+
+Example use:
+
+inposttitle:weight loss goals
+
+== Allinurl ==
+This one allows you to find pages with your requested search terms within the URL in internal search pages. For example, say you wanted to perform research on pages on a site that had the terms “drawing tablet”. You would use the following:
+
+Example use:
+
+allinurl:amazon drawing tablet
+
+result 
+https://www.amazon.com/slp/intuos-drawing-tablet/373ona95gwj29ja
+
+== inurl ==
+inurl: If you include [inurl:] in your query, Google will restrict the results to documents containing that word in the url. ... Putting "inurl:" in front of every word in your query is equivalent to putting "allinurl:" at the front of your query: [inurl:google inurl:search] is the same as [allinurl: google search].
+
+== link ==
+The query [link:] will list webpages that have links to the specified webpage. For instance, [link:www.google.com] will list webpages that have links pointing to the Google homepage. Note there can be no space between the "link:" and the web page url.

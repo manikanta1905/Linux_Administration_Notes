@@ -1,0 +1,10 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-10T10:20:19-05:00
+
+====== Style Recommendations ======
+Created Sunday 10 February 2019
+
+https://www.maultech.com/chrislott/resources/cstyle/indhill-cstyle.pdf
+https://www.maultech.com/chrislott/resources/cstyle/
+https://stackoverflow.com/questions/1262459/coding-standards-for-pure-c-not-c

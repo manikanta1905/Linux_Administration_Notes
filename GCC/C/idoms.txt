@@ -1,0 +1,62 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-11T09:25:37-05:00
+
+====== idoms ======
+Created Monday 11 February 2019
+
+==== Writing / Reading Files ====
+https://www.tutorialspoint.com/cprogramming/c_file_io.htm
+
+* Openening the file
+FILE *fopen( const char * filename, const char * mode );
+* Read only
+FILE *fp = fopen("/tmp/test.txt", "r")
+* writing (creates file if it doesn't exist, overwrites existing file)
+FILE *fp = fopen("/tmp/test.txt", "w")
+* append text to end of file
+FILE *fp = fopen("/tmp/test.txt", "a")
+* read and writing
+FILE *fp = fopen("/tmp/test.txt", "r+")
+* read and write, truncate file to zero length
+FILE *fp = fopen("/tmp/test.txt", "w+")
+* read and write, reading starts from beginning but writing can only be appended
+FILE *fp = fopen("/tmp/test.txt", "a+")
+
+If you are going to handle binary files, then you will use following access modes instead of the above mentioned ones −
+"rb", "wb", "ab", "rb+", "r+b", "wb+", "w+b", "ab+", "a+b"
+
+== Writing to a file ==
+#include <stdio.h>
+
+int main(int argc, char *argv[]){
+		FILE *fp;
+
+		fp = fopen("/tmp/test.txt", "w");
+		[[/*]] Write null terminated string to file */
+		fputs("hello from my program\n", fp);
+		fprintf("fp, "You can also write a string with fprintf...\n");
+		[[/*]] Write char to file */
+		fputc('\n', fp);
+		fclose(fp);
+}
+
+== Reading a file ==
+
+* Read entire file a single character at a time
+c is int , since EOF is a negative number, and a plain char may be unsigned.
+
+	   ''#include <stdio.h>''
+'''
+int c;
+FILE *file;
+file = fopen("test.txt", "r");
+if (file) {
+    while ((c = getc(file)) != EOF)
+        putchar(c);
+    fclose(file);
+}
+'''
+
+
+* Read a string

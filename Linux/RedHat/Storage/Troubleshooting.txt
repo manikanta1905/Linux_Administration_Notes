@@ -11,6 +11,7 @@ Sorry for posting on a thread that's so old, but this is the destination for man
 
 There's a difference between rescanning for new disks at the adapter level and rescanning for update size information at the disk level.
 
+echo "- - -" > [[/sys/class/scsi_host]]
 Sending "- - -" to /sys/class/scsi_host/host[012]/scan is telling the SCSI host adapter to look for new disks on every channel "(-)", every target "(-)", and every lun "(-)". - this is the right thing to do if you add a new disk to the system while it's powered on.
 
 Sending a "1" to /sys/class/block/sdc/device/rescan is telling the SCSI block device to refresh it's information about where it's ending boundary is (among other things) to give the kernel information about it's updated size. - this is the right thing to do if you change the size of an existing disk while it's powered on.

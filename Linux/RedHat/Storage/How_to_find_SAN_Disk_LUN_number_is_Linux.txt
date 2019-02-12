@@ -1,0 +1,73 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-12T13:49:45-05:00
+
+====== How to find SAN Disk LUN number is Linux ======
+Created Tuesday 12 February 2019
+
+After attaching the storage LUN’s to Linux you have to scan to display as attached disks.
+Use below command to scan for new SAN LUN’s, Required Super User privileges to run command.
+Identify SAN LUN underlying OS Disk.
+
+''# ls /sys/class/scsi_host/ | while read host ; do echo "- - -" > /sys/class/scsi_host/$host/scan ; done''
+
+fdisk -l command display the attached disks.
+
+Use below command to see all attached disks and identify Storage devices from the output:
+
+'''
+# cat /proc/scsi/scsi
+Host: scsi7 Channel: 00 Id: 01 Lun: 00
+  Vendor: DGC      Model: LUNZ             Rev: 0532
+  Type:   Direct-Access                    ANSI SCSI revision: 04
+Host: scsi8 Channel: 00 Id: 00 Lun: 01
+  Vendor: NETAPP   Model: LUN C-Mode       Rev: 8300
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+'''
+
+By reading above output of the command we can identify that scsi8 channel is NetApp SAN disk and it’s LUN id is 01.
+
+'''
+# ls -ld /sys/block/sd*/device
+lrwxrwxrwx 1 root root 0 Nov 13 23:29 /sys/block/sdd/device -> ../../devices/pci0000:00/0000:00:03.0/0000:04:00.0/host7/rport-7:0-3/target7:0:3/7:0:3:1
+lrwxrwxrwx 1 root root 0 Nov 16 03:00 /sys/block/sde/device -> ../../devices/pci0000:40/0000:40:03.0/0000:42:00.0/host8/rport-8:0-0/target8:0:0/8:0:0:1
+'''
+
+We can identify the associated disk name /dev/sde and its LUN number.
+Collect LUN id and path details go to SAN console and match with LUN id.
+
+'''
+# ls -la /dev/disk/by-id/
+total 0
+lrwxrwxrwx 1 root root   9 Nov 16  2015 scsi-3600a09803830357a2f5d47686838662d -> ../../sdg
+lrwxrwxrwx 1 root root  10 Nov 16  2015 scsi-3600a09803830357a2f5d47686838662d-part1 -> ../../sdg1
+'''
+
+Second method to identify the Underlying OS disk, for these below commands we have to install sg3 utilities.
+
+'''
+#yum install sg3_utils
+#sg_scan -i
+/dev/sg7: scsi7 channel=0 id=4 lun=1
+    NETAPP    LUN C-Mode        8300 [rmb=0 cmdq=1 pqual=0 pdev=0x0]
+/dev/sg8: scsi8 channel=0 id=3 lun=0
+    DGC       LUNZ              0532 [rmb=0 cmdq=1 pqual=0 pdev=0x0]
+'''
+
+sg_map -x command will map your OS disk with SAN mapped disk so that we can easily identify them, it will also give Channel id, LUN id, associated disk and so an.
+
+'''
+#sg_map -x
+/dev/sg5  8 0 0 1  0  /dev/sde
+'''
+	   ''/dev/sg6 8 0 1 1 0 /dev/sdf''
+
+-sd option along with sg_map will provide you straight forward OS disk mapping with SAN LUN.
+
+'''
+#sg_map -sd
+/dev/sg5  /dev/sde
+/dev/sg6  /dev/sdf
+'''
+
+

@@ -1,0 +1,117 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-10T15:40:23-05:00
+
+====== gdb ======
+Created Sunday 10 February 2019
+
+"\x90" = no op, cpu does nothing
+
+
+list: show source code
+'''
+(gdb) list
+1       #include <stdio.h>
+2       #include <string.h>
+3
+4       int main(int argc, char *argv[]){
+5               char buffer[10];
+6               strcpy(buffer, argv[1]);
+7
+8               return 0;
+9       }
+'''
+
+
+disas : show cpu / assembly instructions
+
+'''
+(gdb) disassemble main
+Dump of assembler code for function main:
+   0x000000000040051d <+0>:     push   %rbp
+   0x000000000040051e <+1>:     mov    %rsp,%rbp
+   0x0000000000400521 <+4>:     sub    $0x20,%rsp
+   0x0000000000400525 <+8>:     mov    %edi,-0x14(%rbp)
+   0x0000000000400528 <+11>:    mov    %rsi,-0x20(%rbp)
+   0x000000000040052c <+15>:    mov    -0x20(%rbp),%rax
+   0x0000000000400530 <+19>:    add    $0x8,%rax
+   0x0000000000400534 <+23>:    mov    (%rax),%rdx
+   0x0000000000400537 <+26>:    lea    -0x10(%rbp),%rax
+   0x000000000040053b <+30>:    mov    %rdx,%rsi
+   0x000000000040053e <+33>:    mov    %rax,%rdi
+   0x0000000000400541 <+36>:    callq  0x400400 <strcpy@plt>
+   0x0000000000400546 <+41>:    mov    $0x0,%eax
+   0x000000000040054b <+46>:    leaveq
+   0x000000000040054c <+47>:    retq
+End of assembler dump.
+'''
+
+
+
+run <arguments>: run program, passing arguments
+'''
+(gdb) run hello
+Starting program: /root/code/c/buffer hello
+[Inferior 1 (process 1899) exited normally]
+Missing separate debuginfos, use: debuginfo-install glibc-2.17-222.el7.x86_64
+'''
+
+
+Cause segmentation fault
+
+'''
+(gdb) run $(python -c 'print "\x41" * 508')
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /root/code/c/buffer $(python -c 'print "\x41" * 508')
+
+Program received signal SIGSEGV, Segmentation fault.
+0x000000000040054c in main (argc=2, argv=0x7fffffffe388) at buffer.c:9
+9       }
+'''
+
+
+Showing the info stored in the registers we see that is has been overwritten by "41"s
+
+'''
+(gdb) info registers
+rax            0x0      0
+rbx            0x0      0
+rcx            0x7ffff7aa8750   140737348536144
+rdx            0x0      0
+rsi            0x7fffffffe7f0   140737488349168
+rdi            0x7fffffffe48c   140737488348300
+rbp            0x4141414141414141       0x4141414141414141
+rsp            0x7fffffffe2a8   0x7fffffffe2a8
+r8             0x7ffff7dd5e80   140737351868032
+r9             0x0      0
+r10            0x7fffffffdce0   140737488346336
+r11            0x7ffff7b913e0   140737349489632
+r12            0x400430 4195376
+r13            0x7fffffffe380   140737488348032
+r14            0x0      0
+r15            0x0      0
+rip            0x40054c 0x40054c <main+47>
+eflags         0x10202  [ IF RF ]
+cs             0x33     51
+ss             0x2b     43
+ds             0x0      0
+es             0x0      0
+fs             0x0      0
+gs             0x0      0
+'''
+
+
+
+
+
+==== Troubleshooting ====
+
+Reading symbols from <program>...(no debugging symbols found)...done.
+
+You need to compile your source code with the -g option before you can use gdb on it, e.i.
+
+$ gcc -g -o test test.c 
+
+	   -g  Produce debugging information in the operating system's native format (stabs, COFF, XCOFF, or DWARF 2).  GDB can work
+		   with this debugging information.

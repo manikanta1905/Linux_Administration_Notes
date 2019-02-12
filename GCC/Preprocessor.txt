@@ -1,0 +1,93 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-06T16:00:00-05:00
+
+====== Preprocessor ======
+Created Wednesday 06 February 2019
+
+http://crasseux.com/books/ctutorial/Preprocessor-directives.html#Preprocessor%20directives
+GCC, the GNU Compiler Collection, contains a C preprocessor. A preprocessor is a program that examines C code before it is compiled and manipulates it in various ways. There are two main uses of a preprocessor. One is to include external files, such as header files. The other is to define macros, which are names (possibly with arguments) that are expanded by the preprocessor into pieces of text or C code. Macros that are expanded into text are usually displayed to the user, but macros that are expanded into C code are executed with the rest of the C code that surrounds them.
+
+==== Directives ====
+
+== #include ==
+
+#include <stdio.h>
+This directive tells the preprocessor to include the file stdio.h; in other words, to treat it as though it were part of the program text.
+
+A file to be included may itself contain #include directives, thus encompassing other files. When this happens, the included files are said to be nested.
+
+== if/else/endif ==
+The lines of code between #if and #endif will be compiled only if the expression is true. This is called conditional compilation. 
+
+#if (condition)
+#statment
+#endif
+
+For example, you could have code like the following. If VAR is passed through the compiler a variable is set to one value, otherwise it has another value.
+
+'''
+#include <stdio.h>
+
+#if (VAR)
+#define a 10
+#else
+#define a 5
+#endif
+
+int main() {
+    printf("%d\n", a);
+    return 0;
+}
+'''
+
+
+
+'''
+[root@tpulliam c]# gcc -o test test.c
+[root@tpulliam c]# ./test
+5
+[root@tpulliam c]# gcc -o test test.c -D VAR
+[root@tpulliam c]# ./test
+10
+'''
+
+You could also have a situation where the user can add an optional configuration file
+
+'''
+#if (HAVE_CONFIG_H)
+#include "../include/config.h"
+#endif
+'''
+
+You can even set entire blocks of C code within the if statements. The following program returns 23.
+
+'''
+#define CHOICE 500
+
+int my_int = 0;
+
+#if (CHOICE == 500)
+void set_my_int()
+{
+  my_int = 23;
+}
+#else
+void set_my_int()
+{
+  my_int = 17;
+}
+#endif
+
+int main ()
+{
+  set_my_int();
+  printf("%d\n", my_int);
+
+  return 0;
+}
+
+'''
+==== Macros ====
+http://crasseux.com/books/ctutorial/Macros.html#Macros
+

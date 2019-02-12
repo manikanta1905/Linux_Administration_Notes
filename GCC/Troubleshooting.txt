@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-06T15:34:57-05:00
+
+====== Troubleshooting ======
+Created Wednesday 06 February 2019
+
+== Undefined Reference to main ==
+[root@tpulliam sample]# gcc -ggdb -Wall `libnet-config --defines` `libnet-config --libs`
+/usr/lib/gcc/x86_64-redhat-linux/4.8.5/../../../../lib64/crt1.o: In function `_start':
+(.text+0x20): undefined reference to `main'
+
+You forgot to include the source file
+
+[root@tpulliam sample]# gcc -ggdb -Wall `libnet-config --defines` `libnet-config --libs` __-o ping_of_death ping_of_death.c__
+

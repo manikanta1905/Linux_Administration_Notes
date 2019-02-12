@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-10T15:40:07-05:00
+
+====== Make ======
+Created Sunday 10 February 2019
+
+== Resources ==
+https://www.gnu.org/software/make/manual/make.html
+
+After compiling code by hand several times, you will pray for a way to automate the process. Enter Make. 
+
+== A simple makefile ==
+http://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/
+
+test: test.c
+	gcc -o test test.c
+
+Note that make with no arguments executes the first rule in the file. Furthermore, by putting the list of files on which the command depends on the first line after the :, make knows that the rule hellomake needs to be executed if any of those files change. If you run make on a file that has not changed, you will get the following output
+
+'''
+[root@tpulliam c]# make
+make: `test' is up to date.
+'''
+
+

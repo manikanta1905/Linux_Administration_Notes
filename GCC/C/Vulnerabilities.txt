@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-10T13:50:54-05:00
+
+====== Vulnerabilities ======
+Created Sunday 10 February 2019
+
+https://en.wikipedia.org/wiki/C_standard_library
+
+== Buffer overflow vulnerabilities ==
+Some functions in the C standard library have been notorious for having buffer overflow vulnerabilities and generally encouraging buggy programming ever since their adoption.[a] The most criticized items are:
+
+* string-manipulation routines, including strcpy() and strcat(), for lack of bounds checking and possible buffer overflows if the bounds aren't checked manually;
+* string routines in general, for side-effects, encouraging irresponsible buffer usage, not always guaranteeing valid null-terminated output, linear length calculation;[b]
+* printf() family of routines, for spoiling the execution stack when the format string doesn't match the arguments given. This fundamental flaw created an entire class of attacks: format string attacks;
+* gets() and scanf() family of I/O routines, for lack of (either any or easy) input length checking.
+
+Except the extreme case with gets(), all the security vulnerabilities can be avoided by introducing auxiliary code to perform memory management, bounds checking, input checking, etc. This is often done in the form of wrappers that make standard library functions safer and easier to use. This dates back to as early as The Practice of Programming book by B. Kernighan and R. Pike where the authors commonly use wrappers that print error messages and quit the program if an error occurs.
+
+The ISO C committee published Technical reports TR 24731-1[9] and is working on TR 24731-2[10] to propose adoption of some functions with bounds checking and automatic buffer allocation, correspondingly. The former has met severe criticism with some praise,[11][12] the latter received mixed responses. Despite this, TR 24731-1 has been implemented into Microsoft's C standard library and its compiler issues warnings when using old "insecure" functions.
+
+== Threading problems, vulnerability to race conditions ==
+The mktemp() and strerror() routines are criticized for being thread unsafe and otherwise vulnerable to race conditions.
+
+== Error handling ==
+The error handling of the functions in the C standard library is not consistent and sometimes confusing. According to the Linux manual page math_error, "The current (version 2.8) situation under glibc is messy. Most (but not all) functions raise exceptions on errors. Some also set errno. A few functions set errno, but don't raise an exception. A very few functions do neither."[13]

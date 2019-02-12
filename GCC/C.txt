@@ -1,0 +1,300 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-06T16:04:40-05:00
+
+====== C ======
+Created Wednesday 06 February 2019
+
+==== Resources ====
+http://crasseux.com/books/ctutorial/
+https://danluu.com/
+
+==== Hello World ====
+hello.c
+
+'''
+#include <stdio.h>
+
+/* This is a comment
+ * it can span multiple lines
+ */
+int main() {
+    printf("Hello, World!");
+    return 0;
+}
+'''
+
+
+$ gcc hello.c -o hello
+$ [[./hello]]
+Hello, World!
+
+
+==== main(int argc, char **argv) ====
+http://crasseux.com/books/ctutorial/argc-and-argv.html
+If you wish to pass arguments to your program, you must inform your program of this. This is accomplished using argc and argv.
+
+* int argc = number of arguments being passed to main(), argument count
+* __char *argv[] = a 1-d array containing the arguments being passed to main(), argument vector__
+
+		NOTE: What is the difference between `char **argv` and `char *argv[]`?
+		https://stackoverflow.com/questions/5192068/c-char-argv-vs-char-argv
+		It turns out they are entirely equivalent. `char *argv[]` must be read as array of pointers to char and an array argument is demoted to a pointer, so pointer to pointer to char, or `char *`*. I use the `char *argv[]` notation only because it is more intuitive. So to summarize,
+	
+		String is an alias for *char (pointer to char, a String points to the first character in the string). So an array of string like arguments is really
+	
+		String argv[]
+		char *argv[]
+	
+		However an array is also itself a pointer to the first element of the array ([] = *), so we are left with
+	
+		char **argv
+
+'''
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    printf("Hello, World!");
+    return 0;
+}
+'''
+
+For example, the command line 
+
+	$ gcc -o myprog myprog.c
+would result in the following values internal to GCC:
+
+
+	argc
+	4 
+	argv[0]
+	gcc 
+	argv[1]
+	-o 
+	argv[2]
+	myprog 
+	argv[3]
+	myprog.c
+
+In this way, we can interact with the arguments being passed to main()
+
+[root@tpulliam c]# cat test.c
+'''
+#include <stdio.h>
+
+int main(int argc, char **argv) {
+    printf("Number of arguments entered: %d\n", argc);
+    printf("Your arguments were stored at memory address: %d\n", argv);
+    printf("Your first argument was: %s\n", argv[1]);
+    return 0;
+}
+'''
+
+
+
+[root@tpulliam c]# gcc -o test test.c
+[root@tpulliam c]# ./test hello
+Number of arguments entered: 2
+Your arguments were stored at memory address: -2073994408
+Your first argument was: hello
+
+==== printf() formatting ====
+Chances are you will be printing text to stdout. 
+
+==== User Input ====
+
+
+==== Loops ====
+
+== While Loop ==
+while (condition)
+{
+  do something
+}
+
+
+This simple program counts all of the spaces a user types in. If you type a space followed by backspace it is still counted.
+'''
+#include <stdio.h>
+
+int main()
+{
+  char ch;
+  int count = 0;
+
+  printf ("Type in a line of text.\n");
+
+  while ((ch = getchar()) != '\n')
+  {
+    if (ch == ' ')
+    {
+      count++;
+    }
+  }
+
+  printf ("Number of spaces = %d.\n\n", count);
+  return 0;
+}
+'''
+
+
+
+== for loop ==
+The following loop must be compiled using C99 standard.
+$ ''gcc -std=c99 -o myprogram myprogram.c''
+
+#include <stdio.h>
+
+[[/*]] C99 Standard */
+int main(int argc, char *argv[]){
+		for( int a = 0; a < 10; a++){
+				printf("a = %d\n", a);
+		}
+}
+
+Below is a program that prints out an [[NxM]] grid of stars. N and M are ints provided by the user.
+
+'''
+#include <stdio.h>
+
+int main(int argc, char *argv[]){
+        int row = 5;
+        int col = 6;
+
+        for( int i = 0; i < row; i++){
+                for( int j = 0; j < col; j++){
+                        printf("*");
+                }
+                printf("\n");
+        }
+}
+'''
+
+
+'''
+[root@tpulliam c]# ./test
+******
+******
+******
+******
+******
+'''
+
+
+==== Arrays ====
+https://en.wikibooks.org/wiki/C_Programming/Arrays_and_strings
+To create arrays, you specify the data type to be contained, as well as the length, or number of elements in the array.
+
+''type name[number of elements];''
+
+int point[6]={0,0,1,0,0,0};
+
+Though when the array is initialized as in this case, the array dimension may be omitted, and the array will be automatically sized to hold the initial data (6 ints):
+
+int point[]={0,0,1,0,0,0};
+
+If the dimension is specified, but not all elements in the array are initialized, the remaining elements will contain a value of 0. This is very useful, especially when we have very large arrays.
+
+int numbers[2000]={245};
+
+==== Switch Statement ====
+'''
+#include <stdio.h>
+ 
+int main () {
+
+   /* local variable definition */
+   char grade = 'B';
+
+   switch(grade) {
+      case 'A' :
+         printf("Excellent!\n" );
+         break;
+      case 'B' :
+      case 'C' :
+         printf("Well done\n" );
+         break;
+      case 'D' :
+         printf("You passed\n" );
+         break;
+      case 'F' :
+         printf("Better try again\n" );
+         break;
+      default :
+         printf("Invalid grade\n" );
+   }
+   
+   printf("Your grade is  %c\n", grade );
+ 
+   return 0;
+}
+'''
+
+
+When the above code is compiled and executed, it produces the following result −
+
+'''
+Well done
+Your grade is B
+'''
+
+
+==== Creating a Linux Daemon ====
+https://stackoverflow.com/questions/17954432/creating-a-daemon-in-linux
+http://www.enderunix.org/docs/eng/daemon.php
+
+#include <stdio.h>
+#include <stdlib.h>
+
+static void skeleton_daemon(){
+	pid_t pid;
+	
+	[[/*]] Fork off the parent process */
+	pid = fork();
+	
+	
+
+==== Function Prototypes - How to use functions before they are defined ====
+http://crasseux.com/books/ctutorial/Function-prototyping.html#Function%20prototyping
+
+Function declarations at the beginning of a program are called prototypes. Here is an example of a program in which prototypes are used: 
+
+'''
+#include <stdio.h>
+
+/* Function Prototypes go here, or in a separate header file */
+void print_stuff (int foo, int bar);
+int calc_value (int bas, int quux);
+
+
+void print_stuff (int foo, int bar){
+  int var_to_print;
+  
+  /* calc_value() is called before it is even defined.
+   * This is possible because of the prototype above.
+   */
+  var_to_print = calc_value (foo, bar);
+  printf ("var_to_print = %d\n", var_to_print);
+}
+
+
+int calc_value (int bas, int quux){
+  return bas * quux;
+}
+
+
+int main(){
+  print_stuff (23, 5);
+  exit (0);
+}
+'''
+
+The above program will print the text var_to_print = 115 and then quit.
+
+Prototypes may seem to be a nuisance, but they overcome a problem intrinsic to compilers, which is that they compile functions as they come upon them. Without function prototypes, you usually cannot write code that calls a function before the function itself is defined in the program. If you place prototypes for your functions in a header file, however, you can call the functions from any source code file that includes the header. This is one reason C is considered to be such a flexible programming language.
+
+Some compilers avoid the use of prototypes by making a first pass just to see what functions are there, and a second pass to do the work, but this takes about twice as long. Programmers already hate the time compilers take, and do not want to use compilers that make unnecessary passes on their source code, making prototypes a necessity. Also, prototypes enable the C compiler to do more rigorous error checking, and that saves an enormous amount of time and grief.
+
+==== Types ====
+
+

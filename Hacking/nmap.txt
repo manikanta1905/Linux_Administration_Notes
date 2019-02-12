@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-12T15:58:42-05:00
+
+====== nmap ======
+Created Tuesday 12 February 2019
+
+== Banner grabbing ==
+
+-F flag only scans the most common 100 ports. Omit it to scan all ports. The daemon on port 5000/tcp is a generic socket written in C.
+'''
+[root@tpulliam ~]# nmap -F -sV --script=banner localhost
+
+Starting Nmap 6.40 ( http://nmap.org ) at 2019-02-12 15:57 EST
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000025s latency).
+Other addresses for localhost (not scanned): 127.0.0.1
+Not shown: 97 closed ports
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 7.4 (protocol 2.0)
+|_banner: SSH-2.0-OpenSSH_7.4
+25/tcp   open  smtp    Postfix smtpd
+|_banner: 220 tpulliam.com ESMTP Postfix
+5000/tcp open  upnp?
+|_banner: Message from server
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at http://www.insecure.org/cgi-bin/servicefp-submit.cgi :
+SF-Port5000-TCP:V=6.40%I=7%D=2/12%Time=5C633322%P=x86_64-redhat-linux-gnu%
+SF:r(NULL,13,"Message\x20from\x20server");
+Service Info: Host:  tpulliam.com
+'''
+
