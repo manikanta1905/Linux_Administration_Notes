@@ -7,9 +7,172 @@ Created Sunday 02 December 2018
 
 Power Broker (Power Broken, Power Borker) is a replacement for sudo that integrates with Active Directory via Kerberos.
 
+== lwsm service manager ==
+Get service status
+[[./lwsm]] list
+
+Get info about a service
+[[./lwsm]] info lsass
+
+restart a service
+[[./lwsm]] restart lsass
+
+refresh a service (refresh lsass service) without restarting the service
+[[./lwsm]] refresh lsass
+
+
 # List commands user may run
 pbrun pblist commands
 
+== Active Directory / Domain Commands ==
+ /opt/pbis/bin/get-status
+
+Healthy result output:
+'''
+LSA Server Status:
+Agent version: 5.4.0
+Uptime: 22 days 21 hours 16 minutes 29 seconds
+[Authentication provider: lsa-local-provider]
+	Status: Online
+	Mode: Local system
+[Authentication provider: lsa-activedirectory-provider]
+	Status: Online
+	Mode: Un-provisioned
+	Domain: example.com
+	Forest: example.com
+	Site: Default-First-Site-Name
+'''
+
+An unhealthy result will not include the AD authentication provider or will indicate that it is offline. If the AD
+authentication provider is not listed in the results, restart the authentication service. For more information, refer to
+the Troubleshooting document on the BeyondTrust web site.
+If the result looks like the line below, check the status of the PBIS Enterprise services to make sure they are
+running.
+
+	''Failed to query status from LSA service. The LSASS server is not responding.''
+
+To check the status of the services. Run the command as root:
+	
+	''/opt/pbis/bin/lwsm list''
+
+Get AD domain the computer is connected to
+./lsa ad-get-machine account
+
+List domain controllers
+./get-dc-list
+
+Displays the time of the current domain controller for
+the domain that you specify.
+The command can help you determine whether there
+is a Kerberos time-skew error between a client and a
+domain controller.
+[root@rhel5d bin]# ./get-dc-time
+example.com DC TIME: 2009-09-08
+14:54:18 PDT
+
+Registers an IP address for the computer in DNS. The command is useful when you want
+to register A and PTR records for your computer and the DHCP server is not registering
+them.
+
+* Register an IP address:
+''/opt/pbis/bin/update-dns --ipaddress 192.168.100.4 --fqdn bvt-deb506-64.lampi.centeris.com''
+
+* If your system has multiple NICs and you are trying to register all their IP addresses in DNS, run the command once with multiple instances of the ipaddress option:
+''/opt/pbis/bin/update-dns --fqdn corp.example.com --ipaddress 192.168.100.4 --ipaddress 192.168.100.7 --ipaddress 192.168.100.9''
+
+* Clear AD cache
+Deletes all the users and groups from the cache.
+/opt/pbis/bin/ad-cache --delete-all
+
+* join domain
+[[/opt/pbis/bin/domainjoin-cli]] join example.com <Administrator> 
+
+* leave domain
+[[/opt/pbis/bin/domainjoin-cli]] leave <Administrator>
+
+== user / group commands ==
+find user by name
+/opt/pbis/bin/find-user-by-name mydomain\\trejo
+
+Optionally set the level of detail of information that is returned. Example:
+
+'''
+/opt/pbis/bin/find-user-by-name --level 2 mydomain\\trejo
+User info (Level-2):
+====================
+Name: trejo
+SID: S-1-5-21-3447809367-3151979076-456401374-1135
+UPN: trejo@MYDOMAIN.EXAMPLE.COM
+Generated UPN: NO
+DN: CN=trejo,CN=Users,DC=MYDOMAIN,DC=EXAMPLE,DC=COM
+Uid: 239600751
+Gid: 239600770
+Gecos: Markus Trejo
+Shell: /bin/sh
+Home dir: /home/MYDOMAIN/trejo-macbook/trejo-bvt
+LMHash length: 0
+NTHash length: 0
+Local User: NO
+Account disabled (or locked): FALSE
+Account expired: FALSE
+Password never expires: TRUE
+Password Expired: FALSE
+Prompt for password change: YES
+User can change password: YES
+Days till password expires: 0
+Logon restriction: NO
+'''
+
+
+Find group by name
+find-group-by-name domain\\groupname 
+
+You can enumerate the users in Active Directory and view their members, GIDs, and SIDs.
+The PBIS agent enumerates users in the primary domain. Users in trusted domains and
+linked cells are not enumerated. NSS membership settings in the registry do not affect the
+result of the command.
+Note: To view full information about the users, include the level option when you execute
+the command:
+/opt/pbis/bin/enum-users --level 2
+'''
+User info (Level-2):
+====================
+Name: EXAMPLE\sduval
+UPN: SDUVAL@EXAMPLE.COM
+Generated UPN: NO
+Uid: 593495151
+Gid: 593494529
+Gecos: Shelley Duval
+Shell: /bin/sh
+Home dir: /home/EXAMPLE/sduval
+LMHash length: 0
+NTHash length: 0
+Local User: NO
+Account disabled: FALSE
+Account Expired: FALSE
+Account Locked: FALSE
+Password never expires: FALSE
+Password Expired: FALSE
+Prompt for password change: NO
+'''
+
+
+List groups a user is a member of
+'''
+[root@rhel5d bin]# ./list-groups-for-user example\\hab
+Number of groups found for user 'example\hab' : 2
+Group[1 of 2] name = EXAMPLE\enterprise^admins (gid = 593494535)
+Group[2 of 2] name = EXAMPLE\domain^users (gid = 593494529)
+'''
+
+
+List Groups in AD and view SIDs and GIDs for group members
+/opt/pbis/bin/enumgroups --level 1
+
+== Local Accounts Commands ==
+
+
+== blah ==
 # user groups that are permitted to run commands
 [[/etc/opt/quest/vas/users.allow]]
 

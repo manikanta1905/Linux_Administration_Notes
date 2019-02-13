@@ -1,0 +1,26 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-13T10:30:29-05:00
+
+====== nc ======
+Created Wednesday 13 February 2019
+
+	  Send a file over TCP port 9899 from host2 (client) to host1 (server).
+		   HOST1$ nc -l 9899 > outputfile
+
+		   HOST2$ nc HOST1 9899 < inputfile
+
+The nc server listens on all interfaces by default and accepts all connections
+
+[root@tpulliam ~]# nc -l 9899 > outfile &
+[1] 1634
+[root@tpulliam ~]# ss -plant | grep 9899
+LISTEN     0      10           *:9899                     *:*                   users:(("nc",pid=1634,fd=4))
+LISTEN     0      10          :::9899                    :::*                   users:(("nc",pid=1634,fd=3))
+
+After the TCP connection has been terminated, the nc server (HOST1) will be in a TIME-WAIT status to make sure the client has time to clean up its connection
+
+[root@tpulliam ~]# nc localhost 9899 < infile
+[1]+  Done                    nc -l 9899 > outfile
+[root@tpulliam ~]# ss -plant | grep 9899
+TIME-WAIT  0      0          ::1:48662                  ::1:9899

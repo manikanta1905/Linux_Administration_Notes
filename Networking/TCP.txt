@@ -8,5 +8,215 @@ Created Friday 13 July 2018
 TCP
 https://networkengineering.stackexchange.com/questions/24068/why-do-we-need-a-3-way-handshake-why-not-just-2-way
 
+== Resources ==
+https://tools.ietf.org/html/rfc793
+
 ==== Three Way Hand Shake ====
 http://packetlife.net/blog/2010/jun/7/understanding-tcp-sequence-acknowledgment-numbers/
+
+==== Terminology ====
+
+== bits ==
+SYN
+		  A control bit in the incoming segment, occupying one sequence
+		  number, used at the initiation of a connection, to indicate
+		  where the sequence numbering will start.
+ACK
+		  A control bit (acknowledge) occupying no sequence space, which
+		  indicates that the acknowledgment field of this segment
+		  specifies the next sequence number the sender of this segment
+		  is expecting to receive, hence acknowledging receipt of all
+		  previous sequence numbers.
+
+FIN
+		  A control bit (finis) occupying one sequence number, which
+		  indicates that the sender will send no more data or control
+		  occupying sequence space.
+
+PUSH
+		  A control bit occupying no sequence space, indicating that
+		  this segment contains data that must be pushed immediately through to the
+		  receiving user.
+
+RST
+		  A control bit (reset), occupying no sequence space, indicating
+		  that the receiver should delete the connection without further
+		  interaction.  The receiver can determine, based on the
+		  sequence number and acknowledgment fields of the incoming
+		  segment, whether it should honor the reset command or ignore
+		  it.  In no case does receipt of a segment containing RST give
+		  rise to a RST in response.
+URG
+		  A control bit (urgent), occupying no sequence space, used to
+		  indicate that the receiving user should be notified to do
+		  urgent processing as long as there is data to be consumed with
+		  sequence numbers less than the value indicated in the urgent
+		  pointer.
+
+
+== sequence ==
+IRS
+		  The Initial Receive Sequence number.  The first sequence
+		  number used by the sender on a connection.
+ISS
+		  The Initial Send Sequence number.  The first sequence number
+		  used by the sender on a connection.
+ISN
+		  The Initial Sequence Number.  The first sequence number used
+		  on a connection, (either ISS or IRS).  Selected on a clock
+		  based procedure.
+
+
+== misc ==
+MSL
+		  Maximum Segment Lifetime, the time a TCP segment can exist in
+		  the internetwork system.  Arbitrarily defined to be 2 minutes.
+
+TCB
+		  Transmission control block, the data structure that records
+		  the state of a connection.
+
+
+==== TCP Headers ====
+
+  TCP Header Format
+
+
+		 ''0                   1                   2                   3''
+'''
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |          Source Port          |       Destination Port        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Sequence Number                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Acknowledgment Number                      |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Data |           |U|A|P|R|S|F|                               |
+   | Offset| Reserved  |R|C|S|S|Y|I|            Window             |
+   |       |           |G|K|H|T|N|N|                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |           Checksum            |         Urgent Pointer        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Options                    |    Padding    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                             data                              |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+'''
+
+Note that one tick mark represents one bit position.
+
+
+==== TCP Connection State Changes ====
+
+  ''A connection progresses through a series of states during its''
+''  lifetime.  The states are:  LISTEN, SYN-SENT, SYN-RECEIVED,''
+''  ESTABLISHED, FIN-WAIT-1, FIN-WAIT-2, CLOSE-WAIT, CLOSING, LAST-ACK,''
+''  TIME-WAIT, and the fictional state CLOSED.  CLOSED is fictional''
+''  because it represents the state when there is no TCB, and therefore,''
+''  no connection.  Briefly the meanings of the states are:''
+
+	'''
+	LISTEN - represents waiting for a connection request from any remote
+	TCP and port.
+	
+	SYN-SENT - represents waiting for a matching connection request
+	after having sent a connection request.
+	
+	SYN-RECEIVED - represents waiting for a confirming connection
+	request acknowledgment after having both received and sent a
+	connection request.
+	
+	ESTABLISHED - represents an open connection, data received can be
+	delivered to the user.  The normal state for the data transfer phase
+	of the connection.
+	
+	FIN-WAIT-1 - represents waiting for a connection termination request
+	from the remote TCP, or an acknowledgment of the connection
+	termination request previously sent.
+	
+	FIN-WAIT-2 - represents waiting for a connection termination request
+	from the remote TCP.
+	
+	CLOSE-WAIT - represents waiting for a connection termination request
+	from the local user.
+	
+	CLOSING - represents waiting for a connection termination request
+	acknowledgment from the remote TCP.
+	
+	LAST-ACK - represents waiting for an acknowledgment of the
+	connection termination request previously sent to the remote TCP
+	(which includes an acknowledgment of its connection termination
+	request).
+	
+	
+	TIME-WAIT - represents waiting for enough time to pass to be sure
+	the remote TCP received the acknowledgment of its connection
+	termination request.
+	
+	CLOSED - represents no connection state at all
+	'''
+.
+
+  ''The state diagram in figure 6 illustrates only state changes, together''
+''  with the causing events and resulting actions, but addresses neither''
+''  error conditions nor actions which are not connected with state''
+''  changes.  In a later section, more detail is offered with respect to''
+''  the reaction of the TCP to events.''
+
+										''+---------+ ---------\      active OPEN''
+'''
+                              |  CLOSED |            \    -----------
+                              +---------+<---------\   \   create TCB
+                                |     ^              \   \  snd SYN
+                   passive OPEN |     |   CLOSE        \   \
+                   ------------ |     | ----------       \   \
+                    create TCB  |     | delete TCB         \   \
+                                V     |                      \   \
+                              +---------+            CLOSE    |    \
+                              |  LISTEN |          ---------- |     |
+                              +---------+          delete TCB |     |
+                   rcv SYN      |     |     SEND              |     |
+                  -----------   |     |    -------            |     V
+ +---------+      snd SYN,ACK  /       \   snd SYN          +---------+
+ |         |<-----------------           ------------------>|         |
+ |   SYN   |                    rcv SYN                     |   SYN   |
+ |   RCVD  |<-----------------------------------------------|   SENT  |
+ |         |                    snd ACK                     |         |
+ |         |------------------           -------------------|         |
+ +---------+   rcv ACK of SYN  \       /  rcv SYN,ACK       +---------+
+   |           --------------   |     |   -----------
+   |                  x         |     |     snd ACK
+   |                            V     V
+   |  CLOSE                   +---------+
+   | -------                  |  ESTAB  |
+   | snd FIN                  +---------+
+   |                   CLOSE    |     |    rcv FIN
+   V                  -------   |     |    -------
+ +---------+          snd FIN  /       \   snd ACK          +---------+
+ |  FIN    |<-----------------           ------------------>|  CLOSE  |
+ | WAIT-1  |------------------                              |   WAIT  |
+ +---------+          rcv FIN  \                            +---------+
+   | rcv ACK of FIN   -------   |                            CLOSE  |
+   | --------------   snd ACK   |                           ------- |
+   V        x                   V                           snd FIN V
+ +---------+                  +---------+                   +---------+
+ |FINWAIT-2|                  | CLOSING |                   | LAST-ACK|
+ +---------+                  +---------+                   +---------+
+   |                rcv ACK of FIN |                 rcv ACK of FIN |
+   |  rcv FIN       -------------- |    Timeout=2MSL -------------- |
+   |  -------              x       V    ------------        x       V
+    \ snd ACK                 +---------+delete TCB         +---------+
+     ------------------------>|TIME WAIT|------------------>| CLOSED  |
+                              +---------+                   +---------+
+'''
+
+appl. = application
+
+{{.\pasted_image.png}}
+
+==== Sequence Numbers ====
+
+== 3 Way Handshake ==
+
+== 4 Way Disconnect Phase ==
