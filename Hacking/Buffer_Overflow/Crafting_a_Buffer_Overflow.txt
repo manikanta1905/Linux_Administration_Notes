@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-18T13:11:14-05:00
+
+====== Crafting a Buffer Overflow ======
+Created Monday 18 February 2019
+
+==== 1) Determine the attack vector ====
+
+If the application is closed source, we must rely on black box techniques. We can wait for an attack to be published.
+
+For open source solutions, we can read the source code.
+
+Attack vectors could be things such as:
+
+* filename length
+* argument lenth
+* http request body length
+* file size (too big)

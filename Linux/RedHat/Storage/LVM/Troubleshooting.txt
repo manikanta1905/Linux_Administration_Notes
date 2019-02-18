@@ -1,0 +1,81 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-18T07:59:21-05:00
+
+====== Troubleshooting ======
+Created Monday 18 February 2019
+
+==== Mount gives the error: mount: special device <device> does not exist ====
+
+== issue ==
+
+
+''# mount -a''
+''mount: special device /dev/mapper/AAA_SdDg-AAA_SdHv does not exist''
+''mount: special device /dev/mapper/AAA--2_SdDg-AAA_SdHv does not exist''
+
+== Resolution ==
+
+1) Check whether /etc/fstab file entries are correct.
+2) Check for an active volume_list in /etc/lvm/lvm.conf
+3) If there is an active volume_list in /etc/lvm/lvm.conf, ensure that the volume group(s) is added to volume_list in /etc/lvm/lvm.conf
+4) Activate the logical volumes
+# lvchange -ay -v <vg>-<lv>
+# mount -a
+
+== Root Cause ==
+
+The logical volumes were not activated. Logical volumes that are not active result in following when trying to mount
+
+mount: special device /dev/mapper/REP_SdDg-REP_SdHv does not exist
+
+== Diagnostic Steps ==
+Check status of logical volumes. Here lvs -a -o+devices shows REP_SdDg and REP-2_SdDg are not active
+
+'''
+  # lvs -a -o+devices
+  REP_SdHv     REP-1_SdDg     -wi-ao    5.00G                                       /dev/dm-5(0)    
+  REP_SdHv_0   REP-1_SdDg_0   -wi-a-    7.00G                                       /dev/dm-21(0)   
+  REP_SdHv     REP-2_SdDg     -wi---  196.00M                                       /dev/dm-27(0)   
+  REP_SdHv     REP-3_SdDg     -wi-ao    5.00G                                       /dev/dm-7(0)    
+  REP_SdHv     REP_SdDg       -wi---    7.00G                                       /dev/dm-8(0)
+'''
+    
+
+Also lvdisplay shows the "LV Status" as "NOT Available":
+
+'''
+[root@hostname ~]# lvdisplay /dev/vg_name/lv_name
+  --- Logical volume ---
+  LV Name                /dev/vg_name/lv_name
+  VG Name                vg_name
+  LV UUID                U-U-I-D
+  LV Write Access        read/write
+  LV Status              NOT available
+  LV Size                300.00 GB
+  Current LE             86064
+  Segments               3
+  Allocation             inherit
+  Read ahead sectors     auto
+'''
+
+Below output suggests configuration issues
+
+	  ''# lvchange -ay -v REP_SdDg/REP_SdHv''
+'''
+Using logical volume(s) on command line
+  Found duplicate PV ZFXHi8l6q3ofk2c3YRvexyVk5yC6xwyY: using /dev/sdcs not /dev/sdag
+  Found duplicate PV ZFXHi8l6q3ofk2c3YRvexyVk5yC6xwyY: using /dev/dm-8 not /dev/dm-4
+  Found duplicate PV J0EPo5490Nd9fvcEdIG2GBuZUNQ5Ald6: using /dev/dm-27 not /dev/dm-6
+    Activating logical volume "REP_SdHv"
+    Found volume group "REP-2_SdDg"
+    Not activating REP-2_SdDg/REP_SdHv due to config file settings
+lvchange -ay -v REP_SdDg/REP_SdHv
+    Using logical volume(s) on command line
+  Found duplicate PV ZFXHi8l6q3ofk2c3YRvexyVk5yC6xwyY: using /dev/sdcs not /dev/sdag
+  Found duplicate PV ZFXHi8l6q3ofk2c3YRvexyVk5yC6xwyY: using /dev/dm-8 not /dev/dm-4
+  Found duplicate PV J0EPo5490Nd9fvcEdIG2GBuZUNQ5Ald6: using /dev/dm-27 not /dev/dm-6
+    Activating logical volume "REP_SdHv"
+    Found volume group "REP_SdDg"
+    Not activating REP_SdDg/REP_SdHv due to config file settings
+'''

@@ -5,6 +5,9 @@ Creation-Date: 2019-02-05T15:15:25-05:00
 ====== Metasploit ======
 Created Tuesday 05 February 2019
 
+== Installation ==
+
+
 == Basic Commands ==
 https://www.tutorialspoint.com/metasploit/index.htm
 
@@ -44,7 +47,14 @@ https://www.offensive-security.com/metasploit-unleashed/wmap-web-scanner/
 
 In general, performing a Vulnerability Scan is obvious. It is much better to take the information we have from the Discovery Scan and manually search the database ourselves.
 
+list all available exploits
+msf > show exploits
+
+Search for a specific exploit
 msf > search [[name:httpd]]
+
+get info on a particular exploit
+msf > info <exploit>
 
 set the current exploit to be executed
 msf > use <exploit>
@@ -53,6 +63,18 @@ While exploit is set, show available options that can be configured
 msf exploit(<exploit>) > show options
 msf exploit(<exploit>) > set <option> <value>
 
+set target
+msf <exploit> > show targets
+msf <exploit> > set TARGET <target>
+
+set payload
+msf <exploit> > show payloads
+msf <exploit> > set PAYLOAD <payload>
+
 Trigger the exploit
 msf exploit(<exploit>) > exploit
+
+==== Developing Buffer Overflows with Metasploit ====
+https://web.archive.org/web/20071129123212/http://www.syngress.com/book_catalog/327_SSPC/sample.pdf
+
 

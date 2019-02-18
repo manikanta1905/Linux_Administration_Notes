@@ -106,3 +106,32 @@ packet_write_wait: Connection to 192.168.1.41 port 22: Broken pipe
 '''
 
 
+==== SSH Tunneling (aka port forwarding) ====
+https://www.ssh.com/ssh/tunneling/example
+SSH Tunneling allows you to embed other kinds of protocol traffic (HTTP, SMB, SMTP, etc) over an SSH connection.  SSH Tunneling can also be used to bypass firewalls.
+
+The AllowTcpForwarding option in sshd_config must be enabled on the ssh server for forwarding to work. Possible values for this option are yes or all to allow all TCP forwarding, no to prevent all TCP forwarding.
+
+== Local Forwarding ==
+Local forwarding is used to forward a port from the client machine to the server machine. 
+
+{{.\pasted_image003.png}}
+
+Basically, the SSH client listens for connections on a configured port, and when it receives a connection, it tunnels the connection to an SSH server. The server connects to a configurated destination port, possibly on a different machine than the SSH server.
+
+Typical uses for local port forwarding include:
+
+	* __Tunneling sessions and file transfers through jump servers__
+	* Connecting to a service on an internal network from the outside
+	* Connecting to a remote file share over the Internet
+
+== Remote Forwarding ==
+This allows anyone on the remote server to connect to TCP port 8080 on the remote server. The connection will then be tunneled back to the client host, and the client then makes a TCP connection to port 80 on localhost. Any other host name or IP address could be used instead of localhost to specify the host to connect to.
+
+This particular example would be useful for giving someone on the outside access to an internal web server. Or exposing an internal web application to the public Internet. This could be done by an employee working from home, or by an attacker.
+
+{{.\pasted_image004.png}}
+
+
+==== Proxy Chains ====
+

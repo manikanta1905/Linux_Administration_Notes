@@ -5,3 +5,6 @@ Creation-Date: 2019-02-05T15:15:17-05:00
 ====== Hacking ======
 Created Tuesday 05 February 2019
 
+==== Resources ====
+https://www.bonkersabouttech.com/security/40-intentionally-vulnerable-websites-to-practice-your-hacking-skills/392
+http://google-gruyere.appspot.com

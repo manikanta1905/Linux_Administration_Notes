@@ -13,6 +13,10 @@ Physical volumes are combined into volume groups (VGs). This creates a pool of d
 Within a volume group, the disk space available for allocation is divided into units of a fixed-size called extents. An extent is the smallest unit of space that can be allocated. Within a physical volume, extents are referred to as physical extents.
 A logical volume is allocated into logical extents of the same size as the physical extents. The extent size is thus the same for all logical volumes in the volume group. The volume group maps the logical extents to physical extents.
 
+==== /etc/lvm/lvm.conf ====
+A new lvm.conf file can be generated using the command
+$ lvmconfig --type default --withcomments
+
 ==== Extend a logical Volume By Adding a Disk ====
 https://www.rootusers.com/how-to-increase-the-size-of-a-linux-lvm-by-adding-a-new-disk/
 This works with a live root filesystem.

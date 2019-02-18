@@ -5,4 +5,103 @@ Creation-Date: 2019-02-12T13:33:53-05:00
 ====== Buffer Overflow ======
 Created Tuesday 12 February 2019
 
+== Resources ==
 https://www.youtube.com/watch?v=1S0aBV-Waeo
+http://www.cis.syr.edu/~wedu/seed/Book/book_sample_buffer.pdf
+
+==== Simple Buffer Overflow Example ====
+'''
+#include<stdio.h>
+int main(int argc, char *argv[])
+{
+  char buff[20];
+  printf("copying into buffer");   
+  strcpy(buff,argv[1]);
+  return 0;
+}
+'''
+
+
+	''char buff[20];''
+
+Here we create a buffer array that is only capable of holding 20 characters
+
+'''
+  strcpy(buff,argv[1]);
+'''
+
+Next we copy a string supplied by the user into the buffer. If the string supplied by the user (argv[1]) is larger than the buffer can hold, a buffer overflow occurs.
+
+==== Detailed Explanation ====
+http://www.cis.syr.edu/~wedu/seed/Book/book_sample_buffer.pdf
+
+== Program Memory Layout ==
+To fully understand how buffer overflow attacks work, we need to understand how the data
+memory is arranged inside a process. When a program runs, it needs memory space to store data.
+For a typical C program, its memory is divided into five segments, each with its own purpose.
+Figure 4.1 depicts the five segments in a process’s memory layout.
+
+* Text segment: stores the executable code of the program. This block of memory is usually read-only.
+* Data segment: stores static/global variables that are initialized by the programmer. For example, the variable a defined in static int a = 3 will be stored in the Data segment.
+* BSS segment: stores uninitialized static/global variables. This segment will be filled with zeros by the operating system, so all the uninitialized variables are initialized with zeros. For example, the variable b defined in static int b will be stored in the BSS segment, and it is initialized with zero.
+* Heap: The heap is used to provide space for dynamic memory allocation. This area is managed by **malloc, calloc, realloc, free**, etc.
+* __Stack__: The stack is used for storing local variables defined inside functions, as well as storing data related to function calls, such as return address, arguments, etc. We will provide more details about this segment later on.
+
+{{.\pasted_image.png}}
+
+'''
+// global variable allocated to Data segment
+int x = 100;
+// 
+int main()
+{
+	// local variables data stored on Stack
+	int a=2;
+	float b=2.5;
+	// static variable (uninitiallized) allocated to BSS segment
+	static int y;
+
+	// use malloc to allocate memory on heap
+	// ptr is a local variable stored on the Stack, however it points to 
+	// memory addresses that are located in the heap.
+	int *ptr = (int *) malloc(2*sizeof(int));
+
+	// values 5 and 6 stored on heap
+	ptr[0]=5;
+	ptr[1]=6;
+
+	// deallocate memory on heap
+	free(ptr);
+
+	return 1;
+}
+'''
+
+
+==== Visualizing the Stack ====
+
+Suppose we have the following code. The stack grows from high addresses (0xffff... to 0x00000...) It is possible for it to overlap the heap.
+
+'''
+void func(int a, int b)
+{
+'''
+	'''
+	int x, y;
+	x = a + b;
+	y = a - b;
+	}
+	'''
+
+{{.\pasted_image001.png}}
+
+**When func() is called, a block of memory space will be allocated on the top of the stack,**
+**and it is called stack frame**. The layout of the stack frame is depicted in Figure 4.2. A stack
+frame has four important regions:
+
+* Arguments: This region stores the values for the arguments that are passed to the function. In our case, func() has two integer arguments. When this function is called, e.g., func(5,8), the values of the arguments will be pushed into the stack, forming the beginning of the stack frame. **It should be noted that the arguments are pushed in the reverse order**; the reason will be discussed later after we introduce the frame pointer.
+* Return Address: When the function finishes and hits its return instruction, it needs to know where to return to, i.e., the return address needs to be stored somewhere. Before jumping to the entrance of the function, the computer pushes the address of the next instruction—the instruction placed right after the function invocation instruction—into the top of the stack, which is the “return address” region in the stack frame.
+* Previous Frame Pointer: The next item pushed into the stack frame by the program is the frame pointer for the previous frame. We will talk about the frame pointer in more details in § 4.2.2.
+* Local Variables: The next region is for storing the function’s local variables. The actual layout for this region, such as the order of the local variables, the actual size of the region, etc., is up to the compilers. Some compilers may randomize the order of the local variables, or give extra space for this region [Bryant and O’Hallaron, 2015]. **Programmers should not assume any particular order or size for this region.**
+
+== Frame Pointer ==

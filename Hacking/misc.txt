@@ -1,0 +1,16 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-18T11:20:39-05:00
+
+====== misc ======
+Created Monday 18 February 2019
+
+Intro to Exploits
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.93.796&rep=rep1&type=pdf
+
+code obfuscation
+
+White Papers
+https://www.cisecurity.org/resources/white-papers/
+
+https://www.malwarebytes.com/emotet/

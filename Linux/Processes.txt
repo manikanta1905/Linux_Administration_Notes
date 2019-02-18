@@ -75,6 +75,23 @@ pos:    10134
 flags:  02102001
 mnt_id: 74
 
+
+You can also close stale/leaked file descriptors using gdb
+
+
+First, find the PID.
+
+$ lsof +L1
+
+Then, start gdb and attach to the process:
+
+gdb -p 1598
+Then, call the close system call on the fd you want to close:
+
+(gdb) call close(999)
+$1 = 0
+If the file descriptor was a leaked one, then the program will never try to use it again anyway, and it shouldn't cause any issues. The program most likely has a bug, however.
+
 ==== Out of Memory (OOM) Score ====
 https://lwn.net/Articles/548180/
 https://lwn.net/Articles/391222/

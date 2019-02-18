@@ -1,0 +1,78 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-18T09:09:39-05:00
+
+====== Man in the Middle - Arp Cache Poisoning ======
+Created Monday 18 February 2019
+
+ettercap
+sslstrip
+
+== ARP POISONING ATTACK ==
+
+
+'' When you select this method, ettercap will poison the arp cache of the''
+'' two hosts, identifying itself as the other host respectively (see the''
+'' next section for this).''
+'' Once the arp caches are poisoned, the two hosts start the connection, but''
+'' their packets will be sent to us, and we will record them and, next,''
+'' forward them to the right side of the connection. So the connection is''
+'' transparent to the victims, not arguing that they are sniffed. The only''
+'' method to discover that there is a man-in-the-middle in your connection, is''
+'' to watch at the arp cache and check if there are two hosts with the same''
+'' mac address!''
+'' That is how we discover if there are others poisoning the arp cache''
+'' in our LAN, thus being warned, that our traffic is under control! =)''
+
+''     HOST 1  - - - - - - - - - - - - - - - - - - - -> HOST 2''
+''   (poisoned)                                      (poisoned)''
+''       |                                               ^''
+''       |                                               |''
+''        ------------> ATTACKER HOST  ------------------''
+''                      ( ettercap )''
+
+'' Legenda:''
+''             - - - ->   the logic connection''
+''             ------->   the real one''
+
+'''
+The arp protocol has an intrinsic insecurity. In order to reduce the
+ traffic on the cable, it will insert an entry in the arp cache even if it
+ wasn't requested. In other words, EVERY arp reply that goes on the wire
+ will be inserted in the arp table.
+ So, we take advantage of this "feature", sending fake arp replies to the two
+ hosts we will sniff. In this reply we will tell that the mac address of the
+ second host is the one hard-coded on OUR ethernet card. This host will now
+ send packets that should go to the first host, to us, because he carries
+ our mac address.
+ The same process is done for the first host, in inverse manner, so we have
+ a perfect man-in-the-middle connection between the two hosts, legally
+ receiving their packets!!
+'''
+
+  ''Example:''
+
+''     HOST 1:  mac: 01:01:01:01:01:01         ATTACKER HOST:''
+''               ip: 192.168.0.1                    mac: 03:03:03:03:03:03''
+''                                                   ip: 192.168.0.3''
+
+''     HOST 2:  mac: 02:02:02:02:02:02''
+''               ip: 192.168.0.2''
+
+
+''   we send arp replys to:''
+
+''            HOST 1 telling that 192.168.0.2 is on 03:03:03:03:03:03''
+''            HOST 2 telling that 192.168.0.1 is on 03:03:03:03:03:03''
+
+   now they are poisoned !! they will send their packets to us !
+   then if receive packets from:
+
+					  ''HOST 1 we will forward to 02:02:02:02:02:02''
+'''
+            HOST 2 we will forward to 01:01:01:01:01:01
+'''
+
+
+   simple, isn't it ?
+
