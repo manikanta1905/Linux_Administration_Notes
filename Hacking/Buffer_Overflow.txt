@@ -78,8 +78,10 @@ int main()
 '''
 
 
-==== Visualizing the Stack ====
+==== Visualizing the Stack Frame ====
 
+Watch this very good youtube video
+https://www.youtube.com/watch?v=Q2sFmqvpBe0
 Suppose we have the following code. The stack grows from high addresses (0xffff... to 0x00000...) It is possible for it to overlap the heap.
 
 '''
@@ -104,4 +106,97 @@ frame has four important regions:
 * Previous Frame Pointer: The next item pushed into the stack frame by the program is the frame pointer for the previous frame. We will talk about the frame pointer in more details in § 4.2.2.
 * Local Variables: The next region is for storing the function’s local variables. The actual layout for this region, such as the order of the local variables, the actual size of the region, etc., is up to the compilers. Some compilers may randomize the order of the local variables, or give extra space for this region [Bryant and O’Hallaron, 2015]. **Programmers should not assume any particular order or size for this region.**
 
+== Multiple Calling Functions Stack Frame ==
+Watch this very good youtube video
+https://www.youtube.com/watch?v=Q2sFmqvpBe0
+
+
 == Frame Pointer ==
+
+==== Copying Data in C ====
+There are many functions in C that can be used to copy data, including strcpy(), strcat(), memcpy(), etc.
+
+ In the examples of this section, we will use strcpy(), which is used to copy
+strings. An example is shown in the code below. The function strcpy() stops copying only
+when it encounters the terminating character '\0'.
+
+'''
+#include <string.h>
+#include <stdio.h>
+void main ()
+{
+	char src[40]="Hello world \0 Extra string";
+	char dest[40];
+
+	// copy to dest (destination) from src (source)
+	strcpy (dest, src);
+}
+'''
+
+When we run the above code, we can notice that strcpy() only copies the string "Hello
+world" to the buffer dest, even though the entire string contains more than that. This
+is because when making the copy, strcpy() stops when it sees number zero, which is
+represented by '\0' in the code. It should be noted that this is not the same as character '0',
+which is represented as 0x30 in computers, not zero. Without the zero in the middle of the
+string, the string copy will end when it reaches the end of the string, which is marked by a
+zero (the zero is not shown in the code, but compilers will automatically add a zero to the end of
+a string).
+
+==== Buffer Overflow ====
+When we copy a string to a target buffer, what will happen if the string is longer than the size of
+the buffer? Let us see the following example.
+
+'''
+#include <string.h>
+void foo(char *str)
+{
+	char buffer[12];
+
+	/* The following statement will result in buffer overflow */
+	strcpy(buffer, str);
+}
+
+int main()
+{
+	char *str = "This is definitely longer than 12";
+'''
+
+'''
+	foo(str);
+	return 1;
+}
+'''
+
+The stack layout for the above code is shown in Figure 4.4. The local array buffer[] in
+foo() has 12 bytes of memory. The foo() function uses strcpy() to copy the string from
+str to buffer[]. The strcpy() function does not stop until it sees a zero (a number zero,
+'\0') in the source string. Since the source string is longer than 12 bytes, strcpy() will
+overwrite some portion of the stack above the buffer. This is called buffer overflow.
+
+{{.\pasted_image002.png}}
+
+It should be noted that stacks grow from high address to low address, but buffers still grow
+in the normal direction (i.e., from low to high). Therefore, when we copy data to buffer[],
+we start from buffer[0], and eventually to buffer[11]. If there are still more data to be
+copied, strcpy() will continue copying the data to the region above the buffer, treating the
+memory beyond the buffer as buffer[12], buffer[13], and so on.
+
+**Consequence**. As can be seen in Figure 4.4, the region above the buffer includes critical
+values, including the return address and the previous frame pointer. The return address affects
+where the program should jump to when the function returns. If the return address field is
+modified due to a buffer overflow, when the function returns, it will return to a new place.
+Several things can happen. 
+
+First, the new address, which is a virtual address, may not be mapped
+to any physical address, so the return instruction will fail, and the program will crash. 
+
+Second, the address may be mapped to a physical address, but the address space is protected, such as
+those used by the operating system kernel; the jump will fail, and the program will crash. 
+
+Third, the address may be mapped to a physical address, but the data in that address is not a valid
+machine instruction (e.g. it may be a data region); the return will again fail and the program
+will crash. 
+
+Fourth, the data in the address may happen to be a valid machine instruction, so the program will continue running, but the logic of the program will be different from the original one.
+
+== Exploiting the Buffer Overflow Vulnerability ==

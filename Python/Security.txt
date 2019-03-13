@@ -26,3 +26,15 @@ The following assumes Python2.7. For Python3+ just make sure to change the print
 $ pip install passlib
 $ python -c "from passlib.hash import sha512_crypt; import getpass; print sha512_crypt.using(rounds=5000).hash(getpass.getpass())"
 '''
+
+
+==== Generating Random Passwords ====
+Python 3.6
+N = the length of the password.
+
+import random
+import string
+''.join(random.choices(string.ascii_uppercase + string.digits, k=N))
+
+For older versions
+''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(N))

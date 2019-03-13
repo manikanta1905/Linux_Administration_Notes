@@ -16,6 +16,9 @@ You can temporarily add static routes using
 $ ip route add dst-network via gateway dev device_name
 $ ip route add 192.168.1.0/24 via 192.168.1.1 dev eth0
 
+FYI: If you bring an interface down, any routes that used that interface will be deleted. This happens automatically in the kernel.
+If you then bring the interface up again, /etc/sysconfig/static-routes won't be run again, so the routes specified in that file for this interface are lost. However, if you put the routes in the interface-specific file, then they will be restored by the system when you bring the interface up again.
+Hence it's better to put the routes in the /etc/sysconfig/network-scripts/route-<interface> file. 
 
 ==== ip a output ====
 

@@ -1,0 +1,115 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-19T09:33:23-05:00
+
+====== Assembly ======
+Created Tuesday 19 February 2019
+
+== What is Assembly Language? ==
+Each family of processors has its own set of instructions for handling various operations such as getting input from keyboard, displaying information on screen and performing various other jobs. These set of instructions are called 'machine language instructions'.
+
+== parity bit ==
+https://en.wikipedia.org/wiki/Parity_bit
+used for error detection.
+
+So, the parity bit is used to make the number of bits in a byte odd. If the parity is even, the system assumes that there had been a parity error (though rare), which might have been caused due to hardware fault or electrical disturbance.
+
+'''
+
+					8 bits including parity
+7 bits of data	(count of 1-bits)	even		odd
+0000000			0		00000000	10000000
+1010001			3		11010001	01010001
+1101001			4		01101001	11101001
+1111111			7		11111111	01111111
+'''
+
+
+== byte sizes ==
+The processor supports the following data sizes −
+* Word: a 2-byte data item
+* Doubleword: a 4-byte (32 bit) data item
+* Quadword: an 8-byte (64 bit) data item
+* Paragraph: a 16-byte (128 bit) area
+* Kilobyte: 1024 bytes
+* Megabyte: 1,048,576 bytes
+
+== registers ==
+Registers are processor components that hold data and addresses.
+
+==== fetch-decode-execute cycle ====
+
+==== Anatomy of an assembly program ====
+An assembly program can be divided into three sections −
+
+* The data section
+The data section is used for declaring initialized data or constants. This data does not change at runtime. You can declare various constant values, file names, or buffer size, etc., in this section.
+''section.data''
+* The bss section
+The bss section is used for declaring variables.
+''section.bss''
+
+* The text section
+The text section is used for keeping the actual code. This section must begin with the declaration global _start, which tells the kernel where the program execution begins.
+'''
+section.text
+   global _start
+_start:
+'''
+
+* comments begin with a semicolon
+'''
+; This program displays a message on screen
+add eax, ebx     ; adds ebx to eax
+'''
+
+
+==== Assembly Language Statements ====
+Assembly language programs consist of three types of statements −
+
+* Executable instructions or instructions
+Each instruction consists of an operation code (opcode). instructions tell the processor what to do.
+* Assembler directives or pseudo-ops
+These are non-executable and do not generate machine language instructions. These tell the assembler about the various aspects of the assembly process.
+* Macros
+Macros are basically a text substitution mechanism.
+
+Some examples below, fields in brackets are optional
+
+'''
+[label]   mnemonic   [operands]   [;comment]
+INC COUNT        ; Increment the memory variable COUNT
+
+MOV TOTAL, 48    ; Transfer the value 48 in the 
+                 ; memory variable TOTAL
+					  
+ADD AH, BH       ; Add the content of the 
+                 ; BH register into the AH register
+					  
+AND MASK1, 128   ; Perform AND operation on the 
+                 ; variable MASK1 and 128
+					  
+ADD MARKS, 10    ; Add 10 to the variable MARKS
+MOV AL, 10       ; Transfer the value 10 to the AL register
+'''
+
+
+==== Hello World ====
+'''
+section	.text
+   global _start     ;must be declared for linker (ld)
+	
+_start:	            ;tells linker entry point
+   mov	edx,len     ;message length
+   mov	ecx,msg     ;message to write
+   mov	ebx,1       ;file descriptor (stdout)
+   mov	eax,4       ;system call number (sys_write)
+   int	0x80        ;call kernel
+	
+   mov	eax,1       ;system call number (sys_exit)
+   int	0x80        ;call kernel
+
+section	.data
+msg db 'Hello, world!', 0xa  ;string to be printed
+len equ $ - msg     ;length of the string
+'''

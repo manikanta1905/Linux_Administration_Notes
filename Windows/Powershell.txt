@@ -9,15 +9,67 @@ Copy and paste these commands
 
 
 Get powershell version
-$PSVersionTable.PSVersion
+	''$PSVersionTable.PSVersion''
 
 Get FQDN of localhost:
-"$env:computername.$env:userdnsdomain"
+	''"$env:computername.$env:userdnsdomain"''
+
+
+==== user input ====
+'''
+$person = ""
+
+$person = Read-Host "Please input all or part of a username you are looking for"
+	Write-Host ""
+	While ($person -eq "") { $person = Read-Host "Please input all or part of a Computer's name you are looking for: " }
+'''
+
+
+==== Date ====
+https://ss64.com/ps/syntax-dateformats.html
+'''
+(get-date).AddDays(60)
+(get-date).AddDays(-60)
+'''
+
 
 ==== Active Directory ====
 get user info 
-get-aduser 'name'
+	''get-aduser 'name' -properties *''
 
 get aduser by last name and specify which AD server to query
+'''
 get-aduser -surname 'lastname' -server dc.domain.work
+get-aduser $person -Properties * | Select msSFU30NisDomain,uidnumber,loginshell,unixhomedirectory,primarygroupID,gidnumber | ft -AutoSize
+'''
 
+
+Get all domain controllers for a specific domain
+'''
+Get-ADDomainController -Filter * -server domain.example.com
+Get-ADDomainController -filter *  -server 'domain' | Select-Object name
+'''
+ 
+
+AD Group Members
+	''Get-ADGroupMember <group> | select-object -Property name,SamAccountName''
+
+
+==== ps ====
+	''get-process''
+
+
+==== df ====
+
+
+==== wmi (hardware info) ====
+'''
+get-wmiobject -list
+get-wmiobject -query "select * from win32_battery"
+PS> Get-WmiObject -Class Win32_OperatingSystem -Namespace root/cimv2 -ComputerName . | Format-List TotalVirtualMemorySize,TotalVisibleMemorySize,FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles
+'''
+
+
+
+run on remote computer
+	''PS> Get-WmiObject -List -ComputerName 192.168.1.29''

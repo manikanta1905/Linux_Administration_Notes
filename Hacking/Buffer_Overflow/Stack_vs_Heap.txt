@@ -1,0 +1,34 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-19T10:12:12-05:00
+
+====== Stack vs Heap ======
+Created Tuesday 19 February 2019
+
+https://www.programmerinterview.com/index.php/data-structures/difference-between-stack-and-heap/
+Useful questions and answers
+
+== What’s the difference between a stack and a heap? ==
+The differences between the stack and the heap can be confusing for many people. So, we thought we would have a list of questions and answers about stacks and heaps that we thought would be very helpful.
+
+== How do threads interact with the stack and the heap? How do the stack and heap work in multithreading? ==
+In a multi-threaded application, each thread will have its own stack. But, all the different threads will share the heap. Because the different threads share the heap in a multi-threaded application, this also means that there has to be some coordination between the threads so that they don’t try to access and manipulate the same piece(s) of memory in the heap at the same time.
+
+== How is memory deallocated on the stack and heap? ==
+Data on the stack is automatically deallocated when variables go out of scope. However, in languages like C and C++, data stored on the heap has to be deleted manually by the programmer using one of the built in keywords like free, delete, or delete[ ]. Other languages like Java and .NET use garbage collection to automatically delete memory from the heap, without the programmer having to do anything..
+
+== Which is faster – the stack or the heap? And why? ==
+The stack is much faster than the heap. This is because of the way that memory is allocated on the stack. Allocating memory on the stack is as simple as moving the stack pointer up.
+
+
+== How are the stack and heap implemented? ==
+The implementation really depends on the language, compiler, and run-time – the small details of the implementation for a stack and a heap will always be different depending on what language and compiler are being used. But, in the big picture, the stacks and heaps in one language are used to accomplish the same things as stacks and heaps in another language.
+
+== Can the stack grow in size? Can the heap grow in size? ==
+The stack is set to a fixed size, and can not grow past it’s fixed size (although some languages have extensions that do allow this). So, if there is not enough room on the stack to handle the memory being assigned to it, a stack overflow occurs. This often happens when a lot of nested functions are being called, or if there is an infinite recursive call.
+
+If the current size of the heap is too small to accommodate new memory, then more memory can be added to the heap by the operating system. This is one of the big differences between the heap and the stack.
+
+== How long does memory on the stack last versus memory on the heap? ==
+Once a function call runs to completion, any data on the stack created specifically for that function call will automatically be deleted. Any data on the heap will remain there until it’s manually deleted by the programmer.
+

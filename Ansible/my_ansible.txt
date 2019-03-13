@@ -108,7 +108,8 @@ https://gist.github.com/Fluidbyte/6294378
 https://stackoverflow.com/questions/46780372/expect-script-reading-empty-line
 
 '''
-#!/usr/bin/expect
+
+#!/bin/expect
 
 # Pass arguments to expect script
 set command [lindex $argv 0];
@@ -118,18 +119,41 @@ set f [open "./hosts"]
 set hosts [split [read -nonewline $f] "\n"]
 close $f
 
+# Grab Password
+stty -echo
+send_user -- "Enter Password: "
+expect_user -re "(.*)\n"
+send_user "\n"
+stty echo
+set PASS $expect_out(1,string)
+
 # Iterate over hosts
 foreach host $hosts {
 
-    spawn ssh -o StrictHostKeyChecking=no "$user\@server"
+    spawn ssh -q -o StrictHostKeyChecking=no "user\@$host"
     #expect "(yes/no)"
     #send "yes\r"
-    expect "password"
-    send "YourPasswordHere\r"
-    expect "$ "
-    send "$command\r"
+    expect -nocase "password:"
+    send "$PASS\r"
+
+    # pbrun su -
+    send "pbrun su -\r"
+    expect -nocase "password:"
+    send "$PASS\r"
+
+    # Send the command
+    expect {
+        "$ " {
+             send "$command\r"
+        }
+        "# " {
+             send "$command\r"
+        }
+    }
 
     # Close off each connection
+    expect "# "
+    send "exit\r"
     expect "$ "
     send "exit\r"
     #expect eof
@@ -137,6 +161,8 @@ foreach host $hosts {
 }
 
 interact
+
+
 '''
 
 

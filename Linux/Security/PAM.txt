@@ -9,6 +9,13 @@ Created Sunday 27 January 2019
 http://www.linux-pam.org/Linux-PAM-html/sag-overview.html
 http://www.linux-pam.org/Linux-PAM-html/sag-introduction.html
 
+==== Commands ====
+Show locked user accounts
+# pam_tally2
+
+Unlock accounts 
+# pam_tally --reset --user <user>
+
 Linux-PAM (Pluggable Authentication Modules for Linux) is a suite of shared libraries that enable the local system administrator to choose how applications authenticate users.
 
 In other words, without (rewriting and) recompiling a PAM-aware application, it is possible to switch between the authentication mechanism(s) it uses. Indeed, one may entirely upgrade the local authentication system without touching the applications themselves.

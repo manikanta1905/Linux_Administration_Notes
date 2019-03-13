@@ -1,0 +1,17 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-19T14:35:56-05:00
+
+====== Heap Overflow ======
+Created Tuesday 19 February 2019
+
+'''
+#define BUFSIZE 256
+int main(int argc, char **argv) {
+	char *buf;
+	buf = (char *)malloc(sizeof(char)*BUFSIZE);
+	strcpy(buf, argv[1]);
+}
+'''
+
+If the size of arg[1] is greater than the size buf permits (256) a heap overflow will occur. Heap-based buffer overflows are usually just as dangerous as stack-based buffer overflows.

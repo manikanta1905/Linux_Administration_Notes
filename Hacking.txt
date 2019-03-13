@@ -8,3 +8,7 @@ Created Tuesday 05 February 2019
 ==== Resources ====
 https://www.bonkersabouttech.com/security/40-intentionally-vulnerable-websites-to-practice-your-hacking-skills/392
 http://google-gruyere.appspot.com
+
+==== Vulns ====
+https://www.kb.cert.org/vuls/
+https://cwe.mitre.org/index.html

