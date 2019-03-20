@@ -40,3 +40,6 @@ rawdata_size              =            0 MB
 mfu_size                  =        72376 MB
 mru_size                  =         9309 MB
 '''
+
+
+pmap -x <pid>

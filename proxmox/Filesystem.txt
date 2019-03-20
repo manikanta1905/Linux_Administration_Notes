@@ -1,0 +1,112 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-03-18T15:45:33-04:00
+
+====== Filesystem ======
+Created Monday 18 March 2019
+
+==== File Access Rights ====
+All files and directories under [[/etc]]  are owned by user root and have group www-data. Only root has write permissions, but group www-data can read most files. Files below the following paths:
+
+/etc/pve/priv/
+[[/etc/pve/nodes/${NAME}/priv/]]
+
+are only accessible by root.
+
+==== File System Layout ====
+The file system is mounted at:
+/etc/pve
+
+== Files ==
+corosync.conf
+Corosync cluster configuration file (previous to Proxmox VE 4.x this file was called cluster.conf)
+
+storage.cfg
+Proxmox VE storage configuration
+
+datacenter.cfg
+Proxmox VE datacenter wide configuration (keyboard layout, proxy, …)
+
+user.cfg
+Proxmox VE access control configuration (users/groups/…)
+
+domains.cfg
+Proxmox VE authentication domains
+
+status.cfg
+Proxmox VE external metrics server configuration
+
+authkey.pub
+Public key used by ticket system
+
+pve-root-ca.pem
+Public certificate of cluster CA
+
+priv/shadow.cfg
+Shadow password file
+
+priv/authkey.key
+Private key used by ticket system
+
+priv/pve-root-ca.key
+Private key of cluster CA
+
+nodes/<NAME>/pve-ssl.pem
+Public SSL certificate for web server (signed by cluster CA)
+
+nodes/<NAME>/pve-ssl.key
+Private SSL key for pve-ssl.pem
+
+nodes/<NAME>/pveproxy-ssl.pem
+Public SSL certificate (chain) for web server (optional override for pve-ssl.pem)
+
+nodes/<NAME>/pveproxy-ssl.key
+Private SSL key for pveproxy-ssl.pem (optional)
+
+nodes/<NAME>/qemu-server/<VMID>.conf
+VM configuration data for KVM VMs
+
+nodes/<NAME>/lxc/<VMID>.conf
+VM configuration data for LXC containers
+
+firewall/cluster.fw
+Firewall configuration applied to all nodes
+
+firewall/<NAME>.fw
+Firewall configuration for individual nodes
+
+firewall/<VMID>.fw
+Firewall configuration for VMs and Containers
+
+== Symbolic links ==
+local
+nodes/<LOCAL_HOST_NAME>
+
+qemu-server
+nodes/<LOCAL_HOST_NAME>/qemu-server/
+
+lxc
+nodes/<LOCAL_HOST_NAME>/lxc/
+
+== Special status files for debugging (JSON) ==
+.version
+File versions (to detect file modifications)
+
+.members
+Info about cluster members
+
+.vmlist
+List of all VMs
+
+.clusterlog
+Cluster log (last 50 entries)
+
+.rrd
+RRD data (most recent entries)
+
+==== Enable/Disable debugging ====
+You can enable verbose syslog messages with:
+echo "1" >/etc/pve/.debug
+
+And disable verbose syslog messages with:
+echo "0" >/etc/pve/.debug

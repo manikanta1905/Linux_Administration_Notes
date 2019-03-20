@@ -7,3 +7,78 @@ Created Wednesday 13 February 2019
 
 https://github.com/BeyondTrust/pbis-open/wiki/Documentation
 
+==== PBIS does not work, even though it is "running" ====
+'''
+# /opt/pbis/bin/lwsm list
+lwreg          running (container: 116148)
+autoenroll     running (container: 121673)
+dcerpc         dead
+eventfwd       dead
+eventlog       running (container: 116196)
+gpagent        running (container: 116397)
+lsass          running (container: 116334)
+lwio           running (container: 116287)
+lwpkcs11       stopped
+lwsc           stopped
+netlogon       running (container: 116242)
+rdr            running (io: 116287)
+reapsysl       running (container: 116628)
+usermonitor    stopped
+'''
+
+
+We need to start each stopped service one by one.
+
+'''
+# /opt/pbis/bin/lwsm restart lwpkcs11
+Stopping service: lwpkcs11
+Starting service: lwpkcs11
+# /opt/pbis/bin/lwsm restart lwsc
+Stopping service: lwsc
+Starting service: lwsc
+...
+...
+'''
+
+
+==== Services are listed in "dead" status ====
+
+'''
+# /opt/pbis/bin/lwsm list
+lwreg          running (container: 116148)
+autoenroll     running (container: 121673)
+dcerpc         dead
+eventfwd       dead
+eventlog       running (container: 116196)
+gpagent        running (container: 116397)
+lsass          running (container: 116334)
+lwio           running (container: 116287)
+lwpkcs11       running (standalone: 125538)
+lwsc           running (standalone: 126161)
+netlogon       running (container: 116242)
+rdr            running (io: 116287)
+reapsysl       running (container: 116628)
+usermonitor    running (container: 126543)
+'''
+
+* Start (don't restart) the dead services.
+
+==== Status Unkown ====
+
+'''
+[root@xxxxxxxxxxx]# ./get-status
+LSA Server Status:
+
+Compiled daemon version: 8.5.1.206
+Packaged product version: 8.5.206.67
+Uptime:        0 days 19 hours 35 minutes 50 seconds
+
+[Authentication provider: lsa-activedirectory-provider]
+
+        Status:        Unknown
+        Mode:          Unknown
+'''
+
+
+== Misc ==
+At the time pbis stops working what is the disk usage at? If /var is full then authentication will stop working

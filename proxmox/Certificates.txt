@@ -1,0 +1,31 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-03-18T15:43:39-04:00
+
+====== Certificates ======
+Created Monday 18 March 2019
+
+Each Proxmox VE cluster creates its own (self-signed) Certificate Authority (CA) and generates a certificate for each node which gets signed by the aforementioned CA. These certificates are used for encrypted communication with the cluster’s pveproxy service and the Shell/Console feature if SPICE is used.
+
+Certificate and key are stored in the following locations
+
+[[/etc/pve/pve-root-ca.pem]]
+[[/etc/pve/pve-www.key]]
+
+
+==== Certificates for API and web GUI ====
+The REST API and web GUI are provided by the pveproxy service, which runs on each node.
+
+You have the following options for the certificate used by pveproxy:
+
+By default the node-specific certificate in /etc/pve/nodes/NODENAME/pve-ssl.pem is used. This certificate is signed by the cluster CA and therefore not trusted by browsers and operating systems by default.
+
+use an externally provided certificate (e.g. signed by a commercial CA).
+
+use ACME (e.g., Let’s Encrypt) to get a trusted certificate with automatic renewal.
+
+For options 2 and 3 the file /etc/pve/local/pveproxy-ssl.pem (and /etc/pve/local/pveproxy-ssl.key, which needs to be without password) is used.
+
+Certificates are managed with the Proxmox VE Node management command (see the pvenode(1) manpage).
+
+__Do not replace or manually modify the automatically generated node certificate files in /etc/pve/local/pve-ssl.pem and /etc/pve/local/pve-ssl.key or the cluster CA files in /etc/pve/pve-root-ca.pem and /etc/pve/priv/pve-root-ca.key.__

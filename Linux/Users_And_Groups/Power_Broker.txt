@@ -7,6 +7,11 @@ Created Sunday 02 December 2018
 
 Power Broker (Power Broken, Power Borker) is a replacement for sudo that integrates with Active Directory via Kerberos.
 
+==== Get status and restart ====
+/opt/pbis/bin/get-status
+/opt/pbis/bin/lwsm shutdown 
+/opt/pbis/sbin/lwsmd --start-as-daemon
+
 == lwsm service manager ==
 Get service status
 [[./lwsm]] list

@@ -5,3 +5,7 @@ Creation-Date: 2019-01-23T08:08:17-05:00
 ====== SMTP ======
 Created Wednesday 23 January 2019
 
+mailx -a <attachment> destination.address@example.com
+Subject: here is the subject
+Here is the body of the message
+CTRL+D

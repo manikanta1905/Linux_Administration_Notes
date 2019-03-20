@@ -112,7 +112,9 @@ in subsequent operations. If the access is prohibited, an error code (1) is retu
 
 ==== Named Pipes (or just pipes) ====
 
-A pipe is a "pseudofile" that is used to connect or allow two processes to communicate with each other. Processes are connected via Named Pipes. The pipes we are used to using (with the "|" character) are referred to as Unnamed Pipes.
+A pipe is a "pseudofile" that is used to connect or allow two processes to communicate with each other. Processes are connected via Named Pipes. A traditional pipe is "unnamed" and lasts only as long as the process. A named pipe, however, can last as long as the system is up, beyond the life of the process. It can be deleted if no longer used. Usually a named pipe appears as a file, and generally processes attach to it for IPC (Inter Process Communication). In both cases, data is stored in memory (named pipes look like they reside on filesystem, but actual data is stored on memory).
+
+The pipes we are used to using (with the "|" character) are referred to as Unnamed Pipes.
 
 [process A] =====Pipe=====[process B]
 

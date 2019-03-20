@@ -1,0 +1,39 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-03-18T10:01:09-04:00
+
+====== networking ======
+Created Monday 18 March 2019
+
+There are only a few files you must configure for networking. They are
+
+[[/etc/network/interfaces]]
+[[/etc/hosts]]
+[[/etc/resolv.conf]]
+
+systemctl restart networking
+reboot
+
+
+== /etc/network/interfaces ==
+
+auto lo                                                                                      
+iface lo inet loopback
+                                                                                                                                                     
+iface eno1 inet manual
+                                                                                                                                                                    
+auto vmbr0                                                                                   
+iface vmbr0 inet static                                                                              
+	address 192.168.1.2                                                                          
+	netmask 255.255.255.0                                                                        
+	gateway 192.168.1.1                                                                          
+	bridge_ports eno1                                                                            
+	bridge_stp off                                                                               
+	bridge_fd 0                                                                                                                                                                       
+
+iface eno2 inet manual                                                                                                                                                                    
+
+iface eno3 inet manual                                                                                                                                                                    
+
+iface eno4 inet manual 
+
