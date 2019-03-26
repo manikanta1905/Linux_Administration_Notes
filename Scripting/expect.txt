@@ -1,0 +1,157 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-03-24T07:35:39-04:00
+
+====== expect ======
+Created Sunday 24 March 2019
+
+== Basics ==
+Everything is a string
+
+To set variables
+
+set name Tim
+set foo bar
+set pi 3.14
+
+variables are case sensitive, so name and Name would be different variables.
+
+set sentence "your name is $name"
+
+You can print strings using the puts function
+
+puts "My name is $name"
+puts "$sentence"
+
+Common escape characters are
+\ = escape character (\\ prints literal "\")
+\t = tab
+\b = backspace
+\x## = hex (\x03)
+\0## = octal number (\032)
+
+# Define Control-Z as a variable
+set controlZ \032
+# Control-C as a variable
+set controlC \x03
+# escaped '\'
+set os unix\\linux
+
+Return values
+
+You can collect return values using the following syntax. In the example below, the return value of pid is used to set the value of a.
+
+set a [pid]
+set a [set b 0]
+set a "1 - 1 = [set b 0]"
+
+Arithmetic
+https://www.tcl-lang.org/man/tcl/TclCmd/expr.htm
+set true 1
+set false 0
+
+expr 1 + 1
+expr 2*3
+expr 3**3
+expr $true && $false
+expr $false || $true
+expr $false != $true
+set a [expr 1 + 3]
+set b [expr sin(30)]
+set c [expr pid==0]
+
+While loop
+The following while loop calculates the factorial of a number passed to it.
+
+'''
+set total 1
+
+while {$count > 0} {
+    set total [expr $total * $count]
+    incr count -1
+'''
+
+For loop
+
+'''
+for start expression next {
+    # do stuff
+}
+
+# Factorial For Loop
+for {set total 1} {$count > 0} {incr count -1} {
+    set total [expr $total * $count]
+}
+'''
+
+If statement
+
+set num 2
+
+'''
+if {$num < 0} {
+    puts "num is a negative number"
+} elseif {$num > 0} {
+    puts "num is a positive number"
+} else {
+    puts "num is zero"
+}
+'''
+
+
+Switch Statement
+
+switch  — $arg \
+	1 {
+	  set verbosity 1
+} 2 {
+	  set verbosity 2
+} 3 {
+	  set verbosity 3
+} default {
+	  set verbosity 0
+}
+
+You can also pass the -glob or -regex flag to have the argument match a particular regular expression
+switch -glob — $arg \
+switch -regex — $arg \
+
+switch -glob  — $arg \
+  *.txt {
+	  set filetype txt
+} *.?zip {
+	  set filetype compressed
+} default {
+	  puts "invalid file type"
+}
+
+Break/Continue
+
+Break = Breaks out of control structure (while loop, braces)
+continue = returns to top of control structure (while loop, braces)
+
+'''
+while {1} {
+    set a 1
+    set b 2
+    incr a
+
+    if {a + b == 6} break
+    puts "While loop ends when a is 4"
+    puts "a = $a"
+}
+'''
+
+'''
+while {1} {
+    set a 1
+    incr a    
+
+    if {a %2 == 2} continue
+    puts "If a is even, this is not executed"
+}
+'''
+
+
+Functions (proc and return)
+

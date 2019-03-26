@@ -17,3 +17,78 @@ total 12
 == Error getting repository data for epel.repo, repository not found ==
 The configuration file [[/etc/yum.repos.d/epel.repo]] is not configured properly. Specifically, the baseurl variable is not set, or it is not set properly.
 
+
+==== Thread Died in Berkeley DB / Fatal error, run database recovery ====
+If you get the following error, the rpm database may have become corrupted.
+
+'''
+[root@localhost ~]# yum repoinfo base
+error: rpmdb: BDB0113 Thread/process 4232/139902061463360 failed: BDB1507 Thread died in Berkeley DB library
+error: db5 error(-30973) from dbenv->failchk: BDB0087 DB_RUNRECOVERY: Fatal error, run database recovery
+error: cannot open Packages index using db5 -  (-30973)
+error: cannot open Packages database in /var/lib/rpm
+CRITICAL:yum.main:
+
+Error: rpmdb open failed
+'''
+
+
+Follow these steps to rebuild the database and restore the data
+
+
+1) take a backup of the database
+'''
+# cd /var/lib
+# tar -zcvf /var/preserve/rpmdb-$(date +%Y-%m-%d_%H-%M-%S).tar.gz rpm
+'''
+
+
+2) Verify integrity of the Packages file:
+'''
+# cd /var/lib/rpm
+# rm -f __db*      # to avoid stale locks
+# /usr/lib/rpm/rpmdb_verify Packages
+'''
+
+
+If the last command shown in method 2 returns without any error, then we can be sure about the integrity of the rpm database. You can also issue the following command to be sure of the success of the rpmdb_verify command.
+
+'''
+$ /usr/lib/rpm/rpmdb_verify Packages
+$ echo $?
+0
+'''
+
+
+3) If the above verify reports success, go to step 6.
+4) If the above verify reports any errors, a dump and load of the database is required.
+
+'''
+# mv Packages Packages.orig
+# /usr/lib/rpm/rpmdb_dump Packages.orig | /usr/lib/rpm/rpmdb_load Packages
+'''
+
+
+5) Verify the newly loaded Packages file, as well as rpm output.
+
+'''
+# /usr/lib/rpm/rpmdb_verify Packages
+# rpm -qa >/dev/null    # Validating there are no errors
+# rpm -qa               # Validating list of installed RPMs
+'''
+
+
+6) If no errors and everything looks good, rebuild the RPM indexes
+
+''# rpm -vv --rebuilddb''
+
+7) Once again verify RPM database:
+
+'''
+# cd /var/lib/rpm
+# /usr/lib/rpm/rpmdb_verify Packages
+'''
+
+
+Note: If you have another machine having the exactly same installed package set, you can rebuild the rpm db with Packages file on the machine.
+

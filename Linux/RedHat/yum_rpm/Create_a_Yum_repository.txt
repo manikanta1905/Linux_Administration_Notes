@@ -19,29 +19,52 @@ or you can list both enabled and disabled repose
 You can change a repo from enabled to disabled in its corresponding **/etc/yum.repos.d/*.repo** file. Or you can use the following command to specify which repos to enable/disable
 $ yum --disablerepo=* --enablerepo=dvd install tree
 
+== Get Repository size ==
+It is prudent to get the size of a repository before you create a local copy so that you don't fill up a local file system (like [[/var]]).
+
+'''
+# yum repoinfo rhel-7-server-eus-rpms
+Repo-id      : rhel-7-server-eus-rpms/7Server/x86_64
+Repo-name    : Red Hat Enterprise Linux 7 Server - Extended Update Support (RPMs)
+Repo-status  : enabled
+Repo-revision: 1445935462
+Repo-updated : Tue Oct 27 14:15:47 2015
+Repo-pkgs    : 7,617
+Repo-size    : 8.7 G
+Repo-baseurl : https://cdn.redhat.com/content/eus/rhel/server/7/7Server/x86_64/os
+Repo-expire  : 86,400 second(s) (last: Wed Oct 28 07:02:46 2015)
+Repo-filename: /etc/yum.repos.d/redhat.repo
+'''
+
+
+Alternatively, you can run the following commands (repo must be enabled)
+
+yum repolist all
+yum repolist all -v 
+
 === Creating a local FTP repository ===
 Suppose you wanted to create a local copy of the CentOS 7 base repository. You also plan on sharing this repository via the FTP protocol. You would do the following on the server hosting the repo
 '''
-$ firewall-cmd --add-service=ftp --zone=public
-$ firewall-cmd --add-service=ftp --zone=public --permanent
-'''
+yum install yum-utils createrepo
+$ cd /var/ftp/pub/
+reposync --gpgcheck -l --repoid=repo-id
+# cd /var/ftp/pub/<repo-id>
 
+You will then need to run the createrepo command on the directory where the RPMs are located. This will generate a metadata file named 
 '''
-$ mkdir /var/ftp/pub/CentOS7_base && cd /var/ftp/pub/CentOS7_base
-$ reposync --repoid=base
-'''
+**repodata** which will inform a client's yum this is a local repository where it can find RPMs to download.
+''# createrepo -v /var/ftp/pub/<repo-id>''
 
+''$ firewall-cmd --add-service=ftp --zone=public''
+''$ firewall-cmd --add-service=ftp --zone=public --permanent''
 
-You will then need to run the createrepo command on the directory where the RPMs are located. This will generate a metadata file named **repodata** which will inform a client's yum this is a local repository where it can find RPMs to download.
-	''$ createrepo ./base/Packages''
-	
 Lastly, on any client machine that would be accessing this repository, you would need to create an **/etc/yum.repos.d/CentOS-Base-Local.repo** file to instruct yum how to download these RPMs. Put the following content in this file:
 '''
 [centos-base-local]
 name=CentOS-Base-Local
 enabled=1
-gpgcheck=0
-baseurl=ftp://192.168.1.51/pub/CentOS7_Extras/extras/Packages/
+gpgcheck=1
+baseurl=ftp://$ftp_server/pub/<repo-id>/extras/Packages/
 '''
 
 
@@ -51,6 +74,16 @@ $ yum clean all
 $ yum repolist centos-base-local -v
 '''
 
+
+== Local Security Repositories ==
+For creating local security repositories, the procedure to be followed is different as the metadata for security rpms differs from that for regular rpms . createrepo will not create the updateinfo.xml file.
+
+On local yum server
+
+# cp /var/cache/yum/x86_64/7Server/rhel-7-server-rpms/*updateinfo.xml.gz /test/repository/path/repodata/
+gzip -d /test/repository/path/repodata/*.updateinfo.xml.gz
+ mv /test/repository/path/repodata/*.updateinfo.xml [[/test/repository/path/repodata/updateinfo.xml]]
+modifyrepo /test/repository/path/repodata/updateinfo.xml /test/repository/path/repodata/
 
 == Mounting DVD for Repo ==
 

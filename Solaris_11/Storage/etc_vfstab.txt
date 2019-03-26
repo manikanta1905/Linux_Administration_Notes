@@ -1,0 +1,14 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-03-24T10:24:25-04:00
+
+====== etc vfstab ======
+Created Sunday 24 March 2019
+
+Mount nfs filesystem
+
+'''
+#device                device          mount         FS      fsck      mount     mount
+#to mount              to fsck         point         type    pass      at boot   options
+192.168.10.23:/data      -             /mnt          nfs       -        yes       ro,bg,vers=3
+'''
