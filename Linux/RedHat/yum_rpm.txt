@@ -13,3 +13,7 @@ Delta RPM packages contain the difference between an old and a new version of an
 
 
 === Viewing Current active and inactive Repositories ===
+
+
+==== Caching YUM packages for more efficient updates ====
+http://yum.baseurl.org/wiki/YumMultipleMachineCaching.html

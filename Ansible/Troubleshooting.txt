@@ -1,0 +1,19 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-01T12:15:32-04:00
+
+====== Troubleshooting ======
+Created Monday 01 April 2019
+
+==== Fail to SSH (permission denied) ====
+TASK [Gathering Facts] *******************************************************************************************************************************************************************************************
+fatal: [ftp.home]: UNREACHABLE! => {"changed": false, "msg": "Failed to connect to the host via ssh: Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).\r\n", "unreachable": true}
+
+You must pass the -k flag to be prompted for the SSH password
+
+		   ''-k, --ask-pass''
+'''
+           ask for connection password
+'''
+
+''[root@ns1 dns]# ansible-playbook --user root -i ftp.home, dns_client.yaml -k''

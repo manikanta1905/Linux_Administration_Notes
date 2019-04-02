@@ -37,3 +37,55 @@ iface eno3 inet manual
 
 iface eno4 inet manual 
 
+==== Virtual Bridge ====
+Bridges are like physical network switches implemented in software. All VMs can share a single bridge, or you can create multiple bridges to separate network domains. Each host can have up to 4094 bridges.
+
+The installation program creates a single bridge named vmbr0, which is connected to the first Ethernet card. The corresponding configuration in /etc/network/interfaces might look like this:
+
+auto lo
+iface lo inet loopback
+
+iface eno1 inet manual
+
+auto vmbr0
+iface vmbr0 inet static
+		address 192.168.10.2
+		netmask 255.255.255.0
+		gateway 192.168.10.1
+		bridge_ports eno1
+		bridge_stp off
+		bridge_fd 0
+
+Virtual machines behave as if they were directly connected to the physical network. The network, in turn, sees each virtual machine as having its own MAC, even though there is only one network cable connecting all of these VMs to the network.
+{{.\pasted_image.png}}
+
+'''
+root@pve1-gkh8ww1:~# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq 
+'''
+__master vmbr0 state UP__'' group default qlen 1000''
+''    link/ether ''__90:b1:1c:06:3f:ff__'' brd ff:ff:ff:ff:ff:ff''
+''3: eno2: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000''
+''    link/ether 90:b1:1c:06:40:00 brd ff:ff:ff:ff:ff:ff''
+''4: eno3: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000''
+''    link/ether 90:b1:1c:06:40:01 brd ff:ff:ff:ff:ff:ff''
+''5: eno4: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000''
+''    link/ether 90:b1:1c:06:40:02 brd ff:ff:ff:ff:ff:ff''
+''6: vmbr0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000''
+''    link/ether ''__90:b1:1c:06:3f:ff__'' brd ff:ff:ff:ff:ff:ff''
+''    inet 192.168.1.2/24 brd 192.168.1.255 scope global vmbr0''
+''       valid_lft forever preferred_lft forever''
+''    inet6 fe80::92b1:1cff:fe06:3fff/64 scope link ''
+''       valid_lft forever preferred_lft forever''
+''7: tap102i0: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master vmbr0 state UNKNOWN group default qlen 1000''
+''    link/ether 32:3b:f0:89:d3:e7 brd ff:ff:ff:ff:ff:ff''
+''8: tap103i0: <BROADCAST,MULTICAST,PROMISC,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast master vmbr0 state UNKNOWN group default qlen 1000''
+''    link/ether 72:4a:13:31:74:5b brd ff:ff:ff:ff:ff:ff''
+
+interface 7 and 8 belong to the vms.

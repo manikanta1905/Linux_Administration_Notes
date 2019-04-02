@@ -13,6 +13,10 @@ nmcli sucks
 Shows the settings set for the particular connection.  Lower case options are user set, capitalized options are set by DHCP.
 https://lists.centos.org/pipermail/centos/2016-April/158727.html
 
+==== Changing DNS Entries in /etc/resolv.conf ====
+nmcli con modify eth0 ipv4.dns <nameserver ip>
+nmcli con reload
+nmcli con up eth0
 
 ==== Disabling Auto DNS ====
 

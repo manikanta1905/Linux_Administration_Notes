@@ -70,7 +70,7 @@ https://unix.stackexchange.com/questions/306111/what-is-the-difference-between-t
 
 This is the traditional shell test command. It is available on all POSIX shells. The test command sets an exit code and the if statement acts accordingly. Typical tests are whether a file exists or one number is equal to another.
 
-* if [[ condition ]]
+* if [[[[ condition ]]]]
 
 This is a new upgraded variation on test from ksh that bash and zsh also support. This test command also sets an exit code and the if statement acts accordingly. Among its extended features, it can test whether a string matches a regular expression.
 
