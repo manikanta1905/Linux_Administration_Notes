@@ -6,5 +6,18 @@ Creation-Date: 2019-03-26T09:04:12-04:00
 Created Tuesday 26 March 2019
 
 Run Anisble through localhost (127.0.0.1)
-# ansible-playbook -i localhost, playbook.yml --connection=local
+''# ansible-playbook -i localhost, playbook.yml --connection=local''
 
+Run a playbook on a single host (no inventory file)
+
+''[root@ns1 rpm_ftp_repo]# ansible-playbook -i ftp.home, rpm_ftp_repo.yaml -k''
+
+Run script on remote server using ad-hoc command
+
+'''
+[root@ns1 rpm_ftp_repo]# ansible all -i ftp.home, -a ./ftp_disk_check.sh -k
+SSH password: 
+ftp.home | CHANGED | rc=0 >>
+Total repo size         : 18139945369
+Available space in /var : 37580963840
+'''

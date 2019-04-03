@@ -1,0 +1,50 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-03T09:01:36-04:00
+
+====== RTNETLINK answers File exists” when running ifup ======
+Created Wednesday 03 April 2019
+
+== “RTNETLINK answers: File exists” when running ifup ==
+https://raspberrypi.stackexchange.com/questions/13895/solving-rtnetlink-answers-file-exists-when-running-ifup
+https://blog.karssen.org/2013/03/28/solving-rtnetlink-answers-file-exists-when-running-ifup/
+__WARNING! If you have an active SSH connection, you may lose it!__
+
+This was the contents of [[/etc/networking/interfaces:]]
+
+'''
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+        address xxx.yyy.zzz.mmm
+        netmask 255.255.255.0
+        gateway xxx.yyy.zzz.1
+        dns-nameservers xxx.yyy.zzz.aaa xxx.yyy.zzz.bbb
+        dns-search mydomain.nl
+
+auto eth3
+iface eth3 inet static
+        address 192.168.4.1
+        netmask 255.255.255.0
+        gateway 192.168.4.1
+'''
+
+When I tried to bring the interface up I got an error message:
+
+'''
+$ ifup eth3
+RTNETLINK answers: File exists
+Failed to bring up eth3.
+'''
+
+the problem was the gw line in the eth3 entry. Of course you can only have one default gateway in your setup. I missed this because I was also trying to add routes to networks behind the machine on the other end of eth3.
+In the end, removing the gw line in the eth3 entry solved the problem.
+
+== Alternate Solution ==
+For temporary network configurations, you can use the ip command which is also found on most other GNU/Linux operating systems. The ip command allows you to configure settings which take effect immediately, however they are not persistent and will be lost after a reboot.
+If you no longer need this configuration and wish to purge all IP configuration from an interface, you can use the ip command with the flush option as shown below.
+ 
+''ip addr flush eth0''

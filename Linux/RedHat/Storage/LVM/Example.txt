@@ -5,6 +5,7 @@ Creation-Date: 2018-06-13T08:50:41-04:00
 ====== Example ======
 Created Wednesday 13 June 2018
 
+== Grow a Logical Volume by adding a new physical disk ==
 https://www.rootusers.com/how-to-increase-the-size-of-a-linux-lvm-by-adding-a-new-disk/
 
 Add disk to system, make disk a physical volume, add disk to volume group, extend existing volume, resize filesystem.
@@ -18,3 +19,19 @@ If ext4 filesystem
 # resize2fs [[/dev/vg0/root]]
 If xfs filesystem
 # xfs_growfs /dev/vg0/root
+
+
+== Grow a Logical Volume by expanding an existing disk ==
+
+1) Expand the disk in the hypervisor and run pvscan
+# pvscan
+2) verify disk was expanded (lsblk)
+{{.\pasted_image.png}}
+
+3) Grow the partition the LVM filesystems are on
+# parted [[/dev/sda]]
+resizepart 2 100%
+4) Resize the Physical Volume
+# pvresize [[/dev/sda2]]
+5) Resize the desired Logical volume as well as the filesystem on top
+# lvresize -r -L [[+30GB]] /dev/mapper/centos-var
