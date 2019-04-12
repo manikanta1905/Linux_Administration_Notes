@@ -1,0 +1,153 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-12T10:40:19-04:00
+
+====== ipv6 ======
+Created Friday 12 April 2019
+
+==== Overview ====
+https://www.lisenet.com/2016/configure-unique-local-ipv6-addresses-on-rhel-7/
+
+== IPv6 Address Format ==
+The IPv6 address is noted as 8 groups of 16 bits (which equals 4 hexadecimal numbers), for example:
+
+fe80:7eef:0000:0000:1000:002a:0003:0001
+
+There are a couple of formatting rules: leading zeroes do not have to be written, and long strings of all zeroes can be summarised as ::. This would make the previous example look like:
+fe80:7eef::1000:2a:3:1
+
+== Common IPv6 Addresses ==
+The localhost address is ::1/128, which is 127.0.0.1/8 in IPv4 format.
+
+All addresses would be ::, what is 0.0.0.0 in IPv4 format.
+
+Multicast address is ff00::/8.
+
+== Unique Local Addresses (Private Networks) ==
+A unique local address is an IPv6 address in the block fc00::/7. Unique local addresses are not routable in the global IPv6 Internet.
+
+A comparison to IPv4 would be 10.0.0.0/8 or 192.168.0.0/16 networks.
+
+== Link-local Addresses ==
+The link-local address is automatically configured on each IPv6 interface, but does not allow for globally unique addressing.
+
+To conform to standard /64 addressing on subnets, the actual link-local addresses are assigned with the prefix fe80::/64.
+
+IPv6 requires a link-local address on every network interface on which the IPv6 protocol is enabled, even when routable addresses are also assigned.
+
+https://serverfault.com/questions/242013/difference-between-link-local-and-global-link-addresses-in-isatap
+Any IPv6 adapter should always have two IP addresses if you're using it for internet traffic - your link-local address and your global address.
+Your global address is world-routable, so anyone anywhere in the world can see that IP address (although of course, there should be a firewall between you and them to stop them from actually accessing you).
+Your link-local address is just for your local area network. Consider it the equivalent of a 192.168.0.1 or 10.1.1.1 address. They are not routable, and can be used for internal communications, so that if your world-routable prefix changes, you don't have to update all your IP references to internal IP addresses.
+The only functional difference is that your link-local address is not routable, and your global address must be routable. There are issues where non-routable global addresses have been allocated (via DHCPv6) for whatever reason, your computer THINKS it has a routable IPv6 address when it doesn't, and then all your IPv6 connectivity breaks.
+
+== ping6 ==
+ping6 invalid syntax
+
+''ping6 fe80::a1b:8437:6f93:9538%eth0''
+ping6 google.com
+
+== removing old ipv6 addresses (after network migration) ==
+
+dadfailed indicates this ipv6 address is no longer in use (or it cannot connect to the gateway anymore).
+
+''[root@ns1 ~]# ip -6 a''
+''1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 state UNKNOWN qlen 1000''
+''    inet6 ::1/128 scope host ''
+''       valid_lft forever preferred_lft forever''
+''2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000''
+''    inet6 fe80::a1b:8437:6f93:9538/64 scope link tentative noprefixroute dadfailed ''
+''       valid_lft forever preferred_lft forever''
+''    inet6 fe80::1b44:da5:a0ca:8f6/64 scope link noprefixroute ''
+''       valid_lft forever preferred_lft forever''
+
+''[root@ns1 ~]# ping -6 fe80::a1b:8437:6f93:9538%eth0''
+''PING fe80::a1b:8437:6f93:9538%eth0(fe80::a1b:8437:6f93:9538%eth0) 56 data bytes''
+''From fe80::1b44:da5:a0ca:8f6%eth0 icmp_seq=1 Destination unreachable: Address unreachable''
+''From fe80::1b44:da5:a0ca:8f6%eth0 icmp_seq=2 Destination unreachable: Address unreachable''
+''...''
+''...''
+
+''[root@ns1 ~]# ping6 fe80::1b44:da5:a0ca:8f6%eth0''
+''PING fe80::1b44:da5:a0ca:8f6%eth0(fe80::1b44:da5:a0ca:8f6%eth0) 56 data bytes''
+''64 bytes from fe80::1b44:da5:a0ca:8f6%eth0: icmp_seq=1 ttl=64 time=0.136 ms''
+''64 bytes from fe80::1b44:da5:a0ca:8f6%eth0: icmp_seq=2 ttl=64 time=0.083 ms''
+...
+...
+
+
+'''
+[root@ns1 yum.repos.d]# nmcli con modify eth0 ipv6.addresses fe80::a1b:8437:6f93:9538/64
+[root@ns1 yum.repos.d]# nmcli con reload
+[root@ns1 yum.repos.d]# nmcli con up eth0
+Connection successfully activated (D-Bus active path: /org/freedesktop/NetworkManager/ActiveConnection/4)
+'''
+
+
+Alternatively you can temporarily remove the address using ip command.
+
+''# ip -6 addr del fe80::a1b:8437:6f93:9538/64 dev eth0''
+
+
+
+'''
+[root@ns1 yum.repos.d]# ip -6 route
+unreachable ::/96 dev lo metric 1024 error -113 pref medium
+unreachable ::ffff:0.0.0.0/96 dev lo metric 1024 error -113 pref medium
+unreachable 2002:a00::/24 dev lo metric 1024 error -113 pref medium
+unreachable 2002:7f00::/24 dev lo metric 1024 error -113 pref medium
+unreachable 2002:a9fe::/32 dev lo metric 1024 error -113 pref medium
+unreachable 2002:ac10::/28 dev lo metric 1024 error -113 pref medium
+unreachable 2002:c0a8::/32 dev lo metric 1024 error -113 pref medium
+unreachable 2002:e000::/19 dev lo metric 1024 error -113 pref medium
+unreachable 3ffe:ffff::/32 dev lo metric 1024 error -113 pref medium
+[root@ns1 yum.repos.d]# ip -6 route del ::/96 dev lo
+[root@ns1 yum.repos.d]# for route in $(ip -6 route | grep "unreachable" | awk '{ print $2,$3,$4 }'); do ip -6 route del $route; done
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+Command line is not complete. Try option "help"
+Error: inet6 prefix is expected rather than "lo".
+'''
+
+
+== ifcfg-<interface> options ==
+
+'''
+IPV6ADDR             #<addr/mask> - Where address is the first static, or primary, IPv6 address on an interface. 
+IPV6ADDR_SECONDARIES #<addr/mask> Option additional addresses .
+IPV6_AUTOCONF        #<yes/no> - Enable IPv6 autoconf configuration for this interface (an IPv6 address will be requested using Neighbor Discovery (ND)).
+IPV6_AUTOTUNNEL      #<yes/no> - Control IPv6 automatic tunneling (device sit0)
+IPV6_DEFAULTGW       #<addr> - IPv6 default gateway
+IPV6_DEFROUTE        #Does option even exist?
+IPV6_FAILURE_FATAL   #<yes/no> - Whether the device is disabled if IPv6 configuration fails.
+IPV6FORWARDING       #<yes/no>- Control IPv6 forwarding (box acting as router).
+IPV6INIT             #<yes/no> - Initialize this interface for IPv6 addressing.
+IPV6_MTU             #<integer> IPv6 MTU for this link.
+IPV6_PEERDNS         #<yes/no> - Does this option exist? I assume it does the same as the IPv6 version?
+IPV6_ROUTER          #<yes/no> - Control sending of router advertisements and isRouter on neigbor advertisements.
+
+
+# defaults:
+# IPV6_AUTOCONF=(see IPV6FORWARDING)
+# IPV6_AUTOTUNNEL=no
+# IPV6_FAILURE_FATAL=???
+# IPV6FORWARDING=no
+#  if IPV6FORWARDING=yes: IPV6_AUTOCONF=no, IPV6_ROUTER=yes
+#  if IPV6FORWARDING=no:  IPV6_AUTOCONF=yes
+# IPV6INIT=no
+# IPV6_PEERDNS=???
+# IPV6_ROUTER=(see IPV6FORWARDING)
+'''
+

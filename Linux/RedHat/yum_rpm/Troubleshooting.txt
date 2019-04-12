@@ -17,6 +17,9 @@ total 12
 == Error getting repository data for epel.repo, repository not found ==
 The configuration file [[/etc/yum.repos.d/epel.repo]] is not configured properly. Specifically, the baseurl variable is not set, or it is not set properly.
 
+== 14: curl#7 - "Failed to connect to 2607:f8f8:700:12::10: Network is unreachable" ==
+
+
 
 ==== Thread Died in Berkeley DB / Fatal error, run database recovery ====
 If you get the following error, the rpm database may have become corrupted.

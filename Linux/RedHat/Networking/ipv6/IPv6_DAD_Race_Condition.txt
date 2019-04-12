@@ -1,0 +1,43 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-12T14:08:13-04:00
+
+====== IPv6 DAD Race Condition ======
+Created Friday 12 April 2019
+
+https://www.agwa.name/blog/post/beware_the_ipv6_dad_race_condition
+Debian Bug Report
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=705996
+
+One extremely frustrating problem that arises with IPv6 under Linux is the race condition caused at system boot by IPv6's Duplicate Address Detection (DAD). DAD is a new feature in IPv6 that protects against IP address conflicts. The way it works is that after an address is added to an interface, the operating system uses the Neighbor Discovery Protocol to check if any other host on the network has the same address. If it finds a neighbor with the same address, the address is removed from the interface.
+
+The problem is that until DAD can confirm that there is no other host with the same address, the address is considered to be "tentative." While it is in this state, attempts to bind() to the address fail with EADDRNOTAVAIL, as if the address doesn't exist. 
+
+'''
+[root@ns1 log]# strace dhclient -6 
+...
+...
+bind(6, {sa_family=AF_INET6, sin6_port=htons(546), inet_pton(AF_INET6, "fe80::a1b:8437:6f93:9538", &sin6_addr), sin6_flowinfo=0, sin6_scope_id=if_nametoindex("eth0")}, 28) = -1 EADDRNOTAVAIL (Cannot assign requested address)
+'''
+
+
+
+That means that if you have a service configured to listen on a particular IPv6 address, and that IPv6 address is still tentative when the service starts, it will fail to bind to that address. Very few programs will try to bind again later. Most either continue without listening on the failed address, or fail to start altogether. Apache, for example, fails to start if it can't bind to an address.
+
+DAD is fast, but not always fast enough. Since services like Apache are started soon after networking is configured on system boot, there is a race condition. Sometimes your critical services start on boot, and sometimes they don't! This is clearly not acceptable behavior for a production server.
+
+For this reason, I always disable DAD on servers that use IPv6. When DAD is disabled, addresses are immediately usable, just like they are with IPv4. Without DAD, I have to trust myself not to shoot myself in the foot with an address conflict, but that's nothing new. Besides, most of these servers are in data centers that restrict the IP addresses on the switch port anyways.
+
+To disable DAD, you need to write 0 to /proc/sys/net/ipv6/conf/ethX/accept_dad, where ethX is the interface, before you configure the interface. In Debian, I accomplish this using a pre-up directive on the interface stanza, like this:
+
+'''
+iface eth0 inet6 static
+	address 3ffe:ffff::4a:5000
+	netmask 64
+	gateway fe80::1
+	pre-up echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_dad
+'''
+
+Clearly, this is less than ideal. To begin with, this problem is not well-documented, which will cause endless frustration to administrators trying to roll out IPv6. Even then, this solution is sub-optimal and would lead to the demise of DAD on servers if widely implemented. But a better solution would require more fundamental changes to either the operating system or to the applications. The operating system could pause on boot until DAD completes. Ideally, it would know which services listen on which addresses, and delay the start of only those services. Services could retry failed binds after a delay, or set the Linux-specific IP_FREEBIND socket option, which permits binding to a non-local or non-existent address. (Unfortunately, IP_FREEBIND would also let you bind to an address that truly doesn't exist.)
+
+As IPv6 becomes more widespread, I expect this to be addressed in earnest, but until then, disabling DAD is the way to go.

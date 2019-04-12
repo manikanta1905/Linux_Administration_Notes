@@ -7,6 +7,7 @@ Created Friday 25 August 2017
 
 http://linux-ip.net/html/index.html
 
+
 ==== Setting Static Routes ====
 https://www.centos.org/docs/5/html/5.2/Deployment_Guide/s1-networkscripts-static-routes.html
 The default route can be set in the network script using the **GATEWAY=** setting. Simply edit this setting accordingly and then run
