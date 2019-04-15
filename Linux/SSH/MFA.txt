@@ -1,0 +1,108 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-15T09:02:17-04:00
+
+====== MFA ======
+Created Monday 15 April 2019
+
+https://www.digitalocean.com/community/tutorials/how-to-set-up-multi-factor-authentication-for-ssh-on-ubuntu-16-04
+
+==== Installation ====
+OATH-TOTP (Open Authentication Time-Based One-Time Password) is an open protocol that generates a one-time use password, commonly a 6 digit number that is recycled every 30 seconds.
+
+$ sudo apt-get update
+$ sudo apt-get install libpam-google-authenticator
+
+run initialization app
+$ google-authenticator
+
+Do you want authentication tokens to be time-based (y/n) y
+
+**Note**: Make sure you record the secret key, verification code, and the recovery codes in a safe place, like a password manager. The recovery codes are the only way to regain access if you, for example, lose access to your TOTP app.
+
+Do you want me to update your "~/.google_authenticator" file (y/n) y
+
+Do you want to disallow multiple uses of the same authentication
+token? This restricts you to one login about every 30s, but it increases
+your chances to notice or even prevent man-in-the-middle attacks (y/n) y
+
+By default, tokens are good for 30 seconds and in order to compensate for
+possible time-skew between the client and the server, we allow an extra
+token before and after the current time. If you experience problems with poor
+time synchronization, you can increase the window from its default
+size of 1:30min to about 4min. Do you want to do so (y/n) n
+
+If the computer that you are logging into isn't hardened against brute-force
+login attempts, you can enable rate-limiting for the authentication module.
+By default, this limits attackers to no more than 3 login attempts every 30s.
+Do you want to enable rate-limiting (y/n) y
+
+**Note**: Once you finish this setup, if you want to back up your secret key, you can copy the ~/.google-authenticator file to a trusted location. From there, you can deploy it on additional systems or redeploy it after a backup.
+
+==== Configuration ====
+$ vi [[/etc/pam.d/sshd]]
+
+add the following line
+
+'''
+. . .
+# Standard Un*x password updating.
+@include common-password
+auth required pam_google_authenticator.so nullok
+'''
+
+The nullok word at the end of the last line tells the PAM that this authentication method is optional. This allows users without a OATH-TOTP token to still log in using their SSH key. Once all users have an OATH-TOTP token, you can remove nullok from this line to make MFA mandatory.
+
+Next, we'll configure SSH to support this kind of authentication. Open the SSH configuration file for editing.
+
+$ vi [[/etc/ssh/sshd_config]]
+'''
+. . .
+# Change to yes to enable challenge-response passwords (beware issues with
+# some PAM modules and threads)
+ChallengeResponseAuthentication yes
+. . .
+'''
+
+$ sudo systemctl restart sshd.service
+
+To test that everything's working so far, open another terminal and try logging in over SSH. If you've previously created an SSH key and are using it, you'll notice you didn't have to type in your user's password or the MFA verification code. This is because an SSH key overrides all other authentication options by default. Otherwise, you should have gotten a password and verification code prompt.
+
+Next, to enable an SSH key as one factor and the verification code as a second, we need to tell SSH which factors to use and prevent the SSH key from overriding all other types.
+
+==== Making SSH Aware of MFA ====
+/etc/ssh/sshd_config
+'''
+. . .
+UsePAM yes
+AuthenticationMethods publickey,password publickey,keyboard-interactive
+'''
+
+
+comment out common-auth
+
+[[/etc/pam.d/sshd]]
+
+'''
+. . .
+# Standard Un*x authentication.
+#@include common-auth
+. . .
+'''
+
+$ sudo systemctl restart sshd.service
+
+
+ssh with verbose output
+'''
+Example SSH output\
+. . .
+debug1: Authentications that can continue: publickey
+debug1: Next authentication method: publickey
+debug1: Offering RSA public key: /Users/sammy/.ssh/id_rsa
+debug1: Server accepts key: pkalg rsa-sha2-512 blen 279
+Authenticated with partial success.
+debug1: Authentications that can continue: password,keyboard-interactive
+debug1: Next authentication method: keyboard-interactive
+Verification code:
+'''

@@ -8,6 +8,19 @@ Created Wednesday 31 January 2018
 ==== General Hard Drive Information ====
 http://people.redhat.com/msnitzer/docs/io-limits.txt
 
+
+os partition layout
+'''
+Directory	Minimum size
+/		250 MB
+/usr		250 MB
+/tmp		50 MB
+/var		384 MB
+/home		100 MB
+/boot		250 MB
+'''
+
+
 ====== parted ======
 
 == Warning: The resulting partition is not properly aligned for best performance ==
