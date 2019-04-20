@@ -5,6 +5,267 @@ Creation-Date: 2018-01-31T15:26:38-05:00
 ====== Apache (httpd) ======
 Created Wednesday 31 January 2018
 
+== Resources ==
+https://www.guru99.com/apache.html#7
+
+== commands ==
+apachectl
+
+Test the configuration files of apache
+[root@server conf]# apachectl configtest
+Syntax OK
+
+Errors are reported
+
+[root@server conf]# apachectl configtest
+httpd: Syntax error on line 356 of /etc/httpd/conf/httpd.conf: /etc/httpd/conf/httpd.conf:356: <Directory> was not closed.
+
+
+
+htpasswd - creates and stores passwords for users for basic authentication.
+httpd - The daemon. use -t option to test config before running.
+
+==== Securing Apache ====
+
+== Hiding httpd and OS version ==
+A hacker can use this information to launch an attack using the publicly available vulnerabilities in the particular version of the server or OS.
+
+[[/etc/httpd/conf/httpd.conf]]
+
+[[ServerSignature]] Off
+[[ServerTokens]] Prod
+
+We have also set “ServerTokens Prod” that tells the web server to return only apache and suppress the OS major and minor version
+
+== Disable Directory Listing ==
+<Directory /var/www/html>
+
+	Options -Indexes
+
+</Directory>
+
+== Disable Unused Modules ==
+httpd -M
+
+== Restricting Access to files outside the web root directory ==
+Make sure directories outside of the [[DocumentRoot]] are not accessible
+
+'''
+<Directory/>
+'''
+	'''
+	Options None
+	AllowOverride None
+	Order deny,allow
+	Deny from all
+	</Directory>
+	'''
+
+
+== mod_security ==
+
+== mod_evasive ==
+
+== Limit Request Size ==
+
+'''
+<Directory "/var/www/html/uploads">
+   LimitRequestBody 512000
+</Directory>
+'''
+
+
+
+==== /etc/httpd/conf/httpd.conf ====
+The main config file.
+
+=== Directives ===
+
+* ServerRoot
+# ServerRoot: The top of the directory tree under which the server's
+# configuration, error, and log files are kept. The ServerRoot directive sets the directory in which the server lives. Typically it will contain the subdirectories conf/ and logs/.
+
+[[DocumentRoot]] 
+
+* Listen
+The Listen directive instructs Apache httpd to listen to only specific IP addresses or ports; by default it responds to requests on all IP interfaces. Listen is now a required directive. If it is not in the config file, the server will fail to start. 
+
+Multiple Listen directives may be used to specify a number of addresses and ports to listen to. The server will respond to requests from any of the listed addresses and ports.
+
+Listen 80
+Listen 8000
+Listen 192.168.1.50:8080 https
+
+If you specify httpd to listen on a non default port, you must run the following SELinux commands
+
+==== Name Based Virtual Hosts ====
+Name based Virtual Hosts allow you to have multiple websites listen on the same IP address and port. For example
+
+On the Server
+
+/etc/httpd/conf/httpd.conf
+'''
+<VirtualHost 192.168.1.15:80>
+    ServerAdmin root@localhost
+    DocumentRoot /var/www/html/example1
+    ServerName example1.home
+</VirtualHost>
+<Directory /var/www/html/example1>
+    AllowOverride None
+    Require all Granted
+</Directory>
+
+<VirtualHost 192.168.1.15:80>
+    ServerAdmin root@localhost
+    DocumentRoot /var/www/html/example2
+    ServerName example2.home
+</VirtualHost>
+'''
+	 ''<Directory /var/www/html/example2>''
+''      AllowOverride None''
+''      Require all Granted''
+''   </Directory>''
+
+'''
+[root@server html]# ll -d /var/www/html/example?
+drwxr-xr-x. 2 root root 24 Feb 15 12:18 /var/www/html/example1
+drwxr-xr-x. 2 root root 24 Feb 15 12:22 /var/www/html/example2
+'''
+
+
+'''
+[root@server html]# cat /var/www/html/example1/index.html 
+example1
+[root@server html]# cat /var/www/html/example2/index.html 
+example2
+'''
+
+On the client
+
+''echo "192.168.1.15 example1.home example2.home" >> /etc/hosts''
+
+'''
+[root@client ~]# curl example1.home
+example1
+[root@client ~]# curl example2.home
+example2
+'''
+
+
+==== Document Root Scope ====
+
+
+==== IP Based Virtual Host ====
+IP Based Virtual Hosting allows you to dedicate an separate IP address to each virtual host.
+
+* on the server
+'''
+<VirtualHost 192.168.1.15:80>
+    ServerName example1.home
+    DocumentRoot /var/www/html/example1
+    ServerAdmin root@localhost
+</VirtualHost>
+<Directory "/var/www/html/example1">
+    AllowOverride None
+    Require all Granted
+</Directory>
+
+<VirtualHost 192.168.1.175:80>
+    ServerName example1.home
+    DocumentRoot /var/www/html/example2
+    ServerAdmin root@localhost
+</VirtualHost>
+<Directory "/var/www/html/example2">
+    AllowOverride None
+    Require all Granted
+</Directory>
+'''
+
+
+* on the client
+'''
+[root@client ~]# cat /etc/hosts
+...
+192.168.1.15 example1.home
+192.168.1.175 example2.home
+'''
+
+'''
+[root@client ~]# curl example1.home
+example1
+[root@client ~]# curl example2.home
+example2
+'''
+
+'''
+[root@client ~]# curl 192.168.1.15
+example1
+[root@client ~]# curl 192.168.1.175
+example2
+'''
+
+
+==== Access Control ====
+* On the server
+Create a passwd file (not very secure, as it only uses md5 hashing)
+$ htpasswd -c [[/etc/httpd/conf/.userdb]] user1
+
+'''
+<VirtualHost 192.168.1.15:80>
+    ServerName rhce2.example.com
+    DocumentRoot /var/vrhce2
+    ServerAdmin root@localhost
+</VirtualHost>
+<Directory /var/vrhce2>
+    AllowOverride None
+    Require user user1
+    AuthType Basic
+    AuthName "Restricted Content"
+    AuthUserFile /etc/httpd/conf/.userdb
+    Require valid-user
+</Directory>
+'''
+
+
+* On the client
+$ curl -u [[user1:password]] rhce2.example.com
+<contents of [[/var/vrhce2/index.html]]>
+
+== .htaccess files ==
+https://httpd.apache.org/docs/2.4/howto/htaccess.html
+.htaccess files provide a way to make configuration changes on a per-directory basis. A file, containing one or more configuration directives, is placed in a particular document directory, and the directives apply to that directory, and all subdirectories thereof.
+
+When the server finds an .htaccess file, it needs to know which directives declared in that file can override earlier configuration directives. What you can put in these files is determined by the AllowOverride directive. 
+When the AllowOverride directive is set to None and AllowOverrideList is set to None, .htaccess files are completely ignored. In this case, the server will not even attempt to read .htaccess files in the filesystem.
+
+You should avoid using .htaccess files completely if you have access to httpd main server config file. Using .htaccess files slows down your Apache http server. Any directive that you can include in a .htaccess file is better set in a Directory block in the main [[/etc/httpd/conf/httpd/conf]] config file, as it will have the same effect with better performance.
+
+**When (not) to use .htaccess files**
+.htaccess files should be used in a case where the content providers need to make configuration changes to the server on a per-directory basis, but do not have root access on the server system. In the event that the server administrator is not willing to make frequent configuration changes, it might be desirable to permit individual users to make these changes in .htaccess files for themselves. This is particularly true, for example, in cases where ISPs are hosting multiple user sites on a single machine, and want their users to be able to alter their configuration.
+
+==== Containers and Virtual Hosts ====
+
+There are 4 types of "containers" that can be placed in the main httpd.conf file using an XML format.
+
+<Directory...></Directory>
+<Files...></Files>
+<IfModule...></IfModule>
+<VirtualHost...></VirtualHost>
+
+==== Access Control ====
+Allow users to authenticate using their [[/etc/passwd]] credentials
+
+'''
+<Directory "/home">
+    AuthType Basic
+    AuthName HomeDir
+    AuthUserFile /etc/passwd
+    Require valid-user
+    Satisy All
+</Directory>
+'''
+
+
 ==== CGI Scripts ====
 
 Note: cgi scripts are very insecure. Use descretion when implementing cgi scripts. Honestly, don't really do anything mentioned here.

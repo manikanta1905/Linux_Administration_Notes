@@ -1,0 +1,1560 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-01-31T15:33:17-05:00
+
+====== dump ======
+Created Thursday 31 January 2019
+
+Current file is compiled by Edmund Laugasson.
+
+OpenSSH installation in Ubuntu Linux
+************************************
+sudo apt-get update #update repositories
+sudo apt-get install ssh openssh-blacklist* -y #install packages
+sudo apt-get clean #clear the APT cache
+
+these commands can be combined into one line (next command will not be fulfilled if previous fails):
+sudo apt-get update && sudo apt-get install ssh openssh-blacklist* -y && sudo apt-get clean
+
+check installed ssh version:
+ssh -V
+
+ssh metapackage will install both the server and client software
+search for more information:
+apt-cache search openssh | grep ssh
+apt search openssh | grep -w openssh # -w to filter full words only
+apt search ssh | grep ssh
+
+view packages description:
+apt show ssh - secure shell client and server (metapackage)
+apt show openssh-server - secure shell (SSH) server, for secure access from remote machines
+apt show openssh-client - secure shell (SSH) client, for secure access to remote machines
+apt show openssh-blacklist - list of default blacklisted OpenSSH RSA and DSA keys
+apt show openssh-blacklist-extra - list of non-default blacklisted OpenSSH RSA and DSA keys
+
+for GUI:
+apt show hotssh - graphical interface to secure shell
+apt show remmina - remote desktop client for GNOME desktop environment; RDP, VNC, NX, XDMCP and SSH protocols are supported
+apt show putty - Telnet/SSH client for X
+apt show putty-tools - command-line tools for SSH, SCP, and SFTP
+
+massive management:
+apt show mssh - tool to administrate multiple servers at once
+apt show mussh - MUltihost SSH Wrapper
+apt show clusterssh - administer multiple ssh or rsh shells simultaneously
+apt show pssh - parallel versions of SSH-based tools
+
+other tools:
+apt show sshcommand - turn SSH into a thin client specifically for your command
+apt show scanssh - get SSH server versions for an entire network
+apt show sshuttle - transparent proxy server for VPN over SSH (search "Wise man VPN - sshuttle" to see further information below)
+apt show ssh-import-id - securely retrieve an SSH public key and install it locally
+apt show rssh - restricted shell allowing scp, sftp, cvs, svn, rsync or rdist
+
+Please note the OpenSSH server key files fingerprint while installing it. Store them securely for later usage. Later by logging in, there can be compared the fingerprint got from server and the one offered on first login before answering yes to ensure you are logging into server you think and thus avoid MITM (man-in-the-middle) attacks https://en.wikipedia.org/wiki/Man-in-the-middle_attack
+Accepted host key will be added to ~/.ssh/known_hosts file. Search the title "Duplicates in ~/.ssh/known_hosts" to find out more below.
+
+The OpenSSH settings and generated key files are in /etc/ssh/ folder. See below the title "Check server keys" (use CTRL+F to search) for further information and how to check keys later.
+
+Disabling host key checking
+--------------------
+If you are sure that this is harmless, you can use either 1 of 2 methods below to trick openSSH to let you login. But be warned that you have become vulnerable to man-in-the-middle attacks. 
+
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no user@IP
+
+also there is possible to add into ~/.ssh/config
+Host 192.168.0.*
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+
+http://linuxcommando.blogspot.com/2008/10/how-to-disable-ssh-host-key-checking.html
+
+Using SSH key file log in
+*************************
+
+Generate key pair
+--------------------
+Parameter -a (how many rounds, default value 16) adds salt to make brute-force attacks harder. More reading: man ssh-keygen.
+It would be always nice to add a comment (-C) to facilitate system administrator to manage people who have log in permission with key file.
+
+When generating key pair, there will be (replace keyfile with your keyfile name):
+~/.ssh/keyfile - private key
+~/.ssh/keyfile.pub - public key
+
+Usually there will be (default names):
+~/.ssh/id_ed25519 - private key
+~/.ssh/id_ed25519.pub - public key
+~/.ssh/id_rsa - private key
+~/.ssh/id_rsa.pub - public key
+
+Check your ~/.ssh/ folder what keys you have:
+ls -la ~/.ssh
+
+RSA is based on randomly chosen large prime number multiplication and factorisation problem. The key length shows how many bits prime numbers are used.
+
+Ed25519 is based on elliptic curve and random straight line dots on that curve finding problem, discrete logarithm finding.
+OpenSSH Server v6.5 or newer is required to use Ed25519 and would be suggested to use.
+
+--Ed25519--
+ssh-keygen -f ~/.ssh/keyfile -t ed25519 -a 1000 -C "FirstName SurName e-mail phone"
+.... replace keyfile with your desired key file name and also replace data between quotation marks with your real one.
+
+Default rounds are 16
+https://github.com/openssh/openssh-portable/blob/94bc1e7ffba3cbdea8c7dcdab8376bf29283128f/sshkey.c#L69
+
+--RSA--
+ssh-keygen -f ~/.ssh/keyfile -t rsa -o -a 1000 -b 4096 -C "FirstName SurName e-mail phone"
+.... replace keyfile with your desired key file name and also replace data between quotation marks with your real one.
+
+-b bits - in case of RSA there would be suggested to generate at least 4096-bit key
+
+Copy key to server
+--------------------
+ssh-copy-id -i ~/.ssh/keyfile user@IP
+...replace keyfile with your keyfile name, user with your real username and IP with your real IP or domain name (if applicable)
+
+the .pub file will be copied to remote server into file ~/.ssh/authorized_keys
+
+Log in to server
+--------------------
+ssh -i ~/.ssh/keyfile user@IP
+... the .pub key from that key pair will be used to log in.
+...replace keyfile with your keyfile name, user with your real username and IP with your real IP or domain name (if applicable)
+
+First time you log in, you have to accept server's public key, which will be written into ~/.ssh/known_hosts file in client machine.
+
+Error "sign_and_send_pubkey: signing failed: agent refused operation"
+--------------------
+add:
+eval $(ssh-agent -s)
+.. to the end of ~/.bashrc and reopen session or run with source command (source ~/.bashrc)
+more reading
+https://askubuntu.com/questions/762541/ubuntu-16-04-ssh-sign-and-send-pubkey-signing-failed-agent-refused-operation
+
+Duplicates in ~/.ssh/known_hosts
+--------------------
+search host:
+ssh-keygen -F host.example.org #shows hash
+ssh-keygen -lF host.example.org #shows fingerprint on sha256
+ssh-keygen -lF host.example.org -E md5 #shows fingerprint on md5
+
+ssh-keygen -R hostname
+... will remove the entry for specified hostname
+
+remove e.g. the 6th line
+sed -i '6d' ~/.ssh/known_hosts
+
+sort ~/.ssh/known_hosts | uniq > ~/.ssh/known_hosts.uniq
+mv ~/.ssh/known_hosts{.uniq,}
+
+Manage known_hosts hashing
+--------------------
+~/.ssh/config or /etc/ssh/sshd_config
+HashKnownHosts yes
+
+More about ~/.ssh/config file can be found at man ssh_config and https://linux.die.net/man/5/ssh_config
+
+https://serverfault.com/questions/233855/why-should-i-use-hashknownhosts-yes-in-ssh-config
+
+https://unix.stackexchange.com/questions/338535/how-to-clear-duplicated-entries-in-ssh-known-hosts-and-authorized-keys-files
+https://askubuntu.com/questions/446878/why-do-ive-two-entries-per-server-in-known-hosts-file
+
+Host-based authentication - https://en.wikibooks.org/wiki/OpenSSH/Cookbook/Host-based_Authentication
+Client configuration files https://en.wikibooks.org/wiki/OpenSSH/Client_Configuration_Files
+
+Check server keys (fingerprints) - get information about existing SSH keys
+--------------------
+Here you can retrieve your OpenSSH server key fingerprints.
+https://en.wikipedia.org/wiki/Public_key_fingerprint
+In public-key cryptography, a public key fingerprint is a short sequence of bytes used to identify a longer public key. Fingerprints are created by applying a cryptographic hash function to a public key. Since fingerprints are shorter than the keys they refer to, they can be used to simplify certain key management tasks. In Microsoft software, "thumbprint" is used instead of "fingerprint".
+
+Local SSH keys
+--------------------
+SHA 256-bit format (for Linux), server keys (default is SHA256, please see man ssh-keygen and search -E):
+for i in /etc/ssh/*.pub; do ssh-keygen -lf $i; done | uniq
+user keys:
+for i in ~/.ssh/*.pub; do ssh-keygen -lf $i; done | uniq
+
+MD5 format (for MS Windows), server keys:
+for i in /etc/ssh/*.pub; do ssh-keygen -lf $i -E md5; done | uniq
+user keys:
+for i in ~/.ssh/*.pub; do ssh-keygen -lf $i -E md5; done | uniq
+
+Please note that -E md5 was added in OpenSSH 6.8
+https://superuser.com/questions/929566/sha256-ssh-fingerprint-given-by-the-client-but-only-md5-fingerprint-known-for-se
+
+SHA256 for old OpenSSH:
+for i in /etc/ssh/*.pub; do awk '{print $2}' $i | base64 -d | sha256sum -b | awk '{print $1}' | xxd -r -p | base64 | cut -d'=' -f1; done | uniq
+
+the script for OpenSSH prior v6.8:
+http://enos.itcollege.ee/~edmund/materials/ssh/ssh-fingerprint-server-bbd-oldssh.sh
+
+--
+awk '{print $2}' /etc/ssh/*.pub | base64 -d | sha256sum -b | awk '{print $1}' | xxd -r -p | base64
+
+cut "=" added via re-encoding:
+awk '{print $2}' /etc/ssh/*.pub | base64 -d | sha256sum -b | awk '{print $1}' | xxd -r -p | base64 | cut -d'=' -f1
+https://stackoverflow.com/questions/5074893/how-to-remove-the-last-character-from-a-bash-grep-output
+----
+Display easy to memorize bubblebabble digest (please see man ssh-keygen and search -B):
+for i in /etc/ssh/*.pub; do ssh-keygen -B -f $i; done #server keys
+for i in ~/.ssh/*.pub; do ssh-keygen -B -f $i; done #user keys
+. . .
+
+There is also one script available to retrieve OpenSSH server key files fingerprint in two formats into nice table:
+wget -q http://enos.itcollege.ee/~edmund/materials/ssh-fingerprint-server.sh
+
+run the script:
+source ssh-fingerprint-server.sh
+OR
+chmod +x ssh-fingerprint-server.sh #set execution bit
+./ssh-fingerprint-server.sh #execute
+
+combine into one line:
+wget -q http://enos.itcollege.ee/~edmund/materials/ssh-fingerprint-server.sh && source ssh-fingerprint-server.sh
+
+you should see something like this:
++---------+-----------------------------------------------------+
+| Cipher  | Fingerprint                                         |
++---------+-----------------------------------------------------+
+| RSA     | MD5:e6:ea:b2:8a:6f:53:e5:97:91:ac:c5:c1:3d:e5:d7:65 |
+| RSA     | SHA256:ePQggSM04TG1/0ZliIY20wvrd6KR/ghDT6Ox0v1fclk  |
++---------+-----------------------------------------------------+
+| DSA     | MD5:68:d8:9e:9e:18:62:06:6e:83:6d:71:b2:84:34:9c:e3 |
+| DSA     | SHA256:S3LTipzixBSl+2HDxJCfkYlHGK6xdUopfQmlY6K4BVk  |
++---------+-----------------------------------------------------+
+| ECDSA   | MD5:cf:ac:75:e5:8a:f8:79:68:fa:b6:e7:d0:bd:46:17:c1 |
+| ECDSA   | SHA256:ZsGX+qLwymuHX4wVxQ9fN3YcR7+AEBhOnclVquvbky4  |
++---------+-----------------------------------------------------+
+| ED25519 | MD5:9e:12:cc:f1:78:7f:9b:19:f7:bf:80:83:05:99:58:ec |
+| ED25519 | SHA256:DMEHOVEM+aHQf7ghkmcFuHAoHh2vb+2222ZepNKioF0  |
++---------+-----------------------------------------------------+
+
+another option:
+wget -q http://enos.itcollege.ee/~edmund/materials/ssh/ssh-fingerprint-server-bbd.sh && source ssh-fingerprint-server-bbd.sh
+
++---------+--------------------------------------------------------------------+
+| Cipher  | Fingerprint                                                        |
++---------+--------------------------------------------------------------------+
+| RSA     | MD5:e6:ea:b2:8a:6f:53:e5:97:91:ac:c5:c1:3d:e5:d7:65                |
+| RSA     | SHA256:ePQggSM04TG1/0ZliIY20wvrd6KR/ghDT6Ox0v1fclk                 |
+| RSA     | xusoz-zacyz-nogen-hiven-helif-cefik-cecap-fobur-dehok-bopak-zaxux  |
++---------+--------------------------------------------------------------------+
+| DSA     | MD5:68:d8:9e:9e:18:62:06:6e:83:6d:71:b2:84:34:9c:e3                |
+| DSA     | SHA256:S3LTipzixBSl+2HDxJCfkYlHGK6xdUopfQmlY6K4BVk                 |
+| DSA     | xiceb-tafem-maryc-gyvit-lymol-sufez-vonak-lusaf-rymym-mydem-vaxux  |
++---------+--------------------------------------------------------------------+
+| ECDSA   | MD5:cf:ac:75:e5:8a:f8:79:68:fa:b6:e7:d0:bd:46:17:c1                |
+| ECDSA   | SHA256:ZsGX+qLwymuHX4wVxQ9fN3YcR7+AEBhOnclVquvbky4                 |
+| ECDSA   | xeras-fakiv-bosus-kusim-sabic-ninod-sybyp-rudil-hogyb-kupym-gyxux  |
++---------+--------------------------------------------------------------------+
+| ED25519 | MD5:9e:12:cc:f1:78:7f:9b:19:f7:bf:80:83:05:99:58:ec                |
+| ED25519 | SHA256:DMEHOVEM+aHQf7ghkmcFuHAoHh2vb+2222ZepNKioF0                 |
+| ED25519 | xikel-devyg-cetop-ryced-hecuv-fopon-lyzec-bevek-gonuc-tysyb-voxyx  |
++---------+--------------------------------------------------------------------+
+
+The third line is easy to memorize bubblebabble digest. Please see man ssh-keygen and search bubblebabble
+
+original script retrieved from https://superuser.com/questions/929566/sha256-ssh-fingerprint-given-by-the-client-but-only-md5-fingerprint-known-for-sex
+
+. . .
+
+Random art + fingerprint of keys:
+server keys:
+for i in /etc/ssh/*.pub; do ssh-keygen -lv -E sha256 -f $i; done
+for i in /etc/ssh/*.pub; do ssh-keygen -lv -E md5 -f $i; done
+
+user keys:
+for i in ~/.ssh/*.pub; do ssh-keygen -lv -E sha256 -f $i; done
+for i in ~/.ssh/*.pub; do ssh-keygen -lv -E md5 -f $i; done
+
+remote host keys stored locally:
+ssh-keygen -lv -f ~/.ssh/known_hosts -E sha256
+ssh-keygen -lv -f ~/.ssh/known_hosts -E md5
+
+Random art only
+server keys:
+for i in /etc/ssh/*.pub; do ssh-keygen -lv -E sha256 -f $i | grep -v -w "256 SHA256" | grep -v -w "1024 SHA256" | grep -v -w "2048 SHA256" ; done
+
+for i in /etc/ssh/*.pub; do ssh-keygen -lv -E md5 -f $i | grep -v "256 MD5" | grep -v "1024 MD5" | grep -v "2048 MD5" ; done
+
+user keys:
+for i in ~/.ssh/*.pub; do ssh-keygen -lv -E sha256 -f $i | grep -v -w "256 SHA256" | grep -v -w "1024 SHA256" | grep -v -w "2048 SHA256" ; done
+
+for i in ~/.ssh/*.pub; do ssh-keygen -lv -E md5 -f $i | grep -v "256 MD5" | grep -v "1024 MD5" | grep -v "2048 MD5" ; done
+
+Querying SSH key fingerprints from server
+--------------------
+Retrieve all public keys (actually server keys) from remote host
+ssh-keyscan host.example.org
+
+getting fingerprints from remote host:
+ssh-keyscan host.example.org | ssh-keygen -lf - #all keys
+ssh-keyscan -t ecdsa host.example.org | ssh-keygen -lf - #specifying type
+
+specify types:
+ssh-keyscan -t rsa host.example.org #one type
+ssh-keyscan -t rsa,dsa,ecdsa,ed25519 host.example.org #all types
+
+hashing hostname:
+ssh-keyscan -t rsa -H host.example.org
+
+NB! If the ~/.ssh/known_hosts file is constructed using ssh-keyscan without verifying the keys, users will be vulnerable to man in the middle attacks.  On the other hand, if the security model allows such a risk, ssh-keyscan can help in the detection of tampered keyfiles or man in the middle attacks which have begun after the ~/.ssh/known_hosts file was created. (citation with corrections from man ssh-keyscan, search SECURITY)
+
+Compare SSH hashes
+--------------------
+create a script, e.g. with name compare.sh
+
+#!/bin/sh
+#
+# Script compiled by Edmund Laugasson
+#
+# The following script will compare hashes to ensure
+# we are logging into appropriate SSH server
+#
+# Run the current script by command
+# source script.sh (replace "script" with real file name)
+#
+# Usually querying from Linux will give the fingerprint using ECDSA algorithm
+# and from MS Windows MD5 fingerprint.
+# Compare fingerprints in same format and by same algorithm.
+# Same applies to key hashes or whatever else there will be compared.
+#
+# Querying the appropriate key fingerprint from server can be done e.g.:
+# ssh-keyscan -t <algorithm> <IP> | ssh-keygen -lf -
+# replace <algorithm> with ecdsa, rsa, ed25519 and <IP> with real server IP-address
+#
+# To query all available fingerprints:
+# ssh-keyscan <IP> | ssh-keygen -lf -
+#
+# Certainly you can compare whatever else, e.g. public key hashes
+# You can query all available public keys hash e.g.
+# ssh-keyscan <IP>
+#
+# or by specifying type:
+# ssh-keyscan -t <algorithm> <IP>
+# replace <algorithm> with ecdsa, rsa, ed25519 and <IP> with real server IP-address
+#
+# So, below the "hash" means either fingerprint or hash of SSH key.
+# Certainly there can be compared almost any strings.
+#
+#
+hash1="" #put the hash between quotation marks you got from server administrator
+hash2="" #put the hash between quotation marks you queried directly from server
+if [ "$hash1" == "$hash2" ]
+then
+  echo "Compared values are the same. If these were either fingerprints or hashes of remote computer then it is safe to log in!"
+  else
+  echo "Compared values are NOT the same, it must be investigated further!"
+fi
+
+
+
+then run the script:
+source compare.sh
+or make it executable (chmod +x compare.sh) and run (./compare.sh)
+
+* * *
+
+Another option to check (compare) key fingerprints
+--------------------
+
+If the fingerprint has been already trusted then extract the trusted fingerprint from ~/.ssh/known_hosts file:
+
+ssh-keygen -F host.example.org | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d'|' -f4 | rev
+
+... first part gives public key hash about host.example.org host stored in ~/.ssh/known_hosts
+... second one gives fingerprint of that public key hash but it contains additional unnecessary fields
+... third part removes unnecessary fields from beginning (-d is defining delimiter symbol and -f tells which field)
+... fourth part will reverse the output
+... fifth part will again remove unnecessary fields from beginning
+... sixth part will reverse the output again to correct order
+
+Determine public keys in known_hosts file
+ssh-keygen -lf ~/.ssh/known_hosts #will list strength in bit, hash algorithm, fingerprint, hash, key encryption algorithm
+
+ssh-keygen -lf ~/.ssh/known_hosts -F host.example.org #will list only matching line(s) in SHA256
+ssh-keygen -lF host.example.org #will list only matching line(s) in SHA256
+ssh-keygen -lF host.example.org -E md5 #will list only matching line(s) in MD5
+---
+
+To remove key from trusted host list ~/.ssh/known_hosts:
+
+ssh-keygen -R host.example.org
+
+If to add into ~/.ssh/config file:
+HashKnownHosts no
+... then all future accepted public keys will be recorded into ~/.ssh/known_hosts without hashing and hostnames will be readable
+
+ssh-keygen -H #will hash the ~/.ssh/known_hosts content again
+
+More reading
+https://blog.rootshell.be/2010/11/03/bruteforcing-ssh-known_hosts-files/
+https://unix.stackexchange.com/questions/175071/how-to-decrypt-hostnames-of-a-crypted-ssh-known-hosts-with-a-list-of-the-hostna
+---
+
+VARIANT 1
+
+If you have not yet logged in and no entry is in ~/.ssh/known_hosts then you can query host fingerprint like described previously in chapter "Querying SSH key fingerprints from server":
+
+ssh-keyscan -t ecdsa host.example.org | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d' ' -f3 | rev
+
+To get only a fingerprint and not a comment, let's write result into temporary file:
+ssh-keyscan -t ecdsa host.example.org | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d' ' -f3 | rev > /tmp/var1
+
+---
+
+VARIANT 2 (suggested)
+
+Take server fingerprints from system administrator. It might happen that you are that person. So you might have your fingerprints publicly accessible to be able check them whenever needed. E.g. here are one example http://upload.itcollege.ee/edmund/ova/ubuntu/server-fingerprints.txt
+
+wget -O- -q http://upload.itcollege.ee/edmund/ova/ubuntu/server-fingerprints.txt | grep ECDSA | grep SHA256 | cut -d':' -f2 | rev | cut -d' ' -f18 | rev
+
+you may want to send its value to file for later variable creation:
+
+wget -O- -q http://upload.itcollege.ee/edmund/ova/ubuntu/server-fingerprints.txt | grep ECDSA | grep SHA256 | cut -d':' -f2 | rev | cut -d' ' -f18 | rev > /tmp/var2
+
+... first part will download the given file and write it to specified file (-O) and where - means standard output and -q means quiet (do not display the downloaded file content on standard output and downloading dialog and possible errors). In that way we can display basically online file without storing it on the disk but displaying in standard output - this means in command-line.
+... second part will filter with grep RSA part from downloaded file
+... third part will in turn filter with grep SHA256 line
+... fourth part will cut unnecessary part from beginning (-d is defining delimiter symbol and -f tells which column)
+
+---
+
+Compare
+--------------------
+In current example we use enos.itcollege.ee as a server. Replace with real one you have.
+Trusted source of fingerprints http://enos.itcollege.ee/ssh-fingerprints.txt
+
+var1
+from  ~/.ssh/known_hosts:
+ssh-keygen -F enos.itcollege.ee | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d'|' -f4 | rev
+OR
+from server directly
+ssh-keyscan -t ecdsa enos.itcollege.ee | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d' ' -f3 | rev > /tmp/var1
+
+var2
+trusted source of server key fingerprints:
+wget -O- -q http://enos.itcollege.ee/ssh-fingerprints.txt | grep ECDSA | grep SHA256 | cut -d':' -f2 | rev | cut -d' ' -f18 | rev > /tmp/var2
+
+---
+Set temporary variables
+
+var1=$( ssh-keygen -F enos.itcollege.ee | ssh-keygen -lf - | cut -d':' -f2 | rev | cut -d'|' -f4 | rev )
+OR
+var1=$( cat /tmp/var1 )
+
+var2=$( cat /tmp/var2 )
+
+Compare variables:
+if [ $var1 = $var2 ]; then clear; echo "Fingerprints CAN be trusted. It IS SUGGESTED to log in."; else clear; echo "Fingerprints CANNOT be trusted. It is NOT SUGGESTED to log in."; fi
+
+Also can be used to directly log in:
+if [ $var1 = $var2 ]; then clear; echo "Fingerprints CAN be trusted. Logging in.\n"; ssh student@enos.itcollege.ee; else clear; echo "Fingerprints CANNOT be trusted. It is NOT SUGGESTED to log in."; fi
+
+Clean up
+Later the created temporary files in /tmp/ folder can be deleted manually (e.g. rm /tmp/var*) or these will be deleted automatically on system reboot or shut down as /tmp folder content will be deleted in Ubuntu Linux during system reboot or shut down. Also temporary variables are not stored and already another terminal session does not recognize them. So no worry about them.
+
+for scripts:
+test $var1 = $var2 #compare values
+echo $? #check result: if variables are same then value is 0, otherwise 1 - can be used in if statement
+
+For final result, check the scripts:
+
+
+about exit codes:
+http://tldp.org/LDP/abs/html/exitcodes.html
+http://tldp.org/LDP/abs/html/exit-status.html
+https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html
+http://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/
+https://askubuntu.com/questions/892604/meaning-of-exit-0-exit-1-and-exit-2-in-a-bash-script
+https://www.shellscript.sh/exitcodes.html
+https://unix.stackexchange.com/questions/308207/exit-code-at-the-end-of-a-bash-script
+
+http://tldp.org/LDP/abs/html/comparison-ops.html
+https://stackoverflow.com/questions/7225745/why-is-my-bash-string-comparison-of-two-identical-strings-always-false
+https://www.ibm.com/developerworks/library/l-bash-test/
+
+* * *
+
+Combining together: remote key with random art
+--------------------
+one key:
+sha256: ssh-keyscan -t rsa host.example.org | ssh-keygen -lv -f -
+md5:  ssh-keyscan -t rsa host.example.org | ssh-keygen -lv -E md5 -f -
+
+all keys:
+ssh-keyscan -t rsa,dsa,ecdsa,ed25519 host.example.org | for i in -; do ssh-keygen -lv -E sha256 -f $i; done
+
+ssh-keyscan -t rsa,dsa,ecdsa,ed25519 host.example.org | for i in -; do ssh-keygen -lv -E md5 -f $i; done
+
+remote key without random art:
+one key:
+ssh-keyscan -t ecdsa host.example.org | ssh-keygen -lf -
+ssh-keyscan -t ecdsa host.example.org | ssh-keygen -lf - -E md5
+
+all keys:
+sha256: ssh-keyscan -t rsa,dsa,ecdsa,ed25519 host.example.org | for i in -; do ssh-keygen -lf $i; done
+
+md5: ssh-keyscan -t rsa,dsa,ecdsa,ed25519 host.example.org | for i in -; do ssh-keygen -lf $i -E md5; done
+
+---
+
+Before you accept server public key fingerprint on first login, you should compare it with server one to avoid MITM (man-in-the-middle) cyber attacks.
+
+Some parameters that could be used while connecting:
+ssh -o FingerprintHash=sha256 host.example.org
+ssh -o FingerprintHash=md5 host.example.org
+ssh -o VisualHostKey=yes host.example.org
+ssh -o VisualHostKey=yes -o FingerprintHash=sha256 host.example.org
+ssh -o VisualHostKey=yes -o FingerprintHash=md5 host.example.org
+
+detailed information:
+man ssh_config
+
+ERRORS
+--------------------
+When there is an error message "Too many authentication failures" then:
+ssh -o IdentitiesOnly=yes -i ~/.ssh/key user@host
+OR (for GUI clients like file managers)
+~/.ssh/config
+Host server
+  IdentityFile ~/.ssh/key
+  IdentitiesOnly yes
+  Port 22
+  User username
+  HostName server.ee
+
+Authenticated with partial success.
+https://kb.globalscape.com/KnowledgebaseArticle10471.aspx
+connect using -vvv for debugging
+
+Via DNS verification
+dig -t SSHFP host.example.org #check whether domain supports
+ssh -o VerifyHostKeyDNS=ask host.example.org #logging in
+
+More reading:
+http://www.phcomp.co.uk/Tutorials/Unix-And-Linux/ssh-check-server-fingerprint.html
+https://superuser.com/questions/929566/sha256-ssh-fingerprint-given-by-the-client-but-only-md5-fingerprint-known-for-sex
+https://en.wikibooks.org/wiki/OpenSSH
+https://en.wikipedia.org/wiki/Public_key_fingerprint
+
+---
+Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+https://www.digitalocean.com/community/questions/ssh-failed-permission-denied-publickey-gssapi-keyex-gssapi-with-mic
+chmod 600 ~/.ssh/authorized_keys
+---
+sign_and_send_pubkey: signing failed: agent refused operation
+https://askubuntu.com/questions/762541/ubuntu-16-04-ssh-sign-and-send-pubkey-signing-failed-agent-refused-operation
+SSH_AUTH_SOCK=0 ssh -i ~/.ssh/key -o IdentitiesOnly=yes user@server.ee -p 15822 #using custom port
+...also relogin will forget wrongly remembered key password
+
+* * *
+
+We can obtain the public keys provided by a server without connecting to it by using the following command. There are usually more than one provided to retain compatibility:
+ssh-keyscan <ip> #also URL can be used
+
+hosts file location in different systems:
+https://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system
+
+If you would like to run graphical apps from remote server, use -X parameter:
+ssh -i ~/.ssh/keyfile -X user@IP
+...replace keyfile with your keyfile name, user with your real username and IP with your real IP or domain name (if applicable)
+
+If you generated key pair with default name and you do not have more keys generated then you do not need to specify key file:
+ssh user@IP (or ssh -X user@IP in case you would like to run GUI apps from server)
+Specifying key file would be useful in case you have many (different) keys in ~/.ssh/ folder.
+
+you can create also alias to make it even more easier:
+nano ~/.bash_aliases
+alias s1='ssh -i ~/.ssh/keyfile user@IP'
+alias s1-ping='ping IP'
+... where 's1' is like 'server1' or whatever else describes the remote machine.
+...replace keyfile with your keyfile name, user with your real username and IP with your real IP or domain name (if applicable)
+
+then:
+source ~/.bash_aliases
+
+.. and now you can type the s1 and this alias will run command(s) between upper commas.
+
+# # #
+
+SSH Timeout
+--------------------
+client side prevention
+
+add to file ~/.ssh/config the following line:
+
+ServerAliveInterval 120
+This will send a â€œnull packetâ€ every 120 seconds on your SSH connections to keep them alive.
+
+
+server side prevention
+
+add to file /etc/ssh/sshd_config the following lines:
+
+TCPKeepAlive no # the server will not send the TCP alive packet to check if the client's connection is working
+ClientAliveInterval 30
+ClientAliveCountMax 240
+
+The "TCPKeepAlive no" will basically turn off the timeout.
+
+Restart SSH server to take settings into effect.
+sudo service ssh restart
+
+This will make the server send the clients a â€œnull packetâ€ every 30 seconds and not disconnect them until the client have been inactive for 240 intervals (30 seconds * 240 = 7200 seconds = 2 hours).
+
+Another option is to set these numbers a bit larger:
+ClientAliveInterval 120
+ClientAliveCountMax 720
+every 120 seconds and not disconnect them until the client have been inactive for 720 intervals (120 seconds * 720 = 86400 seconds = 24 hours).
+
+More information: man sshd_config
+
+TCPKeepAlive
+			 Specifies whether the system should send TCP keepalive messages to the
+			 other side.  If they are sent, death of the connection or crash of one of
+			 the machines will be properly noticed.  However, this means that connecâ€
+			 tions will die if the route is down temporarily, and some people find it
+			 annoying.  On the other hand, if TCP keepalives are not sent, sessions may
+			 hang indefinitely on the server, leaving â€œghostâ€ users and consuming
+			 server resources.
+
+			 The default is â€œyesâ€ (to send TCP keepalive messages), and the server will
+			 notice if the network goes down or the client host crashes.  This avoids
+			 infinitely hanging sessions.
+
+			 To disable TCP keepalive messages, the value should be set to â€œnoâ€.
+
+			 This option was formerly called KeepAlive.
+
+ClientAliveCountMax
+			 Sets the number of client alive messages (see below) which may be sent
+			 without sshd(8) receiving any messages back from the client.  If this
+			 threshold is reached while client alive messages are being sent, sshd will
+			 disconnect the client, terminating the session.  It is important to note
+			 that the use of client alive messages is very different from TCPKeepAlive
+			 (below).  The client alive messages are sent through the encrypted channel
+			 and therefore will not be spoofable.  The TCP keepalive option enabled by
+			 TCPKeepAlive is spoofable.  The client alive mechanism is valuable when
+			 the client or server depend on knowing when a connection has become inacâ€
+			 tive.
+
+			 The default value is 3.  If ClientAliveInterval (see below) is set to 15,
+			 and ClientAliveCountMax is left at the default, unresponsive SSH clients
+			 will be disconnected after approximately 45 seconds.
+
+ClientAliveInterval
+			 Sets a timeout interval in seconds after which if no data has been
+			 received from the client, sshd(8) will send a message through the
+			 encrypted channel to request a response from the client.  The default is
+			 0, indicating that these messages will not be sent to the client.
+
+
+# # #
+
+SSH Server reinstallation
+--------------------
+After the reinstallation of OpenSSH server also keys will be replaced with new ones. Certainly the server keys can be replaced also manually but this is not usually needed and happened. Certainly the safest way could be to ask from server administrator new keys fingerprints (all keys: DSA, ECDSA, Ed25519, RSA):
+SHA256 format:
+for i in /etc/ssh/*.pub; do ssh-keygen -lf $i; done
+
+MD5 format (for MS Windows):
+for i in /etc/ssh/*.pub; do ssh-keygen -lf $i -E md5; done
+
+If you cannot ask from server admin the new keys then there is possible to retrieve them while logging in:
+ssh-keyscan -t ecdsa server.address.ee | ssh-keygen -lv -f - && ssh -i ~/.ssh/key -o VisualHostKey=yes user@server.address.ee'
+... replace "ecdsa" with appropriate algorithm offered while logging in.
+... replace "server.address.ee" with real server address or IP-address
+... replace "key" with real SSH key file name
+
+When trying to log in, the following warning message appears:
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+It is also possible that a host key has just been changed.
+The fingerprint for the ECDSA key sent by the remote host is
+SHA256:<hash>.
+Please contact your system administrator.
+Add correct host key in /home/user/.ssh/known_hosts to get rid of this message.
+Offending ECDSA key in /home/user/.ssh/known_hosts:1
+  remove with:
+  ssh-keygen -f "/home/user/.ssh/known_hosts" -R server.address.ee
+ECDSA host key for server.address.ee has changed and you have requested strict checking.
+Host key verification failed.
+
+Now you can run the proposed command to remove all old keys of that host:
+  ssh-keygen -f "/home/user/.ssh/known_hosts" -R server.address.ee
+
+Feedback comes as follows:
+# Host server.address.ee found: line 60
+/home/user/.ssh/known_hosts updated.
+Original contents retained as /home/user/.ssh/known_hosts.old
+
+Now you can login again:
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'server.address.ee' (ECDSA) to the list of known hosts.
+Warning: the ECDSA host key for 'server.address.ee' differs from the key for the IP address 'xxx.xxx.xxx.xxx'
+Offending key for IP in /home/user/.ssh/known_hosts:10
+Are you sure you want to continue connecting (yes/no)? no
+Host key verification failed.
+
+Here is the message that still on the line 10 is one more key with same host but IP-address has changed. Here would be the solution to delete that 10th line and then log in again:
+sed -i '10d' ~/.ssh/known_hosts
+.... or manually.
+
+# # #
+
+OpenSSH Server keys regeneration
+--------------------
+Following commands should be entered as superuser.
+
+Firstly remove all current keys:
+rm /etc/ssh/ssh_host*
+
+Then reconfigure OpenSSH server again:
+dpkg-reconfigure openssh-server
+
+If you need regenerate server keys manually then:
+RSA1 - not suggested to use anymore but if you really need then:
+ssh-keygen -q -f /etc/ssh/ssh_host_key -N '' -t rsa1
+
+Usual keys (DSA, ECDSA, Ed25519, RSA):
+ssh-keygen -f /etc/ssh/ssh_host_dsa_key -N '' -t dsa #must be 1024 according FIPS 186-2 in man ssh-keygen
+ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -N '' -t ecdsa -b 521 #can be 256, 384 or 521 bits
+ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t ed25519 #-b is ignored but -a can be used (default a=16)
+ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa #default 2048 bit, up to 16 384 bit, at least 4096 bit would be suggested but this may change in time
+
+# # #
+
+Ubuntu Firewall
+https://help.ubuntu.com/community/UFW, also gufw (GUI) is available for desktops.
+sudo ufw allow ssh #allow ssh
+sudo ufw enable #enable firewall
+sudo ufw status verbose #check status
+
+sudo ufw disable #when needed, disable and enable again
+
+# # #
+
+Change or set a passphrase for key:
+ssh-keygen -f ~/.ssh/keyfile -p -a 1000
+... also ensure that -a value is 1000
+...replace keyfile with your keyfile name
+
+# # #
+
+Check SSH public keys strength
+--------------------
+for i in ~/.ssh/*.pub; do ssh-keygen -lf $i; done
+
+checking just one key:
+ssh-keygen -lf ~/.ssh/keyfile
+ssh-keygen -lf ~/.ssh/keyfile.pub
+
+# # #
+
+Checking ssh client supported key algorithm types:
+ssh -Q key
+(more: man ssh)
+
+# # #
+
+SSH config file
+--------------------
+Host alias1 alias2 #replace with short name you prefer
+  IdentityFile ~/.ssh/keyfile
+  IdentitiesOnly yes
+  Port 22
+  User user #replace with real username used to log in
+  HostName host.com #replace with real hostname or IP
+
+then you can connect:
+ssh alias1
+ssh alias2
+etc
+
+More reading:
+man ssh_config
+http://nerderati.com/2011/03/17/simplify-your-life-with-an-ssh-config-file/
+https://www.startpage.com/do/search?q=ssh+config
+
+# # #
+
+SSH agent
+--------------------
+https://wiki.archlinux.org/index.php/SSH_keys#SSH_agents
+
+To make all ssh clients, including git store keys in the agent on first use, add the configuration setting AddKeysToAgent yes to ~/.ssh/config.
+
+Add service:
+~/.config/systemd/user/ssh-agent.service
+[Unit]
+Description=SSH key agent
+
+[Service]
+Type=simple
+Environment=SSH_AUTH_SOCK=%t/ssh-agent.socket
+ExecStart=/usr/bin/ssh-agent -D -a $SSH_AUTH_SOCK
+
+[Install]
+WantedBy=default.target
+
+' ' '
+Add SSH_AUTH_SOCK DEFAULT="${XDG_RUNTIME_DIR}/ssh-agent.socket" to ~/.pam_environment.
+
+' ' '
+systemctl --user enable ssh-agent.service
+
+* * *
+
+In order to start the agent automatically and make sure that only one ssh-agent process runs at a time, add the following to your ~/.bashrc:
+if ! pgrep -u "$USER" ssh-agent > /dev/null; then
+	ssh-agent > ~/.ssh-agent-thing
+fi
+if [[ "$SSH_AGENT_PID" == "" ]]; then
+	eval "$(<~/.ssh-agent-thing)"
+fi
+
+---
+https://mm0hai.net/blog/2016/11/28/ssh-agent-gnome-keyring-ubuntu.html
+
+
+* * *
+
+If you have just one key or all with default names then just run:
+ssh-add
+
+If you are using an agent, have also custom names manually point it to all your keys:
+ssh-add ~/.ssh/id_rsa ~/.ssh/id_rsa_legacy ~/.ssh/id_ed25519
+
+Also specifying validity time can be specified:
+ssh-add -t 1h30m ~/.ssh/ed25519
+Identity added: ~/.ssh/ed25519 (/home/user/.ssh/ed25519)
+Lifetime set to 5400 seconds
+
+List currently added keys:
+ssh-add -l
+
+One example of GUI agent for desktops:
+sudo apt update && sudo apt install seahorse && sudo apt clean
+Application name is also "Passwords and keys" (Paroolid ja vÃµtmed)
+
+Specify key file per server:
+To facilitate logging in, you can specify a key file and other data:
+in ~/.ssh/config in Linux or %userprofile%\.ssh\config in Windows:
+host <ip> <name> #multiple names separate with space
+		user student
+		IdentityFile ~/.ssh/keyfile #or %userprofile%\.ssh\keyfile
+
+https://wiki.archlinux.org/index.php/SSH_keys#SSH_agents
+https://unix.stackexchange.com/questions/48863/ssh-add-complains-could-not-open-a-connection-to-your-authentication-agent
+http://stackoverflow.com/questions/3466626/add-private-key-permanently-with-ssh-add-on-ubuntu
+https://wiki.archlinux.org/index.php/SSH_keys#Keychain
+
+sudo apt update && sudo apt install keychain -y && sudo apt clean
+
+add to ~/.profile (or ~/.bash_profile):
+eval $(keychain --eval --quiet --confhost keyfile1 keyfile2 keyfile3)
+
+the --eval switch outputs lines to be evaluated by the opening eval command; this sets the necessary environments variables for SSH client to be able to find your agent.
+--quiet will limit output to warnings, errors, and user prompts. Multiple keys can be specified on the command line, as shown in the example. By default keychain will look for key pairs in the ~/.ssh/ directory, but absolute path can be used for keys in non-standard location. You may also use the --confhost option to inform keychain to look in  ~/.ssh/config for IdentityFile settings defined for particular hosts, and use these paths to locate keys. Because Keychain reuses the same ssh-agent process on successive logins, you should not have to enter your passphrase the next time you log in or open a new terminal. You will only be prompted for your passphrase once each time the machine is rebooted.
+
+# # #
+
+SSH Agent Forwarding
+--------------------
+Useful when logging in sequentially to multiple servers.
+You need to copy your public key to all these machines.
+Starting machine should have also private key.
+
+key file with default name
+ssh -At user1@server1 ssh -At user2@server2 ssh -At user3@server3
+
+key file with custom name
+ssh -At -i ~/.ssh/key user1@server1 ssh -At -i ~/.ssh/key user2@server2 ssh -At -i ~/.ssh/key user3@server3
+
+if needed to define also port:
+user1@server1 -p xxxx
+
+# # #
+
+Too many authentication failures
+--------------------
+http://superuser.com/questions/187779/too-many-authentication-failures-for-username
+To prevent irrelevant keys from being offered, you have to explicitly specify this in every host entry in the ~/.ssh/config file by adding IdentitiesOnly like so:
+
+host <ip> <name> #multiple names separate with space
+  IdentityFile ~/.ssh/key_for_somehost
+  IdentitiesOnly yes
+  Port 22
+
+If you use the ssh-agent, it helps to run ssh-add -D to clear the identities.
+
+If you are not using any ssh hosts configuration, you have to explicitly specify the correct key in the ssh command like so:
+
+ssh -i some_id -o 'IdentitiesOnly=yes' user@IP:/path/
+Note: the 'IdentitiesOnly=yes' parameter needed to be between quotes.
+
+or
+
+ssh -i some_id -o IdentitiesOnly=yes user@IP:/path/
+
+# # #
+
+Keys security
+--------------------
+It would be always good to ensure strict permissions:
+chmod 700 ~/.ssh/
+chmod 600 ~/.ssh/*
+
+This applies to both: client and server machine.
+
+http://unix.stackexchange.com/questions/36540/why-am-i-still-getting-a-password-prompt-with-ssh-with-public-key-authentication
+
+CRON
+You can automate setting up correct permissions using scheduled tasks in UNIX-like systems - CRON.
+You can create a bash alias in ~/.bash_aliases file:
+alias cron='EDITOR=nano crontab -e'
+Run also source ~/.bash_aliases to take aliases effect immediately without logging out or reopening terminal.
+then run that alias and it will open the crontab file:
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+
+* * * * *       chmod 700 ~/.ssh/ && chmod 600 ~/.ssh/*
+... this will run in every minute...
+more about generating CRON:
+http://crontab-generator.org/
+http://www.cronmaker.com/
+https://crontab.guru/ - quick and simple
+
+# # #
+
+Check whether your CPU supports Intel AES-NI.
+--------------------
+More information about AES-NI - https://software.intel.com/en-us/articles/intel-advanced-encryption-standard-instructions-aes-ni
+http://stackoverflow.com/questions/25284119/how-can-i-check-if-openssl-is-support-use-the-intel-aes-ni
+
+grep -m1 -o aes /proc/cpuinfo
+
+cpuid | grep -i aes | sort | uniq
+
+... is module loaded:
+sort -u /proc/crypto | grep module
+
+# # #
+
+2 factor authentication
+--------------------
+http://www.linuxjournal.com/content/two-factors-are-better-one
+
+# # #
+
+Passwords on key file
+--------------------
+https://security.stackexchange.com/questions/129724/how-to-check-if-an-ssh-private-key-has-passphrase-or-not
+
+ssh-keygen -p [-P old_passphrase] [-N new_passphrase] [-f keyfile]
+
+removing password:
+ssh-keygen -p -f id_rsa
+2x Enter
+
+check password existance:
+
+protected key:
+~/.ssh$ ssh-keygen -p -f id_rsa_password_protected
+Enter old passphrase:
+
+
+And with not protected:
+
+~/.ssh$ ssh-keygen -p -f id_rsa_not_protected
+Enter new passphrase (empty for no passphrase):
+
+# # #
+
+Running commands over SSH
+--------------------
+usually possible by:
+ssh -i ~/.ssh/keyfile user@IP 'command1 && command2 && etc'
+when running just one command, apostrophes are not required
+in that way you can run simple (viewing) commands
+the output of the command(s) will be shown locally in client machine where the command were issued
+
+GUI commands
+By default in file /etc/ssh/sshd_config is written: X11Forwarding yes
+... so the GUI apps are allowed to run.
+
+If you would like to run graphical apps from remote server, use -X parameter:
+ssh -i ~/.ssh/keyfile -X user@IP
+...replace keyfile with your keyfile name, user with your real username and IP with your real IP or domain name (if applicable)
+
+CLI commands
+Below are examples with root user. You can replace root with any other user (e.g. student) in order to run the command as different user.
+
+When to copy authorized_keys file to superuser then also management commands that require interactive shell, can be used:
+sudo mkdir /root/.ssh && sudo cp /home/student/.ssh/authorized_keys /root/.ssh/
+
+-t parameter is to force pseudo-terminal allocation. This can be used to execute arbitrary screen-based programs on a remote machine. Basically it means to run commands that require interactive shell.
+
+ssh -t -i ~/.ssh/keyfile root@server 'TERM=$TERM DEBIAN_FRONTEND=dialog apt update && apt full-upgrade && apt clean' #by default is suggested to use
+
+some other options:
+ssh -t -i ~/.ssh/keyfile root@server 'DEBIAN_FRONTEND=readline mc'
+or also:
+ssh -t -i ~/.ssh/keyfile root@server 'DEBIAN_FRONTEND=editor EDITOR=nano mc'
+
+in such way also apps can be run:
+ssh -t -i ~/.ssh/keyfile root@server 'DEBIAN_FRONTEND=editor EDITOR=nano editor /etc/sysctl.conf'
+ssh -t -i ~/.ssh/keyfile student@server 'DEBIAN_FRONTEND=readline mc'
+
+you can also run whole shell (e.g. bash) but then already logging in over SSH directly would be suggested:
+ssh -t -i ~/.ssh/keyfile root@server 'TERM=$TERM DEBIAN_FRONTEND=dialog bash'
+
+more reading:
+https://askubuntu.com/questions/506158/unable-to-initialize-frontend-dialog-when-using-ssh
+https://unix.stackexchange.com/questions/87405/how-can-i-execute-local-script-on-remote-machine-and-include-arguments
+http://stackoverflow.com/questions/7114990/pseudo-terminal-will-not-be-allocated-because-stdin-is-not-a-terminal
+https://askubuntu.com/questions/640960/running-command-on-remote-host-by-ssh-fails-when-running-inside-script
+
+# # #
+
+NoMachine NX
+--------------------
+About the program - https://www.nomachine.com
+
+From Ubuntu side
+https://help.ubuntu.com/community/NomachineNX
+https://help.ubuntu.com/community/FreeNX
+
+Usually generate new keypair using ssh-keygen.
+You can use also NX to generate key pair - https://www.nomachine.com/AR01C00126
+
+How to set up key based authentication with NX protocol
+https://www.nomachine.com/AR02L00785
+cat ~/.ssh/keyfile.pub >> ~/.nx/config/authorized.crt
+
+... replace keyfile.pub with your keyfile.
+
+Some references:
+How authentication by SSH and 'NoMachine login' works
+https://www.nomachine.com/AR02C00150
+search: https://www.nomachine.com/articles?keys=ssh+key
+
+# # #
+
+Key conversion
+--------------------
+MS Windows (puTTY) -> GNU/Linux (OpenSSH)
+http://stackoverflow.com/questions/2224066/how-to-convert-ssh-keypairs-generated-using-puttygenwindows-into-key-pairs-use
+http://linux-sxs.org/networking/openssh.putty.html
+http://www.wellsi.com/sme/ssh/ssh.html
+https://help.cloudforge.com/hc/en-us/articles/215242303-Converting-PuTTY-private-keys-to-OpenSSH-format
+https://docs.oseems.com/general/application/putty/convert-ppk-to-ssh-key
+https://tutorialinux.com/convert-ssh2-openssh/
+https://superuser.com/questions/232362/how-to-convert-ppk-key-to-openssh-key-under-linux
+
+Copy ssh-keygen generated key pair from Linux into MS Windows, e.g. ~/.ssh/ from Linux to MS Windows as %USERPROFILE%\.ssh\
+Ensure that public key of that key pair is at server in ~/.ssh/authorized_keys file
+
+You need latest version of putty in order to support new Ed25519 encryption
+http://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html
+
+32-bit https://the.earth.li/~sgtatham/putty/latest/w32/putty.zip
+64-bit https://the.earth.li/~sgtatham/putty/latest/w64/putty.zip
+
+Use the latest puTTY or WinSCP to convert in Linux generated private key into puTTY .ppk format and save it under new name:
+https://superuser.com/questions/1160544/winscp-authentication-with-an-openssh-created-ed25519-non-ppk-private-key-po
+
+In WinSCP use the Advanced settings dialog to browse ssh-keygen generated private key file:
+https://winscp.net/eng/docs/ui_login_authentication
+
+puTTY docs https://tartarus.org/~simon/putty-snapshots/htmldoc/
+WinSCP docs https://winscp.net/eng/docs/start
+
+Settings are stored:
+http://stackoverflow.com/questions/13012700/where-does-putty-stores-its-sessions
+HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions
+
+WinSCP - https://winscp.net/eng/docs/session_configuration
+
+create puTTY icon that launches automatically selected profile
+https://superuser.com/questions/248099/a-putty-shortcut-that-automatically-launches-a-profile
+create a shortcut to puTTY with Target:
+\path\to\putty.exe -load "my session"
+
+Key conversion in Linux: from puTTY to OpenSSH
+--------------------
+Only needed whenever a puTTY or similar would be used.
+When using OpenSSH in both Linux and Windows, key conversion is not needed.
+
+sudo apt update && sudo apt install putty putty-tools -y && sudo apt clean
+
+private key conversion:
+puttygen keyfile.ppk -O private-openssh -o keyfile
+
+public key conversion
+puttygen keyfile.ppk -O public-openssh -o keyfile.pub
+
+To add the OpenSSH-format public half of a key to your authorised keys file:
+puttygen -L keyfile.ppk >> $HOME/.ssh/authorized_keys
+
+please see also man puttygen examples
+
+from OpenSSH to puTTY
+--------------------
+puttygen keyfile -o keyfile.ppk
+... this assumes that keyfile.pub is located in same ~/.ssh/ folder together with private key
+
+# # #
+
+PEM format
+
+1st option
+generate directly:
+ssh-keygen -m PEM -t rsa -b 16384
+
+2nd option
+convert key pair from OpenSSH to puTTY format
+puttygen keyfile -o keyfile.ppk
+then private and public separately back to OpenSSH format
+puttygen keyfile.ppk -O private-openssh -o keyfile
+puttygen keyfile.ppk -O public-openssh -o keyfile.pub
+
+3rd option
+ssh-keygen
+
+man ssh-keygen
+ssh-keygen -f rsa.pub -e -m pem
+
+	 -e      This option will read a private or public OpenSSH key file and print to stdout the key in one of the formats speciâ€
+			 fied by the -m option.  The default export format is â€œRFC4716â€.  This option allows exporting OpenSSH keys for use
+			 by other programs, including several commercial SSH implementations.
+
+	 -m key_format
+			 Specify a key format for the -i (import) or -e (export) conversion options.  The supported key formats are:
+			 â€œRFC4716â€ (RFC 4716/SSH2 public or private key), â€œPKCS8â€ (PEM PKCS8 public key) or â€œPEMâ€ (PEM public key).  The
+			 default conversion format is â€œRFC4716â€.
+
+# # #
+
+MS Windows OpenSSH Server
+https://github.com/PowerShell/Win32-OpenSSH/releases/
+unpack to C:\Program Files\OpenSSH
+
+install (open cmd as administrator):
+https://github.com/PowerShell/Win32-OpenSSH/wiki/Install-Win32-OpenSSH
+https://winscp.net/eng/docs/guide_windows_openssh_server
+
+Add bash-like CLI to Windows
+--------------------
+http://mridgers.github.io/clink/ - download and install.
+manually can be installed:
+clink autorun --install
+
+Autocomplete can be added also from registry:
+http://www.online-tech-tips.com/computer-tips/how-to-turn-on-auto-complete-in-the-command-prompt/
+---
+Runas command in MS Windows:
+http://stackoverflow.com/questions/8249705/how-to-run-an-application-as-run-as-administrator-from-the-command-prompt
+https://ss64.com/nt/runas.html
+
+From a command prompt:
+runas /user:<localmachinename>\administrator cmd
+
+Or, if you're connected to a domain:
+runas /user:<DomainName>\<AdministratorAccountName> cmd
+
+SUDO for Windows:
+https://serverfault.com/questions/7620/windows-run-as-without-knowing-the-password
+http://helpdeskgeek.com/free-tools-review/5-windows-alternatives-linux-sudo-command/
+https://social.technet.microsoft.com/Forums/windows/en-US/05cce5f6-3c3a-4bb8-8b72-8c1ce4b5eff1/how-to-run-a-program-as-adminitrator-via-the-command-line
+create a file %systemroot%\system32\SUDO.cmd
+@echo Set objShell = CreateObject("Shell.Application") > %temp%\sudo.tmp.vbs
+@echo args = Right("%*", (Len("%*") - Len("%1"))) >> %temp%\sudo.tmp.vbs
+@echo objShell.ShellExecute "%1", args, "", "runas" >> %temp%\sudo.tmp.vbs
+@cscript %temp%\sudo.tmp.vbs
+
+IP-alias
+--------------------
+https://en.wikipedia.org/wiki/Hosts_(file)#Location_in_the_file_system
+add remote host file IP to hosts file.
+open Notepad as administrator
+%SystemRoot%\System32\drivers\etc\hosts
+172.16.10.2 server #add IP and corresponding alias or aliases by separating them with spaces
+
+later view:
+http://stackoverflow.com/questions/17217476/how-to-display-text-file-content-in-cmd
+type c:\Windows\System32\drivers\etc\hosts #like cat
+more c:\Windows\System32\drivers\etc\hosts #like less
+alternatively:
+type %systemroot%\System32\drivers\etc\hosts
+
+https://superuser.com/questions/300815/grep-equivalent-for-windows-7
+findstr is like grep alias for MS Windows
+dir | findstr filename
+type %systemroot%\System32\drivers\etc\hosts | findstr <search-string>
+
+SSH keyfile configuration in MS Windows
+--------------------
+To facilitate logging in, you can specify a key file and other data:
+in %userprofile%\.ssh\config:
+host www.somehost.com (or IP)
+		user student
+		IdentityFile %userprofile%\.ssh\keyfile
+
+
+Command alias in MS Windows
+--------------------
+http://stackoverflow.com/questions/20530996/aliases-in-windows-command-prompt
+
+Create a folder called C:\aliases
+Add %systemdrive%\aliases to your path (so any files in it will be found every time)
+Create a .bat file in C:\Aliases for each of the aliases you want
+
+%systemdrive%\aliases\np.bat
+@echo off
+notepad++.exe %1
+
+%systemdrive%\aliases\server
+@echo off
+set TERM=xterm-color #required when want to run mc, nano etc
+ssh student@server
+
+this requires that there has been created beforehand: IP-alias server, SSH keyfile configuration
+
+Error message: "TERM environment variable unset!" (trying to run mc, nano etc)
+https://superuser.com/questions/495554/term-enviroment-variable-not-set-when-executing-a-bash-file-via-ssh
+https://unix.stackexchange.com/questions/198794/where-does-the-term-environment-variable-default-get-set
+---
+yet another almost true bash terminal for MS Windows https://github.com/cmderdev/cmder
+https://github.com/cmderdev/cmder/releases/ (unpacked: ~240 MB, has UNIX commands)
+see also:
+aliases not working build 1703:
+https://github.com/cmderdev/cmder/issues/1361
+https://github.com/cmderdev/cmder/issues/1325
+alternatives
+http://alternativeto.net/software/cmder/?license=opensource&platform=windows
+https://github.com/cbucher/console/releases - ConsoleZ (unpacked: ~18MB)
+
+---
+
+Turn Windows firewall off for testing purposes whenever needed.
+
+Add OpenSSH path to MS Windows environment variable
+--------------------
+http://stackoverflow.com/questions/9546324/adding-directory-to-path-environment-variable-in-windows
+https://ss64.com/nt/syntax-variables.html
+"My Computer" > "Properties" > "Advanced" > "Environment Variables" > "Path"
+or
+Super+R
+systempropertiesadvanced
+
+Environment Variables...
+System Variables -> Path -> Edit...
+New
+%ProgramFiles%\OpenSSH
+OK->OK->OK
+reopen terminal (cmd)
+path #check whether new path has loaded
+
+view current environment variables in MS Windows:
+set
+set | more >view one page at time
+set > output.txt #redirect into file
+set <variable name> #view only one variable
+echo %variable% #view only one variable
+
+http://stackoverflow.com/questions/5327495/list-all-environment-variables-from-command-line
+https://superuser.com/questions/341192/how-can-i-display-the-contents-of-an-environment-variable-from-the-command-promp
+---
+
+OpenSSH installation in Windows
+
+RunAs administrator cmd
+cd %programfiles%\OpenSSH
+powershell.exe -ExecutionPolicy Bypass -File install-sshd.ps1 #install
+
+successful messages by system:
+[SC] SetServiceObjectSecurity SUCCESS
+[SC] ChangeServiceConfig SUCCESS
+sshd and ssh-agent services successfully installed
+
+ssh-keygen.exe -A #generate keys
+message:
+ssh-keygen.exe: generating new host keys: RSA DSA ECDSA ED25519
+
+Computer Management->Services #run as administrator
+sshd #automatic
+ssh-agent #automatic
+
+download https://technet.microsoft.com/en-us/sysinternals/pstools
+
+cmd #run as administrator
+cd %programfiles%\PSTools\
+psexec.exe -i -s cmd.exe # run as SYSTEM user
+cd %programfiles%\OpenSSH
+ssh-add ssh_host_dsa_key
+ssh-add ssh_host_rsa_key
+ssh-add ssh_host_ecdsa_key
+ssh-add ssh_host_ed25519_key
+
+Firewall:
+netsh advfirewall firewall add rule name='SSH Port' dir=in action=allow protocol=TCP localport=22
+... or add graphically into Inbound Rules 22/tcp port.
+
+Check service status:
+netstat -anop TCP
+  Proto  Local Address          Foreign Address        State           PID
+  TCP    0.0.0.0:22             0.0.0.0:0              LISTENING       4216
+
+Usage examples
+https://github.com/PowerShell/Win32-OpenSSH/wiki/ssh.exe-examples
+
+Key generation
+--------------------
+mkdir %userprofile%\.ssh\
+cd %programfiles%\OpenSSH #not needed if added into path
+ssh-keygen.exe -t ed25519 -a 1000 -f %userprofile%\.ssh\keyfile -C "Name mail@address phone"
+
+register a key in ssh-agent (so you do not need enter password each time):
+net start ssh-agent #if it is not yet started (set appropriate service as automatic)
+ssh-add keyfile
+
+you can write all keyfiles into one .bat file to add them at once
+
+Copy key files from Windows to Linux machine:
+scp %userprofile%\.ssh\keyfile student@172.16.10.2:/home/student/.ssh
+scp %userprofile%\.ssh\keyfile.pub student@172.16.10.2:/home/student/.ssh
+
+in Linux machine
+cat $HOME/.ssh/keyfile.pub >> $HOME/.ssh/authorized_keys
+
+in Windows machine grant also permissions:
+cmd #run as administrator
+icacls %userprofile%\.ssh /grant "NT Service\sshd":R /T
+
+Verify key in Windows host:
+https://winscp.net/eng/docs/ssh_verifying_the_host_key
+%programfiles%\OpenSSH>ssh-keygen.exe -l -f %userprofile%\.ssh\keyfile -E md5
+When logging first time to server, you will see a prompt with new key.
+
+Try to log in from Windows to Linux and vice versa using keyfile:
+from Windows to Linux:
+cd %programfiles%\OpenSSH && ssh -i %userprofile%\.ssh\keyfile student@172.16.10.2
+...where the user "student" and IP are in Linux machine
+
+from Linux to Windows:
+ssh -i ~/.ssh/keyfile user@172.16.10.3
+...where that IP is MS Windows machine IP
+
+For more convenient SSH usage under MS Windows, please use (these support also Ed25519):
+KiTTY - http://kitty.9bis.net/
+puTTY dev - http://www.chiark.greenend.org.uk/~sgtatham/putty/snapshot.html
+
+Linux:
+install OpenSSH server and some additional packages by using:
+sudo apt update && sudo apt install ssh openssh-blacklist*  -y && sudo apt clean
+
+Key pair generation, firewall configuration in Ubuntu and ssh usage please see upwards.
+
+# # #
+
+---
+
+GNU/Linux (OpenSSH) -> MS Windows (puTTY)
+https://kb.site5.com/shell-access-ssh/how-to-convert-ssh-keys-to-ppk-format/
+https://devops.profitbricks.com/tutorials/use-ssh-keys-with-putty-on-windows/
+https://www.nextofwindows.com/how-to-convert-rsa-private-key-to-ppk-allow-putty-ssh-without-password
+https://www.virag.si/2010/02/convert-openssh-private-key-to-putty-private-key-for-github/
+
+in Linux:
+sudo apt update && sudo apt install putty putty-tools -y && sudo apt clean
+puttygen keyfile -o keyfile.ppk
+
+please see also man puttygen examples
+
+# # #
+
+Wise man VPN - sshuttle
+--------------------
+https://sshuttle.readthedocs.io/en/stable/overview.html
+https://sshuttle.readthedocs.io/en/stable/requirements.html
+https://sshuttle.readthedocs.io/en/stable/usage.html
+
+EST - https://wiki.itcollege.ee/index.php/Sshuttle
+
+Usually you can install sshuttle:
+sudo apt update && sudo apt install sshuttle -y && sudo apt clean
+
+Usual run:
+sudo sshuttle --dns -Nvr user@server 0.0.0.0/0
+
+Log in using keyfile:
+sudo sshuttle --dns -Nvr user@server 0.0.0.0/0 -e "ssh -i /home/user/.ssh/keyfile user@server"
+
+adding -H will scan remote hosts and add them into /etc/hosts file while connected, original state of /etc/hosts will be restored by disconnecting
+sudo sshuttle --dns -HNvr user@server 0.0.0.0/0 -e "ssh -i /home/user/.ssh/keyfile user@server"
+
+You can create also alias to facilitate usage:
+nano ~/.bash_aliases
+alias vpn='sudo sshuttle --dns -Nvr user@server 0.0.0.0/0'
+... save and run:
+source ~/.bash_aliases
+... or reopen, relogin to terminal.
+Then you can use the alias to run: vpn
+
+Actually as there is sudo required to run sshuttle then it would be better to copy key pair into /root/.ssh/ folder and use agent to hold credentials, e.g. keychain. First time you log in, agent will ask key(s) password(s). There is possible to configure so that passwords are asked when first time appropriate key will be used. Also there is possible to use a key file without password.
+
+When key pair is at /root/.ssh/ then you can write:
+sudo sshuttle --dns -Nvr user@server 0.0.0.0/0 -e "ssh -i ~/.ssh/keyfile user@server"
+
+To allow run sshuttle for regular user(s) without entering a password every time:
+create a file:
+sudo nano /etc/sudoers.d/permissions #this filename could any name
+Cmnd_Alias VPN=/usr/bin/sshuttle
+ALL ALL=(ALL) NOPASSWD:VPN
+
+or allowing just one user:
+username ALL=(ALL) NOPASSWD: /usr/bin/sshuttle
+
+More reading at:
+https://help.ubuntu.com/community/Sudoers
+---
+
+https://unix.stackexchange.com/questions/74545/what-difference-between-openssh-key-and-putty-key
+https://the.earth.li/~sgtatham/putty/0.67/htmldoc/Chapter8.html#puttygen-conversions
+https://www.ssh.com/ssh/putty/linux/puttygen
+
+Test your SSH server
+sshd -T #test configuration
+sshd -t #test server keys, should not show any warning
+
+# # #
+
+Debug SSH connection
+--------------------
+different verbose levels:
+ssh -vvv user@IP
+ssh -vv user@IP
+ssh -v user@IP
+
+... prepare to see lots of output
+
+# # #
+Limiting access
+~/.ssh/authorized_keys
+command="rsync --server -vre.iLsfxC --partial . ." ssh-rsa KEY me@host
+
+# # #
+
+Links
+--------------------
+EST https://www.ria.ee/public/RIA/Kruptograafiliste_algoritmide_uuring_2015.pdf
+- copy: http://enos.itcollege.ee/~edmund/materials/security/kryptoalgoritmide_elutsykli_uuring_15-07-2011.pdf
+ENG https://www.ria.ee/public/RIA/Cryptographic_Algorithms_Lifecycle_Report_2016.pdf
+- copy: http://enos.itcollege.ee/~edmund/materials/security/Cryptographic_Algorithms_Lifecycle_Report_2016.pdf
+
+https://help.ubuntu.com/community/SSH/OpenSSH/Configuring
+https://help.ubuntu.com/community/SSH/OpenSSH/Keys
+
+https://en.wikibooks.org/wiki/OpenSSH
+https://en.wikibooks.org/wiki/OpenSSH/Cookbook/Public_Key_Authentication
+
+https://en.wikipedia.org/wiki/RSA_(cryptosystem)
+https://en.wikipedia.org/wiki/EdDSA
+https://ed25519.cr.yp.to/
+
+http://crypto.stackexchange.com/questions/40311/how-many-kdf-rounds-for-an-ssh-key
+
+http://ask.xmodulo.com/check-ssh-protocol-version-linux.html
+
+https://blog.g3rt.nl/upgrade-your-ssh-keys.html
+http://www.reddit.com/r/linux/comments/543guz/upgrade_your_ssh_keys/
+
+RSA key length
+http://crypto.stackexchange.com/questions/1182/are-there-practical-upper-limits-of-rsa-key-lengths
+http://www.javamex.com/tutorials/cryptography/rsa_key_length.shtml
+http://crypto.stackexchange.com/questions/1978/how-big-an-rsa-key-is-considered-secure-today
+https://www.keylength.com/
+
+http://oletange.blogspot.com.ee/2013/09/choosing-gnupg-rsa-key-size.html
+http://oletange.blogspot.com.ee/2013/09/problems-using-10kbit-keys-in-gnupg.html
+
+additional reading:
+http://csrc.nist.gov/publications/PubsDrafts.html#SP-800-57-Part%201 - nov 2016
+http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r4.pdf
+http://csrc.nist.gov/groups/ST/key_mgmt/
+
+http://serverfault.com/questions/471327/how-to-change-a-ssh-host-key
+http://stackoverflow.com/questions/20840012/ssh-remote-host-identification-has-changed
+https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys
+https://blog.urfix.com/25-ssh-commands-tricks/
+https://stribika.github.io/2015/01/04/secure-secure-shell.html
+
+Incompatibilities
+http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https.html
+http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cnames-and-https-requirements.html
+If you're importing a certificate into ACM, the length of the public key must be 1024 or 2048 bits.
+If you're uploading a certificate to the IAM certificate store, the maximum size of the public key is 2048 bits.
+
+Custom options
+https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client
+
+Security
+https://www.linux.com/learn/5-ssh-hardening-tips
+https://askubuntu.com/questions/2271/how-to-harden-an-ssh-server
+https://linux-audit.com/audit-and-harden-your-ssh-configuration/
+https://www.cyberciti.biz/tips/linux-unix-bsd-openssh-server-best-practices.html
+https://lauri.xn--vsandi-pxa.com/2017/03/yubikey-for-ssh-auth.html
+https://wiki.itcollege.ee/index.php/SSH_Encryption
+
+SSH accounts
+https://www.fastssh.com/
+http://free-ssh.xyz/ , http://createssh.com/ , http://myssh.info/
+https://www.facebook.com/freesshvps
+https://shells.red-pill.eu/ - list of choices
+
+SSH, VPN
+http://contassh.com/
+http://www.skyssh.com/
+http://www.sshudp.com/
+http://www.sshagan.net/
+
+http://www.bost-ssh.cf/
+https://www.facebook.com/bostssh
+
+SSH
+---
+EST
+http://kuutorvaja.eenet.ee/wiki/OpenSSH_kasutamine
+
+ENG
+https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process
+http://www.openssh.com/manual.html
+https://www.itworld.com/article/2827172/it-management/16-ultimate-ssh-hacks.html
+
+LDAP authentication for SSH keys
+https://serverfault.com/questions/653792/ssh-key-authentication-using-ldap
+
+2FA for SSH
+https://www.digitalocean.com/community/tutorials/how-to-protect-ssh-with-two-factor-authentication
+https://www.digitalocean.com/community/tutorials/how-to-set-up-multi-factor-authentication-for-ssh-on-ubuntu-16-04
+https://sysconfig.org.uk/two-factor-authentication-with-ssh.html
+https://authy.com/blog/add-2fa-to-your-ssh-in-30-seconds/
+https://duo.com/docs/duounix
+https://medium.com/@james_poole/yubikey-2fa-on-ubuntu-ssh-e09b4e91bfc8
+https://jonarcher.info/2015/07/hardening-ssh-with-otp-for-2-factor-authentication/ - FreeOTP usage with SSH
+
+SSH connection
+https://www.cisco.com/c/en/us/about/press/internet-protocol-journal/back-issues/table-contents-46/124-ssh.html
+https://www.digitalocean.com/community/tutorials/understanding-the-ssh-encryption-and-connection-process
+https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys
+
+Fingerprint
+https://superuser.com/questions/421997/what-is-a-ssh-key-fingerprint-and-how-is-it-generated

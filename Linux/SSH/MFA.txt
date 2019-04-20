@@ -75,18 +75,24 @@ Next, to enable an SSH key as one factor and the verification code as a second, 
 '''
 . . .
 UsePAM yes
-AuthenticationMethods publickey,password publickey,keyboard-interactive
+AuthenticationMethods publickey,password password,keyboard-interactive
+
 '''
 
+''The above line instructs SSH to allow either public ssh keys followed by a password, or to allow a password followed by the google-authenticator application.''
 
-comment out common-auth
+Note: For whatever reason, the combination "publickey,keyboard-interactive" does not work. It must be a bug.
+
+<BasketCase> when you see a "user@host's password:" prompt that is the password method.  "Password:" is keyboard-interractive.
+
+Common auth is what allows passwords to be used for authentication
 
 [[/etc/pam.d/sshd]]
 
 '''
 . . .
 # Standard Un*x authentication.
-#@include common-auth
+@include common-auth
 . . .
 '''
 

@@ -34,6 +34,18 @@ setsebool -P httpd_can_network_connect 1
 Simply run the following command
 ''$ sealert -a /var/log/audit/audit.log > /path/to/mylogfile.txt''
 
+==== Troubleshooting SELinux issues ====
+SELinux logs to [[/var/log/audit/audit.log.]] Consider the following log entry
+
+''type=AVC msg=audit(1550268643.892:261): avc:  denied  { getattr } for  pid=3563 comm="httpd" path="/var/vrhce2/index.html" dev="dm-0" ino=33577624 scontext=system_u:system_r:httpd_t:s0 tcontext=unconfined_u:object_r:var_t:s0 tclass=file''
+
+scontext = source context
+tcontext = target context
+
+scontext and tcontext must match in order for for SELinux to work. Usually what you want is to make tconext the same as scontext using the chcon command
+
+$ chcon -R ''system_u:system_r:httpd_t:s0 /var/vrhce2''
+
 ==== SELinux Booleans eplained ====
 the **semanage** command which is part of the policycoreutils-python package has a command which explains what each SELinux boolean does.
 

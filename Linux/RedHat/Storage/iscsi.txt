@@ -62,7 +62,7 @@ o- / ...........................................................................
 === Create the backstore ===
 There are several types of backstores. The most common is **block** (HDD, SSDs) basically hard drives. This is the one we use here. The others are **fileio, pscsi, and ramdisk.**They are for advanced cases.
 
-This step should only need to be done once (or not very often). Basically, LUNs are akin to Logical Volumes, and the Backstore is the Physical Volume. Once a backstore is created, many LUNs will be made from it. Those LUNs will then be presented a logical disks to iscsi initiators (clients). For example, you may want to have a backstore just for your virtual machines. In that case you would name your backstore **vms** instead of **iscsidisk{1,2}**.
+This step should only need to be done once (or not very often). Basically, LUNs are akin to Logical Volumes, and the Backstore is the Physical Volume. Once a backstore is created, many LUNs will be made from it. Those LUNs will then be presented as logical disks to iscsi initiators (clients). For example, you may want to have a backstore just for your virtual machines. In that case you would name your backstore **vms** instead of **iscsidisk{1,2}**.
 
 
 

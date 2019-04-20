@@ -17,3 +17,13 @@ Delta RPM packages contain the difference between an old and a new version of an
 
 ==== Caching YUM packages for more efficient updates ====
 http://yum.baseurl.org/wiki/YumMultipleMachineCaching.html
+
+
+==== rpm gpg keys ====
+
+See currently imported gpg keys
+''# rpm -q gpg-pubkey --qf '%{NAME}-%{VERSION}-%{RELEASE}\t%{SUMMARY}\n'''
+
+Import gpg keys. Yum automatically imports gpg keys. However, if for some reason yum doesn't do this, you can manually do this with rpm
+''# rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7''
+
