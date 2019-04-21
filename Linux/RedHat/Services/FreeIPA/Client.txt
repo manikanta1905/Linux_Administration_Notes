@@ -46,9 +46,30 @@ If you proceed with the installation, services will be configured to always acce
 Solution:
 Make sure you have valid SRV records for your ldap server. Don't pass the --server parameter during install.
 
+# SRV Records
 
 '''
-DNS domain 'ipa.corvidtec.com' is not configured for automatic KDC address lookup.
+_ldap._tcp.example.com. 86400   IN      SRV     0 100 389 ipaserver1.example.com.
+_ldap._tcp.example.com. 86400   IN      SRV     0 100 389 ipaserver2.example.com.
+_kerberos._tcp.example.com. 86400 IN    SRV     0 100 88 ipaserver1.example.com.
+_kerberos._tcp.example.com. 86400 IN    SRV     0 100 88 ipaserver2.example.com.
+_kerberos._udp.example.com. 86400 IN    SRV     0 100 88 ipaserver2.example.com.
+_kerberos._udp.example.com. 86400 IN    SRV     0 100 88 ipaserver1.example.com.
+_kerberos-master._tcp.example.com. 86400 IN SRV 0 100 88 ipaserver1.example.com.
+_kerberos-master._tcp.example.com. 86400 IN SRV 0 100 88 ipaserver2.example.com.
+_kerberos-master._udp.example.com. 86400 IN SRV 0 100 88 ipaserver1.example.com.
+_kerberos-master._udp.example.com. 86400 IN SRV 0 100 88 ipaserver2.example.com.
+_kpasswd._tcp.example.com. 86400 IN     SRV     0 100 464 ipaserver1.example.com.
+_kpasswd._tcp.example.com. 86400 IN     SRV     0 100 464 ipaserver2.example.com.
+_kpasswd._udp.example.com. 86400 IN     SRV     0 100 464 ipaserver1.example.com.
+_kpasswd._udp.example.com. 86400 IN     SRV     0 100 464 ipaserver2.example.com.
+_ntp._udp.example.com.  86400   IN      SRV     0 100 123 ipaserver2.example.com.
+'''
+
+
+
+'''
+DNS domain 'ipa.example.com' is not configured for automatic KDC address lookup.
 KDC address will be set to fixed value.
 '''
 
@@ -67,4 +88,4 @@ $ yum install ipa-client certmonger
 $ ipa-client --uninstall
 
 
-''Cannot find KDC for realm "IPA.CORVIDTEC.COM".''
+''Cannot find KDC for realm "IPA.EXAMPLE.COM".''

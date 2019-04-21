@@ -1,0 +1,55 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-21T11:17:53-04:00
+
+====== Troubleshooting ======
+Created Sunday 21 April 2019
+
+==== tentative dadfailed ====
+
+DAD (Duplicate Address Detection) means that one system is trying to secure an IPv6 address that is already held by another system via DHCP. There are many reasons for this
+
+The systems could have duplicate
+* MAC addresses
+* UUIDs
+* [[/etc/machine-id]] entries (especially if they were cloned vms)
+
+Here is an example below
+
+'''
+[root@ns1 ansible]# ansible all -m shell -a "ip -6 a" -i staging.hosts -k
+SSH password: 
+ftp.home | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000
+    inet6 fe80::1b44:da5:a0ca:8f6/64 scope link tentative noprefixroute dadfailed 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a1b:8437:6f93:9538/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::c167:be9f:2525:8e38/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+freeipa.home | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000
+    inet6 fe80::2738:1d8c:68eb:b64b/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+
+ns1.home | CHANGED | rc=0 >>
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 state UNKNOWN qlen 1000
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 state UP qlen 1000
+    inet6 fe80::a1b:8437:6f93:9538/64 scope link tentative noprefixroute dadfailed 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::1b44:da5:a0ca:8f6/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+'''
+
+In this case, generating new UUIDs and editing ifcfg-* files fixed the issue
+
+''$ uuid=$(uuidgen eth0); sed -i 's/UUID=.*/UUID=$uuid/' /etc/sysconfig/network-scripts/ifcfg-eth0''
