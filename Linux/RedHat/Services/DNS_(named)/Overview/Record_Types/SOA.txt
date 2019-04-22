@@ -1,0 +1,25 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-22T13:08:40-04:00
+
+====== SOA ======
+Created Monday 22 April 2019
+
+Defined in RFC 1035. The SOA defines the global parameters for the zone (domain). Only one SOA resource record (RR) is allowed in a zone file and it must be the first RR in the zone. (Though it may follow **$ORIGIN** or **$TTL** directives.)
+http://www.zytrax.com/books/dns/ch8/soa.html
+
+'''
+owner-name  ttl class rr    name-server email-addr  (sn ref ret ex min)
+example.com.    IN    SOA   ns.example.com. hostmaster.example.com. (
+                              2003080800 ; sn = serial number
+                              172800     ; ref = refresh = 2d
+                              900        ; ret = update retry = 15m
+                              1209600    ; ex = expiry = 2w
+                              3600       ; nx = nxdomain ttl = 1h
+                              )
+; the following are also valid using @ and blank 
+@               IN    SOA   ns.example.com. hostmaster.example.com. (
+                IN    SOA   ns.example.com. hostmaster.example.com. (
+NOTE: We are reliably informed that while a blank is a perfectly
+      valid format certain DNSSEC signing tools may choke on this format.
+'''

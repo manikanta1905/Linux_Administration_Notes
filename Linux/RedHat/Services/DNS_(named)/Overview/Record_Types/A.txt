@@ -1,0 +1,106 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-22T13:20:56-04:00
+
+====== A ======
+Created Monday 22 April 2019
+
+Defined in RFC 1035. Forward maps a host name to IPv4 address. The only parameter is an ipv4 field which is a single IPv4 address in dotted decimal format. The ipv4 field is an address not a label (name) and therefore is not terminated with a '.' (dot). Valid owner-name format (a.k.a 'label' in the DNS jargon). If host name is BLANK (or space) then the last valid name (or label) is substituted.
+
+== Format ==
+'''
+owner-name  ttl  class   rr     ipv4
+joe              IN      A      192.168.254.3
+'''
+
+
+**Note**: A RRs translate a name to an IPv4 address - the owner-name does not have to be the real host name of the PC or server (as it appears in /etc/hosts or in response to a hostname command). It can be, or not, as you choose. Thus, if a servers's name is alice.example.com with an IP address of 192.168.2.1 and it provides, say, a DNS service then you can either define an NS RR for alice.example.com or define an NS RR for, say, ns1.example.com and an A RR for **ns1.example.com A 192.168.2.1** (the same IP address as host alice.example.com) as illustrated below:
+
+'''
+; zone file snippet
+$ORIGIN example.com.
+...
+       IN  NS  alice.example.com.
+...
+alice  IN  A   192.168.2.1 ; real host name
+
+; equally valid configuration
+
+       IN   NS  ns1.example.com.
+...
+ns1    IN   A  192.168.2.1 ; service name
+alice  IN   A  192.168.2.1 ; host name (same IPv4)
+'''
+
+
+== Same Name - Multiple Addresses (Cyclic / Round Robin Responses) ==
+If multiple addresses are defined with the same name then BIND will respond to queries with all the addresses defined but the order may change. Cyclic order is the BIND default but you can control it with the BIND named.conf statement rrset-order. 
+
+For example, **mail** is given multiple A records (as is **ftp**)
+
+'''
+; zone fragment for example.com
+$TTL 2d ; zone default = 2 days or 172800 seconds
+joe        IN      A      192.168.0.3  ; joe & www = same ip     
+www        IN      A      192.168.0.3
+; functionally the same as the record above
+www.example.com.   A      192.168.0.3
+fred  3600 IN      A      192.168.0.4  ; ttl overrides $TTL default
+ftp        IN      A      192.168.0.24 ; round robin with next
+           IN      A      192.168.0.7
+mail       IN      A      192.168.0.15  ; mail = round robin
+mail       IN      A      192.168.0.32
+mail       IN      A      192.168.0.3
+squat      IN      A      10.0.14.13  ; address in another range & class
+'''
+
+
+In the above example BIND will respond to queries for **mail.example.com** as follows (assuming you are using the default rrset-order order cyclic):
+
+'''
+1st query 192.168.0.15, 192.168.0.32, 192.168.0.3
+2nd query 192.168.0.3, 192.168.0.15, 192.168.0.32
+3rd query 192.168.0.32, 192.168.0.3, 192.168.0.15
+4th query 192.168.0.15, 192.168.0.32, 192.168.0.3
+'''
+
+
+
+The same IP may be defined with different names (Beware: in this case a reverse lookup may not give the result you want). IP addresses do not have to be in the same class or range.
+
+== Example ==
+
+'''
+$ dig @<dns server> <host name>
+
+[root@ns1 ~]# dig @ns1.home ftp.home
+
+; <<>> DiG 9.9.4-RedHat-9.9.4-73.el7_6 <<>> @ns1.home ftp.home
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 16471
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;ftp.home.                      IN      A
+
+;; ANSWER SECTION:
+ftp.home.               172800  IN      A       192.168.86.4
+
+;; AUTHORITY SECTION:
+home.                   172800  IN      NS      ns1.home.
+
+;; ADDITIONAL SECTION:
+ns1.home.               172800  IN      A       192.168.86.3
+
+;; Query time: 1 msec
+;; SERVER: 192.168.86.3#53(192.168.86.3)
+;; WHEN: Mon Apr 22 15:01:44 EDT 2019
+;; MSG SIZE  rcvd: 87
+'''
+
+

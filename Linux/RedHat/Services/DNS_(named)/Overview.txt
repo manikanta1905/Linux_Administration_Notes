@@ -1,0 +1,161 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-22T11:59:55-04:00
+
+====== Overview ======
+Created Monday 22 April 2019
+
+==== Resources ====
+http://www.zytrax.com/books/dns/ch2/index.html#history
+https://tools.ietf.org/html/rfc1034
+
+==== Terminology ====
+NAME SERVERS / AUTHORITY / ZONES:
+	 are server programs which hold information about
+	 the domain tree's structure and set information.  A name
+	 server may cache structure or set information about any part
+	 of the domain tree, but in general a particular name server
+	 has complete information about a subset of the domain space,
+	 and pointers to other name servers that can be used to lead to
+	 information from any part of the domain tree.  Name servers
+	 know the parts of the domain tree for which they have complete
+	 information; a name server is said to be an AUTHORITY for
+	 these parts of the name space.  Authoritative information is
+	 organized into units called ZONEs, and these zones can be
+	 automatically distributed to the name servers which provide
+	 redundant service for the data in a zone.
+
+Stub Resolver: (dig, nslookup, etc.) A very simple DNS client that sends out DNS queries and receives ready to use answers in response.
+
+==== Domains and Delegation ====
+Finally, since 2011 the TLD policy is essentially unrestricted, if you pay enough money and adopt the operating procedures laid down anyone can register a sponsored TLD. Look forward to a whole set of new TLDs like .singles, .kitchen and .construction arriving.
+
+Top Level Domains (TLDs) were split into two types:
+	* Generic Top Level Domains (gTLD), for example, .com, .edu, .net, .org, .mil etc.
+	* Country Code Top Level Domain (ccTLD), for example .us, .ca, .tv , .uk etc.
+inally, since 2011 the TLD policy is essentially unrestricted, if you pay enough money and adopt the operating procedures laid down anyone can register a sponsored TLD. Look forward to a whole set of new TLDs like .singles, .kitchen and .construction arriving.
+
+{{.\pasted_image.png}}
+
+What is commonly called a Domain Name is actually a combination of a domain-name and a TLD and is written from LEFT to RIGHT with the lowest level in the hierarchy on the left and the highest level on the right.
+
+''domain-name.tld # example.com''
+
+In the case of the gTLDs, such as .com, .net etc., the user part of the delegated name - the name the user registered - is a **Second Level Domain** (SLD). It is the second level in the hierarchy. The user part is therefore frequently simply referred to as the SLD. So the the Domain Name in the example above can be re-defined to consist of:
+
+''sld.tld # example.com''
+
+==== Authority and Delegation ====
+The concepts of **Delegation** and **Authority** lie at the core of the domain name system hierarchy. The **Authority** for the root domain lies with Internet Corporation for Assigned Numbers and Names (**ICANN**). Since 1998 **ICANN**, a non-profit organisation, has assumed this responsibility from the US government.
+
+The gTLDs are **authoritatively** administered by **ICANN** and delegated to a series of accredited registrars. The ccTLDs are delegated to the individual countries for administration purposes. Figure 1.0 above shows how any authority may in turn delegate to lower levels in the hierarchy, in other words it may delegate anything for which it is **authoritative**. Each layer in the hierarchy may **delegate** the **authoritative** control to the next lower level.
+
+Countries with more centralized governments, like the UK, Brazil and Spain and others, opted for functional segmentation in their delegation models, for example, .co = company, .ac = academic etc.. Thus **mycompany.co.uk** is the **Domain Name** of **mycompany** registered as a company from the UK registration authority.
+
+Delegation within any domain may be almost limitless and is **decided by the delegated authority**, for example, the US and Canada both delegated city within province/state domains thus the address (or URL) **tennisshoes.nb.us** is the town of Tennis Shoes in the State of Nebraska in the United States and we could even have **mycompany.tennisshoes.nb.us**.
+
+__By reading a domain name from RIGHT to LEFT you can track its delegation. This unit of delegation can also be referred to as a ZONE in standards documentation.__
+
+==== So What is www.example.com ====
+
+From our reading above we can see that www.example.com is built up from **www** and **example.com.** The Domain-Name example.com part was delegated from a gTLD registrar which in turn was delegated from ICANN (who owns the root level domain).
+
+The **www** part was chosen by the owner of the domain since they are now the delegated authority for the **example.com** name. They own EVERYTHING to the LEFT of the delegated **Domain Name**. The leftmost part, **www** in this case, is called a host name. By convention (but only convention) web sites have the 'host' name of www (for world wide web).
+
+The us part was allocated by the owner of example.com (they are authoritative) and is called a sub-domain. In this case the delegated authority for example.com has decided that their company organization is best served by a country based sub-domain structure. To summarise the OWNER can delegate, IN ANY WAY THEY WANT, ANYTHING to the LEFT of the Domain Name they own (were delegated).
+
+==== DNS Organization and Structure ====
+There is a DNS server running at each level in the delegated hierarchy and the responsibility for running the DNS lies with the AUTHORITATIVE control at that level.
+
+
+{{.\pasted_image001.png}}
+
+
+The Root Servers (Root DNS) are the responsibility of ICANN but operated by a consortium under a delegation agreement. ICANN created the Root Servers Systems Advisory Committee (RSSAC) to provide advice and guidance as to the operation and development of this critical resource.
+https://www.icann.org/groups/rssac
+
+When any DNS cannot answer (resolve) a request (a query) for a domain name from a client, for instance, example.com, the query is passed to a root-server which will direct (refer) the query to the appropriate TLD DNS server (for .com) which will in turn direct (refer) it to the appropriate Domain (User) DNS server.
+
+==== Zones and Zone Files ====
+Zone files contain Resource Records that describe a domain or sub-domain. The format of zone files is an IETF standard defined by RFC 1035. Almost any sensible DNS software should be able to read zone files. A zone file will consist of the following types of data:
+
+1) Data that indicates the top of the zone and some of its general properties (a SOA Record).
+2) Authoritative data for all nodes or hosts within the zone (typically A (IPv4) or AAAA (IPv6) Records).
+3) Data that describes global information for the zone (including mail MX Records and Name Server NS Records).
+4) In the case of sub-domain delegation the name servers responsible for this sub-domain (one or more NS Records).
+5) In the case of sub-domain delegation one or more glue records that allows a name server to reach the sub-domain (typically one or more A or AAAA Records) for the sub-domain name servers.
+
+==== DNS Queries ====
+A DNS server may receive such a query for any domain. DNS servers may be configured to be authoritative for some domains, slaves for others, forward queries or other combinations.
+
+Most of the queries that a DNS server will receive will be for domains for which it has no knowledge, that is, for which it has no local zone files. DNS software typically allows the name server to respond in different ways to queries about which it has no knowledge.'
+
+There are two types of queries defined for DNS:
+
+	1) A recursive query - the complete answer to the question is always returned. DNS servers are **not required** to support recursive queries.
+	2) An Iterative (or non-recursive) query - where the complete answer MAY be returned or a **referral** provided to another DNS. All DNS servers **must** support Iterative queries.
+
+**Note**: The process called Reverse Mapping (returns a host name given an IP address) uses Recursive and Iterative (non-recursive) queries using the special domain name **IN-ADDR.ARPA**.
+
+Historically reverse IPv4 mapping was not mandatory. Many systems however now use reverse mapping for security and simple authentication schemes (especially mail servers) so proper implementation and maintenance is now practically essential. IPv6 originally mandated reverse mapping but, like a lot of the original IPv6 mandates, has now been rolled-back.
+
+==== Recursive Queries ====
+A recursive query is one where the DNS server will fully answer the query (or give an error). DNS servers are not required to support recursive queries and both the resolver (or another DNS acting recursively on behalf of another resolver) negotiate use of recursive service using a bit (RD) in the query header.
+
+There are three possible responses to a recursive query:
+
+	1) The answer to the query accompanied by any CNAME records (aliases) that may be useful. The response will indicate whether the data is authoritative or cached.
+	2) An error indicating the domain or host does not exist (**NXDOMAIN**). This response may also contain CNAME records that pointed to the non-existing host.
+	3) An temporary error indication - for instance, can't access other DNS's due to network error etc..
+	
+In a recursive query a DNS Resolver will, on behalf of the client (stub-resolver), chase the trail of DNS system across the universe to get the real answer to the question. The journey of a simple query such as 'what is the IP address of www.example.com' to a DNS Resolver which supports recursive queries but is not authoritative for example.com is shown in Diagram 1-3 below:
+
+
+{{.\pasted_image003.png}}
+
+1) The user types www.example.com into their browser address bar. The browser issues a standard function library call (1) to the local stub-resolver.
+
+2) The stub-resolver sends a query (2) 'what is the IP address of www.example.com' to locally configured DNS resolver (aka recursive name server). This is a standard DNS query requesting recursive services (RD (Recursion Desired) = 1).
+
+3) The DNS Resolver looks up the address of www.example.com in its local tables (its **cache**) and does not find it. (If it were found it would be returned immediately to the Stub-resolver in an answer message and the transaction would be complete.)
+
+4) The DNS resolver sends a query (3) to a root-server (every DNS resolver is configured with a file that tells it the names and IP addresses of the root servers) for the IP of www.example.com. (Root-servers, TLD servers and correctly configured user name servers do not, a matter of policy, support recursive queries so the Resolver will, typically, not set Recursion Desired (RD = 0) - this query is, in fact, an **Iterative** query.)
+
+5) The root-server knows nothing about example.com, let alone the www part, but it does know about the next level in the hierarchy, in this case, the .com part so it replies (answers) with a referral (3) pointing at the TLD servers for .com.
+
+6) The DNS Resolver sends a new query (4) 'what is the IP address of www.example.com' to one of the .com TLD servers. Again it will use, typically, an Iterative query.
+
+7) The TLD server knows about example.com, but knows nothing about www so, since it cannot supply a complete response to the query, it replies (4) with a referral to the name servers for example.com.
+
+8) The DNS Resolver sends yet another query (5) 'what is the IP address www.example.com' to one of the name servers for example.com. Once again it will use, typically, an Iterative query.
+
+9) The example.com zone file defines a A (IPv4 address) record so the authoritative server for example.com returns (5) the A record for www.example.com (it fully answers the question).
+
+10) The DNS Resolver sends the response (answer) www.example.com=x.x.x.x to the client's stub-resolver (2) and then places this information in its cache.
+
+11) The stub-resolver places the information www.example.com=x.x.x.x in its cache (since around 2003 most stub-resolvers have been caching stub-resolvers) and responds to the original standard library function call (1) with www.example.com = x.x.x.x.
+
+12) The browser receives the response to its standard function call, places the information in its cache (really) and initiates an HTTP session to the address x.x.x.x. DNS transaction complete. Quite simple really, not much could possibly go wrong.
+
+In summary, the stub-resolver demands recursive services from the DNS Resolver. The DNS Resolver provides a recursive service but uses, typically, Iterative queries to achieve it.
+
+**Note**: The resolver on Windows and most *nix systems is a **stub-resolver** (in point of fact, in most modern systems it is a **Caching stub-Resolver**) - which is defined in the standards to be a minimal resolver which cannot follow **referrals**. __If you reconfigure your local PC or Workstation to point to a DNS server that only supports Iterative queries - it will not work. Period.__
+
+==== Iterative (non-recursive) Queries ====
+A Iterative (or non-recursive) query is one where the DNS server may provide an answer or a partial answer (a referral) to the query (or give an error). All DNS servers must support non-recursive (Iterative) queries. An Iterative query is technically simply a normal DNS query that does not request Recursive Services. In Diagram 1-3 above the transactions (3), (4) and (5) are normally all Iterative queries. Even if the DNS server requested Recursion (RD=1) it would be denied and a normal referral (or answer) returned. 
+
+There are four possible responses to a non-recursive query:
+
+	1) The answer to the query accompanied by any CNAME records (aliases) that may be useful (in a Iterative Query this will ONLY occur if the requested data is already available in the cache). The response will indicate whether the data is authoritative or cached.
+	2) An error indicating the domain or host does not exist (NXDOMAIN). This response may also contain CNAME records that pointed to the non-existing host.
+	3) An temporary error indication, for instance, can't access other DNS's due to network error etc..
+	4) A referral: If the requested data is not available in the cache then the name and IP addess(es) of one or more name server(s) that are closer to the requested domain name (in all cases this is the next lower level in the DNS hierarchy) will be returned. This referral may, or may not be, to the authoritative name server for the target domain.
+	
+== Why use Iterative queries? ==
+They are much faster, the DNS server receiving the query either already has the answer in its cache, in which case it sends it, or not, in which case it sends a referral. No messing around. Iterative queries give the requestor greater control. 
+
+A referral typically contains a list of name servers for the next level in the DNS hierarchy. The requestor may have additional information about one or more of these name servers in its cache (including which is the fastest) from which it can make a better decision about which name server to use. Iterative queries are also extremely useful in diagnostic situations.
+
+==== Zone Updates ====
+{{.\pasted_image004.png}}
+
