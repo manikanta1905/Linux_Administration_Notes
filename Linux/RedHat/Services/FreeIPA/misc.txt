@@ -1,0 +1,43 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-23T10:22:28-04:00
+
+====== misc ======
+Created Tuesday 23 April 2019
+
+				''│10:02:51     chon | Hello. When I join a client to an ipa-server with integrated DNS, it does not automatically create PTR records. Is there a way to do this?                      │ davdunc''
+'''
+            │10:03:52      --> | ktibi (~ktibi@109.190.253.11) has joined #freeipa                                                                                                               │ dazo
+            │10:04:13 sdavy-de | chon: did you enable ddns and created the reverse zone ?                                                                                                        │ delhage
+            │10:04:49     chon | The reverse zone was created, but I am not sure I enabled ddns                                                                                                  │ dgilmore
+            │10:05:23     Crys | chon: PTR generation is not enabled by default.                                                                                                                 │ Diftraku
+            │10:05:30     chon | I was prompted to create a reverse zone during server install, which I accepted                                                                                 │ dmoluguw
+            │10:05:50     chon | How do I enable ddns?                                                                                                                                           │ dobson
+            │10:05:55     Crys | There are multiple ways to enabled auto-reverse, either during installation of the first server or by modifying the DNS configuration.                          │ Dracos-Carazza
+            │10:07:15     Crys | auto reverse is not related to ddns.                                                                                                                            │ dsirrine
+            │10:07:57     chon | so I should have passed the --auto-reverse flag                                                                                                                 │ duffolonious
+            │10:08:30     chon | but it did create the reverse zone                                                                                                                              │ echarlie
+            │10:08:47 sdavy-de | is it normal that one  group through compatibility plugin return two entries for that single group  (the only difference between both is that one contains      │ ehrenreich
+            │                  | memberuid attribute which contains AD users) ?                                                                                                                  │ Erynnn
+            │10:09:47     Crys | chon: ipa dnsconfig-mod --allow-sync-ptr=True                                                                                                                   │ fcami
+            │10:09:54      --> | npmccallum (~npmccallu@107-200-241-210.lightspeed.wlfrct.sbcglobal.net) has joined #freeipa                                                                     │ frenaud
+            │10:11:15     Crys | chon: and ipa dnszone-mod your.zone. --allow-sync-ptr=true                                                                                                      │ ftrivino
+            │10:11:32     Crys | chon: this will sync A/AAAA and PTR for new hosts                                                                                                               │ furrymcgee
+            │10:12:01     Crys | It does not create or update PTR records for existing hosts.                                                                                                    │ g5pw
+            │10:12:18     chon | thank you so much, I am trying now. Is there a way to set these at install time?                                                                                │ gd
+            │10:12:38       ab | chon: set what? These are settings per zone                                                                                                                     │ ghavil
+            │10:12:47       ab | you don't create all the zones at install time                                                                                                                  │ giesen
+            │10:13:17     chon | doesn't the ipa server create the zones when it sets up the integrated dns>                                                                                     │ gislaved
+            │10:14:24     chon | ab: I see what you are saying. I have a flat domain, so my zone is my domain                                                                                    │ gregwork
+            │10:15:47       ab | chon: I'm looking at the code and installer when creates zones always mark them to allow dynamic updates                                                        │ grift
+            │10:17:03       ab | but sync ptr is different                                                                                                                                       │ Han
+            │10:17:18     chon | yeah, it did sync my A records                                                                                                                                  │ Hazelesque
+            │10:17:25     chon | just not the PTR records                                                                                                                                        │ HeMan
+            │10:18:15       ab | yep, just add the dnszone-mod option Crys pointed to                                                                                                            │ hitori
+            │10:18:28     chon | Thanks a lot. Much appreciated
+'''
+  
+
+
+==== How Tos ====
+https://www.freeipa.org/page/HowTos

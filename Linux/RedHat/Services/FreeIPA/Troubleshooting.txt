@@ -1,0 +1,20 @@
+Content-Type: text/x-zim-wiki
+Wiki-Format: zim 0.4
+Creation-Date: 2019-04-23T12:45:32-04:00
+
+====== Troubleshooting ======
+Created Tuesday 23 April 2019
+
+== PTR Records are not being added to IPA integrated DNS server ==
+
+On the IPA-Server, run (where your.zone. is your reverse zone something.IN-ADDR.ARPA.)
+
+''ipa dnsconfig-mod --allow-sync-ptr=True  ''
+''ipa dnszone-mod your.zone. --allow-sync-ptr=true''
+
+If you have already added clients to the domain, you will need to uninstall the client and reinstall the client using
+
+# kinit admin
+# ipa-client-install --uninstall
+# ipa-host-del --updatedns
+# ipa-client-install --domain=home --realm=HOME --principal admin --password=adminpass --mkhomedir --hostname=ns1.home

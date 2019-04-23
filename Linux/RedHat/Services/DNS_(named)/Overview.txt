@@ -85,6 +85,8 @@ Zone files contain Resource Records that describe a domain or sub-domain. The fo
 4) In the case of sub-domain delegation the name servers responsible for this sub-domain (one or more NS Records).
 5) In the case of sub-domain delegation one or more glue records that allows a name server to reach the sub-domain (typically one or more A or AAAA Records) for the sub-domain name servers.
 
+
+
 ==== DNS Queries ====
 A DNS server may receive such a query for any domain. DNS servers may be configured to be authoritative for some domains, slaves for others, forward queries or other combinations.
 
@@ -100,6 +102,8 @@ There are two types of queries defined for DNS:
 Historically reverse IPv4 mapping was not mandatory. Many systems however now use reverse mapping for security and simple authentication schemes (especially mail servers) so proper implementation and maintenance is now practically essential. IPv6 originally mandated reverse mapping but, like a lot of the original IPv6 mandates, has now been rolled-back.
 
 ==== Recursive Queries ====
+Recursive DNS queries occur when a DNS client requests information from a DNS server that is set to query subsequent DNS servers until a definitive answer is returned to the client. The queries made to subsequent DNS servers from the first DNS server are iterative queries.
+
 A recursive query is one where the DNS server will fully answer the query (or give an error). DNS servers are not required to support recursive queries and both the resolver (or another DNS acting recursively on behalf of another resolver) negotiate use of recursive service using a bit (RD) in the query header.
 
 There are three possible responses to a recursive query:
@@ -142,6 +146,8 @@ In summary, the stub-resolver demands recursive services from the DNS Resolver. 
 **Note**: The resolver on Windows and most *nix systems is a **stub-resolver** (in point of fact, in most modern systems it is a **Caching stub-Resolver**) - which is defined in the standards to be a minimal resolver which cannot follow **referrals**. __If you reconfigure your local PC or Workstation to point to a DNS server that only supports Iterative queries - it will not work. Period.__
 
 ==== Iterative (non-recursive) Queries ====
+Iterative DNS queries are ones in which a DNS server is queried and returns an answer without querying other DNS servers, even if it cannot provide a definitive answer. Iterative queries are also called non-recursive queries.
+
 A Iterative (or non-recursive) query is one where the DNS server may provide an answer or a partial answer (a referral) to the query (or give an error). All DNS servers must support non-recursive (Iterative) queries. An Iterative query is technically simply a normal DNS query that does not request Recursive Services. In Diagram 1-3 above the transactions (3), (4) and (5) are normally all Iterative queries. Even if the DNS server requested Recursion (RD=1) it would be denied and a normal referral (or answer) returned. 
 
 There are four possible responses to a non-recursive query:
@@ -151,6 +157,7 @@ There are four possible responses to a non-recursive query:
 	3) An temporary error indication, for instance, can't access other DNS's due to network error etc..
 	4) A referral: If the requested data is not available in the cache then the name and IP addess(es) of one or more name server(s) that are closer to the requested domain name (in all cases this is the next lower level in the DNS hierarchy) will be returned. This referral may, or may not be, to the authoritative name server for the target domain.
 	
+
 == Why use Iterative queries? ==
 They are much faster, the DNS server receiving the query either already has the answer in its cache, in which case it sends it, or not, in which case it sends a referral. No messing around. Iterative queries give the requestor greater control. 
 
