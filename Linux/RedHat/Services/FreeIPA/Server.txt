@@ -182,8 +182,12 @@ yum install freeipa-server ipa-server-dns samba
 
 ipa-server-install --domain=home --realm=HOME --ds-password=dspasswd --admin-pass=adminpass --hostname=freeipa.home --ip-address=192.168.86.5 --mkhomedir --setup-dns
 
-# Fix this firewall rule
-firewall-cmd --permanent --add-service={http,https,ldap,ldaps,kerberos,dns,ntp}
+# Firewall Rules
+firewall-cmd --permanent --new-service=freeipa
+firewall-cmd --permanent --service=freeipa --set-description="Firewall rules for a FreeIPA Server"
+firewall-cmd --permanent --service=freeipa --set-short=freeipa
+firewall-cmd --permanent --service=freeipa --add-port={80/tcp,443/tcp,389/tcp,636/tcp,88/tcp,464/tcp,53/tcp,88/udp,464/udp,53/udp,123/udp}
+firewall-cmd --permanent --add-service freeipa
 firewall-cmd --reload
 
 kinit admin

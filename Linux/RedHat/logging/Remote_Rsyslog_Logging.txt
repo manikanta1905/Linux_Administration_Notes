@@ -39,3 +39,92 @@ syslogd_port_t                 udp      514
 Test your configuration with the logger command below, while tailing [[/var/log/messages]] on the remote server.
 
 ''[root@log-client ~]# logger "testing"''
+
+
+==== Server Script ====
+
+'''
+#!/bin/bash
+
+# This is BASH script for installing, updating, and configuring
+# the rsyslog daemon for remote logging. You must run this script as root.
+
+
+#### INSTALLATION ####
+# For installation instructions:
+# http://www.rsyslog.com/doc/v8-stable/installation/install_from_source.html
+
+# Note 'yum install rsyslog' WILL NOT install the latest version of rsyslog.
+# Although this is the easiest way
+
+# The easiest way to install the latest version on RHEL 5,6,7 systems is to use the
+# rsyslog.repo repository to download the latest pre-compiled versions of rsyslog
+
+# Failing to reach the following website for some reason, just copy the repo data manually
+# (cd /etc/yum.repos.d && curl -O http://rpms.adiscon.com/v8-stable/rsyslog.repo) || cp rsyslog.repo /etc/yum.repos.d/;
+cp rsyslog.repo /etc/yum.repos.d/
+yum install -y rsyslog
+
+echo -e "\n\nrsyslog has been installed"
+echo -e "Configuring...\n\n"
+
+#### CONFIGURATION ####
+# For configuration information:
+# http://www.rsyslog.com/doc/v8-stable/configuration/index.html
+
+echo -e "Is this the syslog client or server? (client / server)";
+select response in "Client" "Server"; do
+    case $response in
+        Client )   
+               echo -e "We need to append the Syslog Server to /etc/rsyslog.conf\n";
+               echo -e "IPv4 interface for log server?\n";
+               read server;
+               echo -e "*.*	@@(z9)$server:514" >> /etc/rsyslog.conf;
+               break;;
+        Server ) 
+               echo -e "Copying remote config file to /etc/rsyslog.d/remote.conf";
+               cp remote.conf /etc/rsyslog.d/;
+               mkdir -v -p /var/log/rsyslog-remote/; # These are where logs for remote hosts are kept
+               echo -e "Opening TCP port 514\n";
+               firewall-cmd --permanent --add-port=514/tcp;
+               firewall-cmd --add-port=514/tcp;
+               iptables -I INPUT 1 --protocol tcp --dport 514 --jump ACCEPT;
+	       iptables-save;
+               break;;
+    esac
+done
+
+systemctl restart rsyslog.service
+
+'''
+== Remote.conf ==
+'''
+# Provides TCP syslog reception
+# for parameters see http://www.rsyslog.com/doc/imtcp.html
+module(load="imtcp") # needs to be done just once
+input(type="imtcp" port="514")
+
+$WorkDirectory		/var/lib/rsyslog # Where to place spool files
+$ActionQueueSaveOnShutdown on # Save Messages in memory to disk on shutdown
+$OmitLocalLogging on 	# Do not log the server's logs into the remote log directory
+
+# Rule set definition for remote logging
+
+$template TmplRemote, "/var/log/rsyslog-remote/%HOSTNAME%/%PROGRAMNAME%.log" # Should make this better
+*.*	?TmplRemote
+'''
+
+
+== rsyslog.repo ==
+
+    
+'''
+[rsyslog_v8]
+name=Adiscon CentOS-$releasever - local packages for $basearch
+baseurl=http://rpms.adiscon.com/v8-stable/epel-$releasever/$basearch
+enabled=1
+gpgcheck=0
+gpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon
+protect=1
+'''
+
