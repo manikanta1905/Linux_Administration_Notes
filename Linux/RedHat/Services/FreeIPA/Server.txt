@@ -163,3 +163,206 @@ Deleted host "minimal.example.com"
 ------------------------------------
 '''
 
+
+
+Introduction:
+
+
+
+0) client/server 
+
+hostname
+ip a
+cat /etc/resolv.conf
+
+1) Server Installation
+
+yum update -y
+yum install freeipa-server ipa-server-dns samba
+
+ipa-server-install --domain=home --realm=HOME --ds-password=dspasswd --admin-pass=adminpass --hostname=freeipa.home --ip-address=192.168.86.5 --mkhomedir --setup-dns
+
+# Fix this firewall rule
+firewall-cmd --permanent --add-service={http,https,ldap,ldaps,kerberos,dns,ntp}
+firewall-cmd --reload
+
+kinit admin
+klist
+
+ipa help
+ipa commands help
+
+ipa dnsconfig-mod --allow-sync-ptr=True
+ipa dnszone-mod home --allow-sync-ptr=true
+
+2) Client Installation
+
+yum update
+yum install ipa-client
+
+ipa-server-install --domain=home --realm=HOME --principal admin --hostname=client.home --mkhomedir
+
+3) useradd
+
+ipa user-add --first testy --last mctestface --displayname=test --email=test@example.com test
+
+ipa passwd
+
+
+Return all Resource Records in a zone
+[root@blah ~]# ipa dnsrecord-find
+Zone name: home
+  Record name: @
+  NS record: freeipa.home.
+
+  Record name: _kerberos
+  TXT record: "HOME"
+
+[root@blah ~]# ipa dnszone-show
+Zone name: home
+  Zone name: home.
+  Active zone: TRUE
+  Authoritative nameserver: freeipa.home.
+  Administrator e-mail address: hostmaster.home.
+  SOA serial: 1556213075
+  SOA refresh: 3600
+  SOA retry: 900
+  SOA expire: 1209600
+  SOA minimum: 3600
+  Allow query: any;
+  Allow transfer: none;
+
+
+[root@freeipa log]# ipa dnsconfig-show
+  Allow PTR sync: TRUE
+  IPA DNS servers: freeipa.home
+  
+  [root@freeipa log]# ipa config-show
+  Maximum username length: 32
+  Home directory base: /home
+  Default shell: /bin/sh
+  Default users group: ipausers
+  Default e-mail domain: home
+  Search time limit: 2
+  Search size limit: 100
+  User search fields: uid,givenname,sn,telephonenumber,ou,title
+  Group search fields: cn,description
+  Enable migration mode: FALSE
+  Certificate Subject base: O=HOME
+  Password Expiration Notification (days): 4
+  Password plugin features: AllowNThash, KDC:Disable Last Success
+  SELinux user map order: guest_u:s0$xguest_u:s0$user_u:s0$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023
+  Default SELinux user: unconfined_u:s0-s0:c0.c1023
+  Default PAC types: MS-PAC, nfs:NONE
+  IPA masters: freeipa.home
+  IPA CA servers: freeipa.home
+  IPA NTP servers: freeipa.home
+  IPA CA renewal master: freeipa.home
+  IPA master capable of PKINIT: freeipa.home
+
+
+[root@freeipa ~]# ipa ca-find
+--------------------
+1 CA matched
+--------------------
+  Name: ipa
+  Description: IPA CA
+  Authority ID: cad3e856-de7e-49c2-b2ef-4490c4dd9cb3
+  Subject DN: CN=Certificate Authority,O=HOME
+  Issuer DN: CN=Certificate Authority,O=HOME
+--------------------
+Number of entries returned 1
+--------------------
+[root@freeipa ~]# ipa ca-show ipa
+  Name: ipa
+  Description: IPA CA
+  Authority ID: cad3e856-de7e-49c2-b2ef-4490c4dd9cb3
+  Subject DN: CN=Certificate Authority,O=HOME
+  Issuer DN: CN=Certificate Authority,O=HOME
+  Certificate: MIIDdjCCAl6gAwIBAgIBATANBgkqhkiG9w0BAQsFADAvMQ0wCwYDVQQKDARIT01FMR4wHAYDVQQDDBVDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwHhcNMTkwNDI1MTY1NjM1WhcNMzkwNDI1MTY1NjM1WjAvMQ0wCwYDVQQKDARIT01FMR4wHAYDVQQDDBVDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDQMEkaErZGjrLZLVkkQ0Yfcq9J2RK1F0PxmVYyxeh5Yy5al6UajjafAcfSLrTX/oHWGrZr6/LY2Ny78Gfhfy8DrTOixpDpzvt3nFONbycHYRk836KE3M279UxAUPI8MpfXfNASbdy89Excj5429y0M7ExgouJQuEIom3JHHBjqu9/FRkHDIJuEzBSjGDqzbXZQoeNlZ5K5at/aAzCT7vFw2Orowr0Dg7ldM5hjxeZ7wWuhZ/XRq/NdQLQ56lJ0wg/QwVu7JOZe5l6SCj46PBz6hNE/z/nmJBJatAEFUsv5gMEy9+2sxsHMt/KpPReOVgY47+/sacoblzsX2CUtKm4BAgMBAAGjgZwwgZkwHwYDVR0jBBgwFoAUma7FXwbO6JOI8kp2ARZ2zRfos70wDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAcYwHQYDVR0OBBYEFJmuxV8GzuiTiPJKdgEWds0X6LO9MDYGCCsGAQUFBwEBBCowKDAmBggrBgEFBQcwAYYaaHR0cDovL2lwYS1jYS5ob21lL2NhL29jc3AwDQYJKoZIhvcNAQELBQADggEBAKj0sFk7L3MRlDlAOXFpFVg+F9lA5StGxphmh2hWm4uPbRygv01muNBd5eoY86XE2FKIVF4bn7H9a2gdM6B0gChskptT9kSBzkH2hpPcJAsYIryEydZQA2fVEsvFICcMjKOv/NYcGX02/2BljOEuHkSdNIh4H/RnyCx0FnanK/rx/ucYizXkmO5zPWiHVEJWs+xNbwn8bRcHMC0OUBeRm5wtkSvB4etZYFPkzQXdBm8jv5SopOdY1ttKNyePDRyeBg2FRn8nSZQoKmC+j4nIqWlVfwqgyYBiFs3egdo44C79cYM+yoPIXH+Ms58HRzQW73M7nQtZRhFExDX/ZCY9w1Y=
+
+
+Several services receive a certificate from the ipa Certificate Authority (see Subject).
+
+[root@freeipa ~]# ipa cert-find
+--------------------
+10 certificates matched
+--------------------
+  Issuing CA: ipa
+  Subject: CN=Certificate Authority,O=HOME
+  Issuer: CN=Certificate Authority,O=HOME
+  Not Before: Thu Apr 25 12:56:35 2019 UTC
+  Not After: Mon Apr 25 12:56:35 2039 UTC
+  Serial number: 1
+  Serial number (hex): 0x1
+  Status: VALID
+  Revoked: False
+
+  Issuing CA: ipa
+  Subject: CN=OCSP Subsystem,O=HOME
+  Issuer: CN=Certificate Authority,O=HOME
+  Not Before: Thu Apr 25 12:56:36 2019 UTC
+  Not After: Wed Apr 14 12:56:36 2021 UTC
+  Serial number: 2
+  Serial number (hex): 0x2
+  Status: VALID
+  Revoked: False
+
+We can view the cert with Serial number 1
+
+[root@freeipa ~]# ipa cert-show 1
+  Issuing CA: ipa
+  Certificate: MIIDdjCCAl6gAwIBAgIBATANBgkqhkiG9w0BAQsFADAvMQ0wCwYDVQQKDARIT01FMR4wHAYDVQQDDBVDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwHhcNMTkwNDI1MTY1NjM1WhcNMzkwNDI1MTY1NjM1WjAvMQ0wCwYDVQQKDARIT01FMR4wHAYDVQQDDBVDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDQMEkaErZGjrLZLVkkQ0Yfcq9J2RK1F0PxmVYyxeh5Yy5al6UajjafAcfSLrTX/oHWGrZr6/LY2Ny78Gfhfy8DrTOixpDpzvt3nFONbycHYRk836KE3M279UxAUPI8MpfXfNASbdy89Excj5429y0M7ExgouJQuEIom3JHHBjqu9/FRkHDIJuEzBSjGDqzbXZQoeNlZ5K5at/aAzCT7vFw2Orowr0Dg7ldM5hjxeZ7wWuhZ/XRq/NdQLQ56lJ0wg/QwVu7JOZe5l6SCj46PBz6hNE/z/nmJBJatAEFUsv5gMEy9+2sxsHMt/KpPReOVgY47+/sacoblzsX2CUtKm4BAgMBAAGjgZwwgZkwHwYDVR0jBBgwFoAUma7FXwbO6JOI8kp2ARZ2zRfos70wDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAcYwHQYDVR0OBBYEFJmuxV8GzuiTiPJKdgEWds0X6LO9MDYGCCsGAQUFBwEBBCowKDAmBggrBgEFBQcwAYYaaHR0cDovL2lwYS1jYS5ob21lL2NhL29jc3AwDQYJKoZIhvcNAQELBQADggEBAKj0sFk7L3MRlDlAOXFpFVg+F9lA5StGxphmh2hWm4uPbRygv01muNBd5eoY86XE2FKIVF4bn7H9a2gdM6B0gChskptT9kSBzkH2hpPcJAsYIryEydZQA2fVEsvFICcMjKOv/NYcGX02/2BljOEuHkSdNIh4H/RnyCx0FnanK/rx/ucYizXkmO5zPWiHVEJWs+xNbwn8bRcHMC0OUBeRm5wtkSvB4etZYFPkzQXdBm8jv5SopOdY1ttKNyePDRyeBg2FRn8nSZQoKmC+j4nIqWlVfwqgyYBiFs3egdo44C79cYM+yoPIXH+Ms58HRzQW73M7nQtZRhFExDX/ZCY9w1Y=
+  Subject: CN=Certificate Authority,O=HOME
+  Issuer: CN=Certificate Authority,O=HOME
+  Not Before: Thu Apr 25 16:56:35 2019 UTC
+  Not After: Mon Apr 25 16:56:35 2039 UTC
+  Serial number: 1
+  Serial number (hex): 0x1
+  Revoked: False
+
+If we have issued a certificate signing request, we can see the request status.
+In this case, cert 1 has already been signed by ipa CA
+
+[root@freeipa ~]# ipa cert-status --ca=ipa 1
+  Request id: 1
+  Serial number: 1
+  Request status: complete
+
+[root@blah ~]# ipa group-find
+--------------------
+4 groups matched
+--------------------
+  Group name: admins
+  Description: Account administrators group
+  GID: 1624600000
+
+  Group name: editors
+  Description: Limited admins who can edit other users
+  GID: 1624600002
+
+  Group name: ipausers
+  Description: Default group for all users
+
+  Group name: trust admins
+  Description: Trusts administrators group
+--------------------
+Number of entries returned 4
+--------------------
+
+
+[root@blah ~]# ipa hbacrule-find
+--------------------
+1 HBAC rule matched
+--------------------
+  Rule name: allow_all
+  User category: all
+  Host category: all
+  Service category: all
+  Description: Allow all users to access any host from any host
+  Enabled: TRUE
+--------------------
+Number of entries returned 1
+--------------------
+
+
